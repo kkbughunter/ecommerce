@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
+import com.astraval.ecommercebackend.modules.category.Category;
+import com.astraval.ecommercebackend.modules.category.CategoryRepository;
 import com.astraval.ecommercebackend.modules.product.dto.CreateProductRequest;
 import com.astraval.ecommercebackend.modules.product.dto.ProductDetailResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductResponse;

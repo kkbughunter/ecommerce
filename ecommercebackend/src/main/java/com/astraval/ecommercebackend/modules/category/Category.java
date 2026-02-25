@@ -1,4 +1,4 @@
-package com.astraval.ecommercebackend.modules.product;
+package com.astraval.ecommercebackend.modules.category;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

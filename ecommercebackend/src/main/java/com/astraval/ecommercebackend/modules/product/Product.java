@@ -3,6 +3,8 @@ package com.astraval.ecommercebackend.modules.product;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.astraval.ecommercebackend.modules.category.Category;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
