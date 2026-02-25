@@ -962,3 +962,428 @@ This generated password is for development use only. Your security configuration
 2026-02-25 11:23:41.643 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
 2026-02-25 11:23:41.675 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
 2026-02-25 11:23:41.686 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 10.508 seconds (process running for 11.329)
+2026-02-25 11:56:52.461 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 1616 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 11:56:52.465 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 11:56:54.557 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 11:56:54.804 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 209 ms. Found 13 JPA repository interfaces.
+2026-02-25 11:56:57.146 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 11:56:57.201 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 11:56:57.495 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 11:56:57.498 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 11:56:59.864 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 11:57:00.091 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 11:57:02.620 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 11:57:02.910 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 7e20703a-18af-4d5f-a48b-0b1426f8d964
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 11:57:04.435 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 12.876 seconds (process running for 16.073)
+2026-02-25 11:57:06.133 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 11:57:06.270 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 11:57:06.297 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 11:59:00.689 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 15680 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 11:59:00.693 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 11:59:04.236 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 11:59:04.532 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 281 ms. Found 13 JPA repository interfaces.
+2026-02-25 11:59:07.389 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 11:59:07.451 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 11:59:07.660 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 11:59:07.663 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 11:59:10.233 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 11:59:10.477 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 11:59:13.715 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 11:59:14.356 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 18767392-e6e5-472b-ab3c-5d24e4beeefb
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 11:59:17.495 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 17.814 seconds (process running for 21.291)
+2026-02-25 11:59:19.310 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 11:59:19.394 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 11:59:19.410 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 12:01:06.938 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 7560 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:01:06.943 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:01:07.035 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-25 12:01:07.035 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-25 12:01:08.558 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:01:08.698 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 130 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:01:09.413 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:01:09.427 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:01:09.431 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:01:09.432 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:01:09.488 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2450 ms
+2026-02-25 12:01:10.409 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:01:10.453 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 12:01:10.659 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5795a13c
+2026-02-25 12:01:10.662 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 12:01:13.401 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:01:13.659 [restartedMain] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 12:01:17.026 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:01:17.325 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: aa9ee904-3dfc-4a21-a200-eaa51a993514
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:01:18.591 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:01:18.610 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:01:18.619 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 12.493 seconds (process running for 13.523)
+2026-02-25 12:04:45.010 [File Watcher] INFO  o.s.b.d.a.LocalDevToolsAutoConfiguration$RestartingClassPathChangeChangedEventListener - Restarting due to 12 class path changes (0 additions, 12 deletions, 0 modifications)
+2026-02-25 12:04:45.028 [Thread-1] INFO  o.s.b.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-02-25 12:04:45.032 [tomcat-shutdown] INFO  o.a.c.http11.Http11NioProtocol - Pausing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:04:45.040 [tomcat-shutdown] INFO  o.s.b.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-02-25 12:04:45.040 [Thread-1] INFO  o.a.c.http11.Http11NioProtocol - Stopping ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:04:45.059 [Thread-1] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:04:45.070 [Thread-1] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 12:04:45.092 [Thread-1] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 12:04:45.496 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 7560 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:04:45.496 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:04:47.076 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:04:47.417 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 335 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:04:48.047 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:04:48.055 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:04:48.056 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:04:48.057 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:04:48.162 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2651 ms
+2026-02-25 12:04:48.483 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:04:48.486 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-2 - Starting...
+2026-02-25 12:04:48.570 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@63864e9f
+2026-02-25 12:04:48.571 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-2 - Start completed.
+2026-02-25 12:04:49.724 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:04:51.422 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:04:51.654 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: db2ee59e-542e-489a-822a-3b1b634903e3
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:04:52.954 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:04:52.960 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:04:52.972 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 7.599 seconds (process running for 227.877)
+2026-02-25 12:04:53.174 [restartedMain] INFO  o.s.b.d.a.ConditionEvaluationDeltaLoggingListener - Condition evaluation unchanged
+2026-02-25 12:04:54.820 [File Watcher] INFO  o.s.b.d.a.LocalDevToolsAutoConfiguration$RestartingClassPathChangeChangedEventListener - Restarting due to 14 class path changes (14 additions, 0 deletions, 0 modifications)
+2026-02-25 12:04:54.955 [Thread-5] INFO  o.s.b.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-02-25 12:04:55.220 [tomcat-shutdown] INFO  o.a.c.http11.Http11NioProtocol - Pausing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:04:55.227 [tomcat-shutdown] INFO  o.s.b.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-02-25 12:04:55.229 [Thread-5] INFO  o.a.c.http11.Http11NioProtocol - Stopping ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:04:55.238 [Thread-5] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:04:55.240 [Thread-5] INFO  c.z.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+2026-02-25 12:04:55.330 [Thread-5] INFO  c.z.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+2026-02-25 12:04:55.688 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 7560 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:04:55.689 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:04:57.468 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:04:57.982 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 510 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:04:58.797 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:04:58.802 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:04:58.806 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:04:58.807 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:04:58.950 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 3255 ms
+2026-02-25 12:05:00.241 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:05:00.243 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-3 - Starting...
+2026-02-25 12:05:00.467 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-3 - Added connection org.postgresql.jdbc.PgConnection@74682cb3
+2026-02-25 12:05:00.467 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-3 - Start completed.
+2026-02-25 12:05:01.856 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:05:03.290 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:05:03.422 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 5757ceb6-821d-4493-9842-729427526a4f
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:05:04.189 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:05:04.197 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:05:04.202 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 8.628 seconds (process running for 239.107)
+2026-02-25 12:05:04.413 [restartedMain] INFO  o.s.b.d.a.ConditionEvaluationDeltaLoggingListener - Condition evaluation unchanged
+2026-02-25 12:05:06.327 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 5940 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:05:06.330 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:05:09.019 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:05:09.307 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 262 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:05:12.666 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:05:12.723 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 12:05:12.950 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 12:05:12.952 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 12:05:19.449 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:05:19.776 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 12:05:22.568 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:05:23.097 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 60348f6a-80a9-497c-8fb9-175306c42638
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:05:25.488 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 20.715 seconds (process running for 27.562)
+2026-02-25 12:05:27.362 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:05:27.510 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 12:05:27.513 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 12:06:05.425 [http-nio-8090-exec-2] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-25 12:06:32.165 [File Watcher] INFO  o.s.b.d.a.LocalDevToolsAutoConfiguration$RestartingClassPathChangeChangedEventListener - Restarting due to 1 class path change (0 additions, 1 deletion, 0 modifications)
+2026-02-25 12:06:32.170 [Thread-9] INFO  o.s.b.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-02-25 12:06:32.171 [tomcat-shutdown] INFO  o.a.c.http11.Http11NioProtocol - Pausing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:06:32.177 [tomcat-shutdown] INFO  o.s.b.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-02-25 12:06:32.178 [Thread-9] INFO  o.a.c.http11.Http11NioProtocol - Stopping ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:06:32.184 [Thread-9] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:06:32.185 [Thread-9] INFO  c.z.hikari.HikariDataSource - HikariPool-3 - Shutdown initiated...
+2026-02-25 12:06:32.202 [Thread-9] INFO  c.z.hikari.HikariDataSource - HikariPool-3 - Shutdown completed.
+2026-02-25 12:06:32.528 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 7560 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:06:32.530 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:06:33.820 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:06:34.184 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 361 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:06:34.551 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:06:34.553 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:06:34.558 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:06:34.558 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:06:34.605 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2067 ms
+2026-02-25 12:06:35.061 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:06:35.067 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-4 - Starting...
+2026-02-25 12:06:35.175 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-4 - Added connection org.postgresql.jdbc.PgConnection@c8ad971
+2026-02-25 12:06:35.175 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-4 - Start completed.
+2026-02-25 12:06:36.014 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:06:36.962 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:06:37.095 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 7da424a4-863f-4966-aac1-1b6c8196e175
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:06:37.844 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:06:37.878 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:06:37.888 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 5.485 seconds (process running for 332.793)
+2026-02-25 12:06:38.116 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 15704 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:06:38.118 [restartedMain] INFO  o.s.b.d.a.ConditionEvaluationDeltaLoggingListener - Condition evaluation unchanged
+2026-02-25 12:06:38.121 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:06:40.722 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:06:40.932 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 188 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:06:43.204 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:06:43.249 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 12:06:43.689 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 12:06:43.692 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 12:06:46.364 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:06:46.607 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 12:06:49.366 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:06:49.704 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: d28cdea3-e87e-42ad-a887-a905fe1b6f4a
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:06:51.366 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 14.816 seconds (process running for 19.663)
+2026-02-25 12:06:52.844 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:06:52.978 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 12:06:53.050 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 12:08:08.637 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 4796 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:08:08.643 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:08:08.773 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-25 12:08:08.774 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-25 12:08:10.229 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:08:10.409 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 163 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:08:11.193 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:08:11.208 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:08:11.211 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:08:11.212 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:08:11.275 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2499 ms
+2026-02-25 12:08:12.294 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:08:12.342 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 12:08:12.564 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@65f88f63
+2026-02-25 12:08:12.566 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 12:08:15.182 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:08:15.486 [restartedMain] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 12:08:16.884 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:08:17.008 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 5078a114-2045-423a-9071-9082c82babf3
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:08:17.634 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:08:17.668 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:08:17.675 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 9.937 seconds (process running for 10.679)
+2026-02-25 12:09:04.112 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 15380 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:09:04.116 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:09:04.177 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-25 12:09:04.177 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-25 12:09:05.238 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:09:05.381 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 130 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:09:06.150 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:09:06.163 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:09:06.166 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:09:06.167 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:09:06.226 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2049 ms
+2026-02-25 12:09:07.179 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:09:07.257 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 12:09:07.537 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5d0b56a8
+2026-02-25 12:09:07.540 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 12:09:09.800 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:09:09.946 [restartedMain] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 12:09:11.106 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:09:11.207 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 68e6eb58-8b20-42e3-98cc-7e063ca730f7
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:09:11.825 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:09:11.865 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:09:11.874 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 8.617 seconds (process running for 9.453)
+2026-02-25 12:14:45.529 [http-nio-8090-exec-1] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-25 12:20:38.098 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 11468 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:20:38.108 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:20:40.055 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:20:40.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 179 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:20:42.477 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:20:42.527 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 12:20:42.736 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 12:20:42.739 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 12:20:45.186 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:20:45.542 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 12:20:49.156 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:20:49.614 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 7858410f-c2fd-49e2-a550-632f7a644358
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:20:51.065 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 13.868 seconds (process running for 17.637)
+2026-02-25 12:20:52.837 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:20:52.928 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 12:20:52.936 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 12:21:30.931 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 16168 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:21:30.938 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:21:31.027 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-25 12:21:31.028 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-25 12:21:32.110 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:21:32.264 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 142 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:21:32.997 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:21:33.018 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:21:33.024 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:21:33.025 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:21:33.232 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2204 ms
+2026-02-25 12:21:35.112 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:21:35.159 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 12:21:35.354 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5312202b
+2026-02-25 12:21:35.356 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 12:21:37.785 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:21:37.947 [restartedMain] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 12:21:39.625 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:21:39.875 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 643cb433-74f1-40fd-b516-bb5d4ed51ac6
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:21:40.827 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:21:40.854 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:21:40.862 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 11.428 seconds (process running for 12.298)
+2026-02-25 12:22:19.155 [http-nio-8090-exec-1] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-25 12:26:45.978 [File Watcher] INFO  o.s.b.d.a.LocalDevToolsAutoConfiguration$RestartingClassPathChangeChangedEventListener - Restarting due to 4 class path changes (0 additions, 4 deletions, 0 modifications)
+2026-02-25 12:26:46.093 [Thread-1] INFO  o.s.b.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-02-25 12:26:46.112 [tomcat-shutdown] INFO  o.a.c.http11.Http11NioProtocol - Pausing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:26:46.136 [tomcat-shutdown] INFO  o.s.b.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-02-25 12:26:46.137 [Thread-1] INFO  o.a.c.http11.Http11NioProtocol - Stopping ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:26:46.158 [Thread-1] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:26:46.173 [Thread-1] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 12:26:46.209 [Thread-1] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 12:26:46.495 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 16168 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:26:46.497 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:26:47.728 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:26:47.988 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 253 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:26:48.851 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:26:48.855 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:26:48.855 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:26:48.855 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:26:49.041 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2537 ms
+2026-02-25 12:26:49.422 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:26:49.424 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-2 - Starting...
+2026-02-25 12:26:49.503 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@126ae8d9
+2026-02-25 12:26:49.504 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-2 - Start completed.
+2026-02-25 12:26:51.454 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:26:52.391 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:26:52.659 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: bdcea6ac-7d0f-4461-8de3-9bd34d962f30
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:26:55.309 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:26:55.330 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:26:55.354 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 9.011 seconds (process running for 326.79)
+2026-02-25 12:26:56.071 [restartedMain] INFO  o.s.b.d.a.ConditionEvaluationDeltaLoggingListener - Condition evaluation unchanged
+2026-02-25 12:26:56.867 [File Watcher] INFO  o.s.b.d.a.LocalDevToolsAutoConfiguration$RestartingClassPathChangeChangedEventListener - Restarting due to 4 class path changes (4 additions, 0 deletions, 0 modifications)
+2026-02-25 12:26:56.870 [Thread-5] INFO  o.s.b.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-02-25 12:26:56.873 [tomcat-shutdown] INFO  o.a.c.http11.Http11NioProtocol - Pausing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:26:56.884 [tomcat-shutdown] INFO  o.s.b.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-02-25 12:26:56.885 [Thread-5] INFO  o.a.c.http11.Http11NioProtocol - Stopping ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:26:56.897 [Thread-5] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:26:56.901 [Thread-5] INFO  c.z.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+2026-02-25 12:26:56.924 [Thread-5] INFO  c.z.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+2026-02-25 12:26:57.191 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 16168 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:26:57.192 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:26:58.051 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:26:58.370 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 316 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:26:58.899 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 12:26:58.902 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:26:58.903 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 12:26:58.904 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 12:26:59.056 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 1860 ms
+2026-02-25 12:26:59.416 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:26:59.419 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-3 - Starting...
+2026-02-25 12:26:59.490 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-3 - Added connection org.postgresql.jdbc.PgConnection@58a4fe3d
+2026-02-25 12:26:59.491 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-3 - Start completed.
+2026-02-25 12:27:00.439 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:27:01.229 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:27:01.313 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 9f062361-23f6-4fc7-8fa8-ee6c98c0cb03
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:27:01.726 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 12:27:01.731 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 12:27:01.735 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 4.668 seconds (process running for 333.171)
+2026-02-25 12:27:01.828 [restartedMain] INFO  o.s.b.d.a.ConditionEvaluationDeltaLoggingListener - Condition evaluation unchanged
+2026-02-25 12:27:02.670 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 7268 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 12:27:02.686 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 12:27:04.986 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 12:27:05.308 [http-nio-8090-exec-1] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-25 12:27:05.362 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 350 ms. Found 13 JPA repository interfaces.
+2026-02-25 12:27:10.075 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 12:27:10.143 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 12:27:10.408 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 12:27:10.410 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 12:27:13.762 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:27:14.040 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 12:27:17.046 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 12:27:17.428 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: acf38f1e-f919-4fd3-af3e-156a77e323a0
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 12:27:19.003 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 17.416 seconds (process running for 22.165)
+2026-02-25 12:27:22.895 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 12:27:23.125 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 12:27:23.257 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 16:19:13.694 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 12872 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 16:19:13.697 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 16:19:15.629 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 16:19:15.850 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 147 ms. Found 6 JPA repository interfaces.
+2026-02-25 16:19:19.293 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 16:19:19.352 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 16:19:19.623 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 16:19:19.626 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 16:19:22.469 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 16:19:22.945 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 16:19:26.244 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 16:19:26.535 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 4eac11c8-71f0-4bd8-a62d-93f9f1f0ea70
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 16:19:28.201 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 15.635 seconds (process running for 19.242)
+2026-02-25 16:19:29.002 [Test worker] INFO  c.a.e.m.a.AdminBootstrapService - Bootstrap admin role ensured for email admin@yourstore.com
+2026-02-25 16:19:29.663 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 16:19:29.700 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 16:19:29.712 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.

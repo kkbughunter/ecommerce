@@ -86,6 +86,14 @@ SET subject = EXCLUDED.subject,
     modified_by = 0,
     modified_dt = NOW();
 
+INSERT INTO roles (role_code, landing_url, role_name)
+VALUES
+    ('ADMIN', '/admin/products', 'Administrator'),
+    ('USER', '/shop', 'Customer')
+ON CONFLICT (role_code) DO UPDATE
+SET landing_url = EXCLUDED.landing_url,
+    role_name = EXCLUDED.role_name;
+
 INSERT INTO email_templates (
     name,
     from_email,

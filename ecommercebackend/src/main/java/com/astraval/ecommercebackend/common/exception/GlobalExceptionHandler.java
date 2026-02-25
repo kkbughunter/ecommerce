@@ -1,90 +1,68 @@
 package com.astraval.ecommercebackend.common.exception;
 
-import jakarta.validation.ConstraintViolationException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.OffsetDateTime;
-import java.util.List;
+import com.astraval.ecommercebackend.common.util.ApiResponse;
+import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException exception) {
-        ApiError apiError = new ApiError(
-                OffsetDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                exception.getMessage(),
-                List.of()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
-    }
-
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiError> handleBadRequest(BadRequestException exception) {
-        ApiError apiError = new ApiError(
-                OffsetDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                exception.getMessage(),
-                List.of()
-        );
-        return ResponseEntity.badRequest().body(apiError);
+    @ExceptionHandler(ApplicationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleApplicationException(ApplicationException ex) {
+        return ResponseEntity.status(ex.getStatus())
+                .body(ApiResponseFactory.error(ex.getMessage(), ex.getStatus().value()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception) {
-        List<String> details = exception.getBindingResult()
-                .getAllErrors()
-                .stream()
-                .map(error -> {
-                    if (error instanceof FieldError fieldError) {
-                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
-                    }
-                    return error.getDefaultMessage();
-                })
-                .toList();
-        ApiError apiError = new ApiError(
-                OffsetDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Validation failed",
-                details
-        );
-        return ResponseEntity.badRequest().body(apiError);
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        Map<String, String> validationErrors = new LinkedHashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            validationErrors.put(error.getField(), error.getDefaultMessage());
+        }
+        return ResponseEntity.badRequest()
+                .body(ApiResponseFactory.validation(validationErrors, "Validation failed"));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException exception) {
-        List<String> details = exception.getConstraintViolations()
-                .stream()
-                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
-                .toList();
-        ApiError apiError = new ApiError(
-                OffsetDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Validation failed",
-                details
-        );
-        return ResponseEntity.badRequest().body(apiError);
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> validationErrors = new LinkedHashMap<>();
+        ex.getConstraintViolations()
+                .forEach(violation -> validationErrors.put(violation.getPropertyPath().toString(), violation.getMessage()));
+
+        return ResponseEntity.badRequest()
+                .body(ApiResponseFactory.validation(validationErrors, "Validation failed"));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMalformedJson(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponseFactory.badRequest("Malformed request body"));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponseFactory.badRequest("Request violates data constraints"));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleUnknown(Exception exception) {
-        ApiError apiError = new ApiError(
-                OffsetDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                exception.getMessage(),
-                List.of()
-        );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
+    public ResponseEntity<ApiResponse<Object>> handleUnhandledException(Exception ex) {
+        log.error("Unhandled server error", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponseFactory.error("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR.value()));
     }
 }

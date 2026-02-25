@@ -51,7 +51,7 @@
         </root>
     </springProfile>
 
-    <logger name="com.astraval.iotrootbackend" level="INFO"/>
+    <logger name="com.astraval.ecommercebackend" level="INFO"/>
     <logger name="org.springframework.security" level="ERROR"/>
     <logger name="org.hibernate" level="ERROR"/>
     <logger name="org.springframework.web" level="ERROR"/>
