@@ -1,8 +1,3 @@
-# Backend reference & DB design (for AI / devs)
-
-Below is a focused, developer-friendly backend specification and **database design (PostgreSQL)** for your **single-vendor e-commerce** project. Use this as the canonical reference for implementing models, APIs, services, migrations and tests.
-
----
 
 # 🗂 Backend Project Structure
 

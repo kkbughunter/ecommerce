@@ -3,8 +3,6 @@ package com.astraval.ecommercebackend.modules.product;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.astraval.ecommercebackend.modules.user.User;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -27,10 +25,6 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Long productId;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "admin_id", nullable = false)
-    private User admin;
 
     @Column(name = "name", length = 200, nullable = false)
     private String name;
