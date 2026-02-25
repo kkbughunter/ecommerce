@@ -1387,3 +1387,519 @@ This generated password is for development use only. Your security configuration
 2026-02-25 16:19:29.663 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
 2026-02-25 16:19:29.700 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
 2026-02-25 16:19:29.712 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 16:20:19.789 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 240 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 16:20:19.792 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 16:20:22.130 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 16:20:22.371 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 220 ms. Found 6 JPA repository interfaces.
+2026-02-25 16:20:27.263 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 16:20:27.340 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 16:20:27.712 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 16:20:27.715 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 16:20:31.369 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 16:20:31.780 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 16:20:36.096 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 16:20:36.696 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: fb913b41-192f-4570-a5d7-4e2f15495d2a
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 16:20:39.359 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 21.239 seconds (process running for 27.032)
+2026-02-25 16:20:40.062 [Test worker] INFO  c.a.e.m.a.AdminBootstrapService - Bootstrap admin role ensured for email admin@yourstore.com
+2026-02-25 16:20:40.646 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 16:20:40.675 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 16:20:40.708 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 16:25:55.325 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Starting EcommercebackendApplicationTests using Java 21.0.9 with PID 11104 (started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 16:25:55.328 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 16:25:59.153 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 16:25:59.494 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 313 ms. Found 6 JPA repository interfaces.
+2026-02-25 16:26:03.072 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 16:26:03.148 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 16:26:03.534 [Test worker] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:ecommerce user=SA
+2026-02-25 16:26:03.540 [Test worker] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 16:26:05.669 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 16:26:06.120 [Test worker] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 16:26:10.108 [Test worker] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 16:26:10.318 [Test worker] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: e31f0d93-a055-425c-ab6b-3fd5063a3783
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 16:26:12.349 [Test worker] INFO  c.a.e.EcommercebackendApplicationTests - Started EcommercebackendApplicationTests in 18.401 seconds (process running for 21.989)
+2026-02-25 16:26:13.346 [Test worker] INFO  c.a.e.m.a.AdminBootstrapService - Bootstrap admin role ensured for email admin@yourstore.com
+2026-02-25 16:26:14.331 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 16:26:14.381 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-25 16:26:14.444 [SpringApplicationShutdownHook] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-25 16:27:19.615 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 8924 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 16:27:19.665 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 16:27:19.969 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-25 16:27:19.970 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-25 16:27:23.646 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 16:27:23.738 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 80 ms. Found 6 JPA repository interfaces.
+2026-02-25 16:27:24.552 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 16:27:24.568 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 16:27:24.571 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 16:27:24.572 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 16:27:24.636 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 4663 ms
+2026-02-25 16:27:25.711 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 16:27:25.755 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 16:27:26.023 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@4a09d1b7
+2026-02-25 16:27:26.025 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 16:27:28.127 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 16:27:28.413 [restartedMain] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 16:27:30.544 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 16:27:30.695 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 91c61d4d-e2e8-4175-92d8-3c1b4040a816
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 16:27:31.558 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 16:27:31.592 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 16:27:31.602 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 15.275 seconds (process running for 17.086)
+2026-02-25 16:27:32.000 [restartedMain] INFO  c.a.e.m.a.AdminBootstrapService - Bootstrap admin role ensured for email admin@yourstore.com
+2026-02-25 16:29:58.158 [http-nio-8090-exec-1] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-25 16:29:58.218 [http-nio-8090-exec-1] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui.html
+2026-02-25 16:29:58.470 [http-nio-8090-exec-1] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui.html - Status: 302
+2026-02-25 16:29:58.471 [http-nio-8090-exec-1] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui.html, ip=0:0:0:0:0:0:0:1, status=302, time=268ms
+2026-02-25 16:29:58.489 [http-nio-8090-exec-2] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/index.html
+2026-02-25 16:29:58.499 [http-nio-8090-exec-2] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/index.html - Status: 200
+2026-02-25 16:29:58.499 [http-nio-8090-exec-2] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/index.html, ip=0:0:0:0:0:0:0:1, status=200, time=14ms
+2026-02-25 16:29:58.583 [http-nio-8090-exec-3] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui.css
+2026-02-25 16:29:58.585 [http-nio-8090-exec-4] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/index.css
+2026-02-25 16:29:58.590 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui-standalone-preset.js
+2026-02-25 16:29:58.593 [http-nio-8090-exec-3] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui.css - Status: 200
+2026-02-25 16:29:58.595 [http-nio-8090-exec-3] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui.css, ip=0:0:0:0:0:0:0:1, status=200, time=15ms
+2026-02-25 16:29:58.592 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui-bundle.js
+2026-02-25 16:29:58.607 [http-nio-8090-exec-4] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/index.css - Status: 200
+2026-02-25 16:29:58.607 [http-nio-8090-exec-4] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/index.css, ip=0:0:0:0:0:0:0:1, status=200, time=23ms
+2026-02-25 16:29:58.614 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui-standalone-preset.js - Status: 200
+2026-02-25 16:29:58.615 [http-nio-8090-exec-6] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui-standalone-preset.js, ip=0:0:0:0:0:0:0:1, status=200, time=26ms
+2026-02-25 16:29:58.639 [http-nio-8090-exec-7] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-initializer.js
+2026-02-25 16:29:58.676 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui-bundle.js - Status: 200
+2026-02-25 16:29:58.684 [http-nio-8090-exec-5] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui-bundle.js, ip=0:0:0:0:0:0:0:1, status=200, time=94ms
+2026-02-25 16:29:58.750 [http-nio-8090-exec-7] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-initializer.js - Status: 200
+2026-02-25 16:29:58.752 [http-nio-8090-exec-7] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-initializer.js, ip=0:0:0:0:0:0:0:1, status=200, time=114ms
+2026-02-25 16:29:59.211 [http-nio-8090-exec-8] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/swagger-config
+2026-02-25 16:29:59.237 [http-nio-8090-exec-9] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/favicon-32x32.png
+2026-02-25 16:29:59.241 [http-nio-8090-exec-9] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/favicon-32x32.png - Status: 200
+2026-02-25 16:29:59.241 [http-nio-8090-exec-9] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/favicon-32x32.png, ip=0:0:0:0:0:0:0:1, status=200, time=5ms
+2026-02-25 16:29:59.390 [http-nio-8090-exec-8] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/swagger-config - Status: 200
+2026-02-25 16:29:59.391 [http-nio-8090-exec-8] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/swagger-config, ip=0:0:0:0:0:0:0:1, status=200, time=181ms
+2026-02-25 16:29:59.443 [http-nio-8090-exec-10] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/admin
+2026-02-25 16:29:59.999 [http-nio-8090-exec-10] INFO  o.s.a.AbstractOpenApiResource - Init duration for springdoc-openapi is: 460 ms
+2026-02-25 16:30:00.021 [http-nio-8090-exec-10] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/admin - Status: 200
+2026-02-25 16:30:00.022 [http-nio-8090-exec-10] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/admin, ip=0:0:0:0:0:0:0:1, status=200, time=579ms
+2026-02-25 16:34:00.698 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/index.html
+2026-02-25 16:34:00.706 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/index.html - Status: 304
+2026-02-25 16:34:00.708 [http-nio-8090-exec-6] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/index.html, ip=0:0:0:0:0:0:0:1, status=304, time=11ms
+2026-02-25 16:34:00.837 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui.css
+2026-02-25 16:34:00.838 [http-nio-8090-exec-7] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui-bundle.js
+2026-02-25 16:34:00.851 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui.css - Status: 200
+2026-02-25 16:34:00.852 [http-nio-8090-exec-5] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui.css, ip=0:0:0:0:0:0:0:1, status=200, time=17ms
+2026-02-25 16:34:00.865 [http-nio-8090-exec-9] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui-standalone-preset.js
+2026-02-25 16:34:00.915 [http-nio-8090-exec-9] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui-standalone-preset.js - Status: 200
+2026-02-25 16:34:00.915 [http-nio-8090-exec-9] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui-standalone-preset.js, ip=0:0:0:0:0:0:0:1, status=200, time=51ms
+2026-02-25 16:34:00.915 [http-nio-8090-exec-7] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui-bundle.js - Status: 200
+2026-02-25 16:34:00.916 [http-nio-8090-exec-7] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui-bundle.js, ip=0:0:0:0:0:0:0:1, status=200, time=78ms
+2026-02-25 16:34:00.919 [http-nio-8090-exec-8] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-initializer.js
+2026-02-25 16:34:00.919 [http-nio-8090-exec-10] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/index.css
+2026-02-25 16:34:00.923 [http-nio-8090-exec-10] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/index.css - Status: 304
+2026-02-25 16:34:00.923 [http-nio-8090-exec-10] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/index.css, ip=0:0:0:0:0:0:0:1, status=304, time=4ms
+2026-02-25 16:34:00.924 [http-nio-8090-exec-8] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-initializer.js - Status: 200
+2026-02-25 16:34:00.924 [http-nio-8090-exec-8] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-initializer.js, ip=0:0:0:0:0:0:0:1, status=200, time=5ms
+2026-02-25 16:34:01.454 [http-nio-8090-exec-1] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/swagger-config
+2026-02-25 16:34:01.458 [http-nio-8090-exec-1] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/swagger-config - Status: 200
+2026-02-25 16:34:01.459 [http-nio-8090-exec-1] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/swagger-config, ip=0:0:0:0:0:0:0:1, status=200, time=5ms
+2026-02-25 16:34:01.530 [http-nio-8090-exec-2] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/admin
+2026-02-25 16:34:01.533 [http-nio-8090-exec-2] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/admin - Status: 200
+2026-02-25 16:34:01.533 [http-nio-8090-exec-2] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/admin, ip=0:0:0:0:0:0:0:1, status=200, time=3ms
+2026-02-25 16:34:17.286 [http-nio-8090-exec-3] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs
+2026-02-25 16:34:18.818 [http-nio-8090-exec-3] INFO  o.s.a.AbstractOpenApiResource - Init duration for springdoc-openapi is: 1522 ms
+2026-02-25 16:34:18.854 [http-nio-8090-exec-3] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs - Status: 200
+2026-02-25 16:34:18.855 [http-nio-8090-exec-3] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs, ip=0:0:0:0:0:0:0:1, status=200, time=1570ms
+2026-02-25 16:34:27.908 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/auth
+2026-02-25 16:34:28.992 [http-nio-8090-exec-6] INFO  o.s.a.AbstractOpenApiResource - Init duration for springdoc-openapi is: 1082 ms
+2026-02-25 16:34:29.002 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/auth - Status: 200
+2026-02-25 16:34:29.010 [http-nio-8090-exec-6] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/auth, ip=0:0:0:0:0:0:0:1, status=200, time=1103ms
+2026-02-25 16:41:42.820 [http-nio-8090-exec-10] ERROR c.a.e.c.e.GlobalExceptionHandler - Unhandled server error
+org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'GET' is not supported
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.handleNoMatch(RequestMappingInfoHandlerMapping.java:260)
+	at org.springframework.web.servlet.handler.AbstractHandlerMethodMapping.lookupHandlerMethod(AbstractHandlerMethodMapping.java:434)
+	at org.springframework.web.servlet.handler.AbstractHandlerMethodMapping.getHandlerInternal(AbstractHandlerMethodMapping.java:376)
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.getHandlerInternal(RequestMappingInfoHandlerMapping.java:116)
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.getHandlerInternal(RequestMappingInfoHandlerMapping.java:68)
+	at org.springframework.web.servlet.handler.AbstractHandlerMapping.getHandler(AbstractHandlerMapping.java:544)
+	at org.springframework.web.servlet.DispatcherServlet.getHandler(DispatcherServlet.java:1157)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:951)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:892)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at com.astraval.ecommercebackend.config.RequestLoggingFilter.doFilterInternal(RequestLoggingFilter.java:28)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:371)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1779)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-02-25 16:41:42.832 [http-nio-8090-exec-10] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/api/auth/login, ip=0:0:0:0:0:0:0:1, status=500, time=20ms
+2026-02-25 16:41:53.348 [http-nio-8090-exec-2] ERROR c.a.e.c.e.GlobalExceptionHandler - Unhandled server error
+org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'GET' is not supported
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.handleNoMatch(RequestMappingInfoHandlerMapping.java:260)
+	at org.springframework.web.servlet.handler.AbstractHandlerMethodMapping.lookupHandlerMethod(AbstractHandlerMethodMapping.java:434)
+	at org.springframework.web.servlet.handler.AbstractHandlerMethodMapping.getHandlerInternal(AbstractHandlerMethodMapping.java:376)
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.getHandlerInternal(RequestMappingInfoHandlerMapping.java:116)
+	at org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.getHandlerInternal(RequestMappingInfoHandlerMapping.java:68)
+	at org.springframework.web.servlet.handler.AbstractHandlerMapping.getHandler(AbstractHandlerMapping.java:544)
+	at org.springframework.web.servlet.DispatcherServlet.getHandler(DispatcherServlet.java:1157)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:951)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:892)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at com.astraval.ecommercebackend.config.RequestLoggingFilter.doFilterInternal(RequestLoggingFilter.java:28)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:371)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1779)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-02-25 16:41:53.356 [http-nio-8090-exec-2] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/api/auth/login, ip=0:0:0:0:0:0:0:1, status=500, time=10ms
+2026-02-25 16:42:39.412 [http-nio-8090-exec-4] INFO  c.a.e.c.LoggingInterceptor - Request started: POST /api/auth/login
+2026-02-25 16:42:39.702 [http-nio-8090-exec-4] INFO  c.a.e.c.LoggingInterceptor - Request completed: POST /api/auth/login - Status: 401
+2026-02-25 16:42:39.702 [http-nio-8090-exec-4] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=POST, uri=/api/auth/login, ip=0:0:0:0:0:0:0:1, status=401, time=290ms
+2026-02-25 16:43:13.452 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request started: POST /api/auth/login
+2026-02-25 16:43:13.630 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request completed: POST /api/auth/login - Status: 200
+2026-02-25 16:43:13.631 [http-nio-8090-exec-6] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=POST, uri=/api/auth/login, ip=0:0:0:0:0:0:0:1, status=200, time=180ms
+2026-02-25 16:43:38.113 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/index.html
+2026-02-25 16:43:38.116 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/index.html - Status: 304
+2026-02-25 16:43:38.116 [http-nio-8090-exec-5] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/index.html, ip=0:0:0:0:0:0:0:1, status=304, time=6ms
+2026-02-25 16:43:38.218 [http-nio-8090-exec-9] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui.css
+2026-02-25 16:43:38.221 [http-nio-8090-exec-7] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui-bundle.js
+2026-02-25 16:43:38.223 [http-nio-8090-exec-8] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-ui-standalone-preset.js
+2026-02-25 16:43:38.227 [http-nio-8090-exec-9] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui.css - Status: 200
+2026-02-25 16:43:38.229 [http-nio-8090-exec-9] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui.css, ip=0:0:0:0:0:0:0:1, status=200, time=12ms
+2026-02-25 16:43:38.237 [http-nio-8090-exec-8] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui-standalone-preset.js - Status: 200
+2026-02-25 16:43:38.238 [http-nio-8090-exec-8] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui-standalone-preset.js, ip=0:0:0:0:0:0:0:1, status=200, time=16ms
+2026-02-25 16:43:38.260 [http-nio-8090-exec-7] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-ui-bundle.js - Status: 200
+2026-02-25 16:43:38.260 [http-nio-8090-exec-7] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-ui-bundle.js, ip=0:0:0:0:0:0:0:1, status=200, time=40ms
+2026-02-25 16:43:38.269 [http-nio-8090-exec-10] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/swagger-initializer.js
+2026-02-25 16:43:38.272 [http-nio-8090-exec-1] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/index.css
+2026-02-25 16:43:38.274 [http-nio-8090-exec-10] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/swagger-initializer.js - Status: 200
+2026-02-25 16:43:38.275 [http-nio-8090-exec-10] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/swagger-initializer.js, ip=0:0:0:0:0:0:0:1, status=200, time=6ms
+2026-02-25 16:43:38.276 [http-nio-8090-exec-1] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/index.css - Status: 304
+2026-02-25 16:43:38.277 [http-nio-8090-exec-1] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/index.css, ip=0:0:0:0:0:0:0:1, status=304, time=6ms
+2026-02-25 16:43:38.933 [http-nio-8090-exec-2] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/swagger-config
+2026-02-25 16:43:38.936 [http-nio-8090-exec-2] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/swagger-config - Status: 200
+2026-02-25 16:43:38.937 [http-nio-8090-exec-2] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/swagger-config, ip=0:0:0:0:0:0:0:1, status=200, time=5ms
+2026-02-25 16:43:38.951 [http-nio-8090-exec-3] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/favicon-32x32.png
+2026-02-25 16:43:38.954 [http-nio-8090-exec-3] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/favicon-32x32.png - Status: 304
+2026-02-25 16:43:38.954 [http-nio-8090-exec-3] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/favicon-32x32.png, ip=0:0:0:0:0:0:0:1, status=304, time=3ms
+2026-02-25 16:43:39.008 [http-nio-8090-exec-4] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/admin
+2026-02-25 16:43:39.015 [http-nio-8090-exec-4] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/admin - Status: 200
+2026-02-25 16:43:39.016 [http-nio-8090-exec-4] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/admin, ip=0:0:0:0:0:0:0:1, status=200, time=9ms
+2026-02-25 16:43:44.247 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/auth
+2026-02-25 16:43:44.254 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/auth - Status: 200
+2026-02-25 16:43:44.255 [http-nio-8090-exec-6] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/auth, ip=0:0:0:0:0:0:0:1, status=200, time=8ms
+2026-02-25 16:43:53.809 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/admin
+2026-02-25 16:43:53.817 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/admin - Status: 200
+2026-02-25 16:43:53.819 [http-nio-8090-exec-5] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/admin, ip=0:0:0:0:0:0:0:1, status=200, time=14ms
+2026-02-25 16:43:55.485 [http-nio-8090-exec-9] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/order
+2026-02-25 16:43:55.653 [http-nio-8090-exec-9] INFO  o.s.a.AbstractOpenApiResource - Init duration for springdoc-openapi is: 166 ms
+2026-02-25 16:43:55.655 [http-nio-8090-exec-9] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/order - Status: 200
+2026-02-25 16:43:55.655 [http-nio-8090-exec-9] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/order, ip=0:0:0:0:0:0:0:1, status=200, time=170ms
+2026-02-25 16:43:58.382 [http-nio-8090-exec-8] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/product
+2026-02-25 16:43:58.686 [http-nio-8090-exec-8] INFO  o.s.a.AbstractOpenApiResource - Init duration for springdoc-openapi is: 302 ms
+2026-02-25 16:43:58.693 [http-nio-8090-exec-8] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/product - Status: 200
+2026-02-25 16:43:58.694 [http-nio-8090-exec-8] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/product, ip=0:0:0:0:0:0:0:1, status=200, time=313ms
+2026-02-25 16:44:00.308 [http-nio-8090-exec-7] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/payment
+2026-02-25 16:44:00.446 [http-nio-8090-exec-7] INFO  o.s.a.AbstractOpenApiResource - Init duration for springdoc-openapi is: 136 ms
+2026-02-25 16:44:00.448 [http-nio-8090-exec-7] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/payment - Status: 200
+2026-02-25 16:44:00.448 [http-nio-8090-exec-7] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/payment, ip=0:0:0:0:0:0:0:1, status=200, time=143ms
+2026-02-25 16:44:02.674 [http-nio-8090-exec-10] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/auth
+2026-02-25 16:44:02.682 [http-nio-8090-exec-10] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/auth - Status: 200
+2026-02-25 16:44:02.682 [http-nio-8090-exec-10] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/auth, ip=0:0:0:0:0:0:0:1, status=200, time=10ms
+2026-02-25 16:47:31.982 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/order
+2026-02-25 16:47:31.988 [http-nio-8090-exec-6] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/order - Status: 200
+2026-02-25 16:47:31.989 [http-nio-8090-exec-6] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/order, ip=0:0:0:0:0:0:0:1, status=200, time=7ms
+2026-02-25 16:48:30.694 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /v3/api-docs/auth
+2026-02-25 16:48:30.711 [http-nio-8090-exec-5] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /v3/api-docs/auth - Status: 200
+2026-02-25 16:48:30.711 [http-nio-8090-exec-5] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/v3/api-docs/auth, ip=0:0:0:0:0:0:0:1, status=200, time=17ms
+2026-02-25 16:50:27.518 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Starting EcommercebackendApplication using Java 21.0.9 with PID 6768 (D:\workspace\ecommerce\ecommercebackend\build\classes\java\main started by karth in D:\workspace\ecommerce\ecommercebackend)
+2026-02-25 16:50:27.527 [restartedMain] INFO  c.a.e.EcommercebackendApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-25 16:50:27.629 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-25 16:50:27.630 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-25 16:50:29.106 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-25 16:50:29.330 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 205 ms. Found 6 JPA repository interfaces.
+2026-02-25 16:50:30.246 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat initialized with port 8090 (http)
+2026-02-25 16:50:30.262 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8090"]
+2026-02-25 16:50:30.265 [restartedMain] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2026-02-25 16:50:30.266 [restartedMain] INFO  o.a.c.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-02-25 16:50:30.346 [restartedMain] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 2715 ms
+2026-02-25 16:50:31.823 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-25 16:50:31.871 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-25 16:50:32.102 [restartedMain] INFO  c.z.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@278dbc31
+2026-02-25 16:50:32.105 [restartedMain] INFO  c.z.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-25 16:50:34.585 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-25 16:50:34.690 [restartedMain] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-25 16:50:36.630 [restartedMain] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-25 16:50:36.768 [restartedMain] WARN  o.s.b.s.a.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 06f09f25-2480-4680-bd45-0580f987a24f
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-25 16:50:38.074 [restartedMain] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8090"]
+2026-02-25 16:50:38.095 [restartedMain] INFO  o.s.b.tomcat.TomcatWebServer - Tomcat started on port 8090 (http) with context path '/'
+2026-02-25 16:50:38.105 [restartedMain] INFO  c.a.e.EcommercebackendApplication - Started EcommercebackendApplication in 11.479 seconds (process running for 12.485)
+2026-02-25 16:50:38.374 [restartedMain] INFO  c.a.e.m.a.AdminBootstrapService - Bootstrap admin role ensured for email admin@yourstore.com
+2026-02-25 16:50:38.627 [http-nio-8090-exec-1] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-25 16:50:38.677 [http-nio-8090-exec-1] INFO  c.a.e.c.LoggingInterceptor - Request started: GET /swagger-ui/index.html
+2026-02-25 16:50:38.693 [http-nio-8090-exec-1] ERROR c.a.e.c.e.GlobalExceptionHandler - Unhandled server error
+org.springframework.web.servlet.resource.NoResourceFoundException: No static resource swagger-ui/index.html for request '/swagger-ui/index.html'.
+	at org.springframework.web.servlet.resource.ResourceHttpRequestHandler.handleRequest(ResourceHttpRequestHandler.java:527)
+	at org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter.handle(HttpRequestHandlerAdapter.java:50)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:892)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at com.astraval.ecommercebackend.config.RequestLoggingFilter.doFilterInternal(RequestLoggingFilter.java:28)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:371)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1779)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-02-25 16:50:38.946 [http-nio-8090-exec-1] INFO  c.a.e.c.LoggingInterceptor - Request completed: GET /swagger-ui/index.html - Status: 500
+2026-02-25 16:50:38.947 [http-nio-8090-exec-1] INFO  c.a.e.c.RequestLoggingFilter - Request processed: method=GET, uri=/swagger-ui/index.html, ip=0:0:0:0:0:0:0:1, status=500, time=290ms

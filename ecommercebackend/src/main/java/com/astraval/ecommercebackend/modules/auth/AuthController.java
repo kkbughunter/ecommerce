@@ -17,10 +17,14 @@ import com.astraval.ecommercebackend.modules.auth.dto.ResendOtpRequest;
 import com.astraval.ecommercebackend.modules.auth.dto.ResetPasswordRequest;
 import com.astraval.ecommercebackend.modules.auth.dto.TokenRefreshRequest;
 import com.astraval.ecommercebackend.modules.auth.dto.VerifyOtpRequest;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth APIs", description = "Authentication and account recovery operations")
 public class AuthController {
 
     private final AuthService authService;
@@ -30,6 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Register a new user")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = authService.register(request);
         return ResponseEntity.status(201)
@@ -37,42 +42,49 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
+    @Operation(summary = "Verify account with OTP")
     public ResponseEntity<ApiResponse<Void>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
         authService.verifyOtp(request);
         return ResponseEntity.ok(ApiResponseFactory.ok(null, "Account verified successfully"));
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Login and receive access/refresh tokens")
     public ResponseEntity<ApiResponse<AuthTokenResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthTokenResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Login successful"));
     }
 
     @PostMapping("/resend-otp")
+    @Operation(summary = "Resend registration OTP")
     public ResponseEntity<ApiResponse<RegisterResponse>> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
         RegisterResponse response = authService.resendOtp(request);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "OTP resent successfully"));
     }
 
     @PostMapping("/refresh-token")
+    @Operation(summary = "Generate new access token using refresh token")
     public ResponseEntity<ApiResponse<AuthTokenResponse>> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
         AuthTokenResponse response = authService.refreshToken(request);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Token refreshed successfully"));
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "Logout by revoking refresh token")
     public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody TokenRefreshRequest request) {
         authService.logout(request);
         return ResponseEntity.ok(ApiResponseFactory.ok(null, "Logout successful"));
     }
 
     @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset OTP")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         authService.forgotPassword(request);
         return ResponseEntity.ok(ApiResponseFactory.ok(null, "If the account exists, OTP has been sent"));
     }
 
     @PostMapping("/reset-password")
+    @Operation(summary = "Reset password using OTP")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
         return ResponseEntity.ok(ApiResponseFactory.ok(null, "Password reset successful"));

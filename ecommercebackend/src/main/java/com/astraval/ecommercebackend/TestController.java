@@ -3,9 +3,12 @@ package com.astraval.ecommercebackend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Hidden
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
