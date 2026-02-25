@@ -12,67 +12,34 @@ import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.address.Address;
-import com.astraval.ecommercebackend.modules.address.AddressRepository;
+import com.astraval.ecommercebackend.modules.address.AddressService;
 import com.astraval.ecommercebackend.modules.address.AddressType;
-import com.astraval.ecommercebackend.modules.customer.dto.CreateCustomerRequest;
+import com.astraval.ecommercebackend.modules.address.dto.AddressUpsertRequest;
 import com.astraval.ecommercebackend.modules.customer.dto.CustomerResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.UpdateCustomerRequest;
-import com.astraval.ecommercebackend.modules.user.User;
-import com.astraval.ecommercebackend.modules.user.UserRepository;
 
 @Service
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-    private final UserRepository userRepository;
-    private final AddressRepository addressRepository;
+    private final AddressService addressService;
     private final SecurityUtil securityUtil;
 
     public CustomerService(
             CustomerRepository customerRepository,
-            UserRepository userRepository,
-            AddressRepository addressRepository,
+            AddressService addressService,
             SecurityUtil securityUtil) {
         this.customerRepository = customerRepository;
-        this.userRepository = userRepository;
-        this.addressRepository = addressRepository;
+        this.addressService = addressService;
         this.securityUtil = securityUtil;
     }
 
     @Transactional
-    public CustomerResponse createCustomer(CreateCustomerRequest request) {
-        assertCanManageUser(request.userId());
-
-        if (customerRepository.findByUserUserId(request.userId()).isPresent()) {
-            throw new BadRequestException("Customer already exists for this user");
-        }
-
-        User user = userRepository.findByUserIdAndIsActiveTrue(request.userId())
-                .orElseThrow(() -> new BadRequestException("User not found"));
-
-        Customer customer = new Customer();
-        customer.setUser(user);
-        mapCustomerFields(customer, request.firstName(), request.lastName(), request.gender(), request.dateOfBirth());
-        customer.setBillingAddress(resolveAddress(user.getUserId(), request.billingAddressId(), AddressType.BILLING));
-        customer.setShippingAddress(resolveAddress(user.getUserId(), request.shippingAddressId(), AddressType.SHIPPING));
-        customer.setIsActive(request.isActive() != null ? request.isActive() : true);
-
-        return toResponse(customerRepository.save(customer));
-    }
-
-    @Transactional
-    public CustomerResponse updateCustomer(Long customerId, UpdateCustomerRequest request) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-        assertCanAccessCustomer(customer);
-
-        mapCustomerFields(customer, request.firstName(), request.lastName(), request.gender(), request.dateOfBirth());
-
-        Long userId = customer.getUser().getUserId();
-        customer.setBillingAddress(resolveAddress(userId, request.billingAddressId(), AddressType.BILLING));
-        customer.setShippingAddress(resolveAddress(userId, request.shippingAddressId(), AddressType.SHIPPING));
-
-        return toResponse(customerRepository.save(customer));
+    public CustomerResponse updateCurrentCustomer(UpdateCustomerRequest request) {
+        Long currentUserId = getCurrentUserId();
+        Customer customer = customerRepository.findByUserUserId(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
+        return updateCustomerInternal(customer, request);
     }
 
     @Transactional(readOnly = true)
@@ -101,6 +68,24 @@ public class CustomerService {
         return updateCustomerStatus(customerId, false);
     }
 
+    private CustomerResponse updateCustomerInternal(Customer customer, UpdateCustomerRequest request) {
+        mapCustomerFields(customer, request.firstName(), request.lastName(), request.gender(), request.dateOfBirth());
+
+        Long userId = customer.getUser().getUserId();
+        customer.setBillingAddress(resolveAddressUpsert(
+                userId,
+                AddressType.BILLING,
+                request.billingAddress(),
+                customer.getBillingAddress()));
+        customer.setShippingAddress(resolveAddressUpsert(
+                userId,
+                AddressType.SHIPPING,
+                request.shippingAddress(),
+                customer.getShippingAddress()));
+
+        return toResponse(customerRepository.save(customer));
+    }
+
     private CustomerResponse updateCustomerStatus(Long customerId, boolean isActive) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
@@ -122,30 +107,16 @@ public class CustomerService {
         customer.setDateOfBirth(dateOfBirth);
     }
 
-    private Address resolveAddress(Long userId, Long addressId, AddressType expectedType) {
-        if (addressId == null) {
-            return null;
+    private Address resolveAddressUpsert(
+            Long userId,
+            AddressType expectedType,
+            AddressUpsertRequest addressRequest,
+            Address existingAddress) {
+        if (addressRequest == null) {
+            return existingAddress;
         }
 
-        Address address = addressRepository.findByAddressIdAndUserUserIdAndIsActiveTrue(addressId, userId)
-                .orElseThrow(() -> new BadRequestException("Address not found for user"));
-
-        if (address.getAddressType() != expectedType) {
-            throw new BadRequestException(expectedType.name() + " address type is required");
-        }
-
-        return address;
-    }
-
-    private void assertCanManageUser(Long userId) {
-        if (isAdmin()) {
-            return;
-        }
-
-        Long currentUserId = getCurrentUserId();
-        if (!currentUserId.equals(userId)) {
-            throw new UnauthorizedException("You are not allowed to create customer profiles for other users");
-        }
+        return addressService.upsertAddressForUser(userId, expectedType, addressRequest);
     }
 
     private void assertCanAccessCustomer(Customer customer) {

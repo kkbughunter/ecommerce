@@ -30,6 +30,8 @@ import com.astraval.ecommercebackend.modules.auth.otp.UserOtp;
 import com.astraval.ecommercebackend.modules.auth.otp.UserOtpRepository;
 import com.astraval.ecommercebackend.modules.auth.token.RevokedRefreshToken;
 import com.astraval.ecommercebackend.modules.auth.token.RevokedRefreshTokenRepository;
+import com.astraval.ecommercebackend.modules.customer.Customer;
+import com.astraval.ecommercebackend.modules.customer.CustomerRepository;
 import com.astraval.ecommercebackend.modules.emailtemplate.EmailTemplateService;
 import com.astraval.ecommercebackend.modules.user.User;
 import com.astraval.ecommercebackend.modules.user.UserRepository;
@@ -51,6 +53,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final EmailTemplateService emailTemplateService;
     private final RoleService roleService;
+    private final CustomerRepository customerRepository;
 
     @Value("${auth.otp.expiration-minutes:10}")
     private int otpExpirationMinutes;
@@ -62,7 +65,8 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             JwtUtil jwtUtil,
             EmailTemplateService emailTemplateService,
-            RoleService roleService) {
+            RoleService roleService,
+            CustomerRepository customerRepository) {
         this.userRepository = userRepository;
         this.userOtpRepository = userOtpRepository;
         this.revokedRefreshTokenRepository = revokedRefreshTokenRepository;
@@ -70,6 +74,7 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
         this.emailTemplateService = emailTemplateService;
         this.roleService = roleService;
+        this.customerRepository = customerRepository;
     }
 
     @Transactional
@@ -89,7 +94,19 @@ public class AuthService {
         user.setVerified(false);
         user.setIsActive(true);
         user = userRepository.save(user);
+        final User savedUser = user;
         roleService.assignDefaultUserRole(user);
+
+        Customer customer = customerRepository.findByUserUserId(savedUser.getUserId())
+                .orElseGet(() -> {
+                    Customer newCustomer = new Customer();
+                    newCustomer.setUser(savedUser);
+                    return newCustomer;
+                });
+        customer.setFirstName(request.firstName().trim());
+        customer.setLastName(trimToNull(request.lastName()));
+        customer.setIsActive(true);
+        customerRepository.save(customer);
 
         OtpDispatchResult otpDispatch = issueOtpForUser(
                 user,
@@ -307,6 +324,14 @@ public class AuthService {
 
     private String normalizeEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private String generateOtpCode() {

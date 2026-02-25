@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
+import com.astraval.ecommercebackend.modules.address.dto.AddressUpsertRequest;
 import com.astraval.ecommercebackend.modules.address.dto.AddressResponse;
 import com.astraval.ecommercebackend.modules.address.dto.CreateAddressRequest;
 import com.astraval.ecommercebackend.modules.address.dto.UpdateAddressRequest;
@@ -90,6 +91,46 @@ public class AddressService {
         return updateAddressStatus(addressId, false);
     }
 
+    @Transactional
+    public Address upsertAddressForUser(Long userId, AddressType expectedType, AddressUpsertRequest request) {
+        User user = userRepository.findByUserIdAndIsActiveTrue(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Address address;
+        if (request.addressId() == null) {
+            address = new Address();
+            address.setUser(user);
+        } else {
+            address = addressRepository.findByAddressIdAndUserUserId(request.addressId(), userId)
+                    .orElseThrow(() -> new BadRequestException("Address not found for user"));
+            if (address.getAddressType() != expectedType) {
+                throw new BadRequestException(expectedType.name() + " address type is required");
+            }
+        }
+
+        mapAddressFields(
+                address,
+                expectedType,
+                request.fullName(),
+                request.phoneNumber(),
+                request.line1(),
+                request.line2(),
+                request.landmark(),
+                request.city(),
+                request.district(),
+                request.state(),
+                request.country(),
+                request.postalCode());
+
+        if (request.isActive() != null) {
+            address.setIsActive(request.isActive());
+        } else if (address.getIsActive() == null) {
+            address.setIsActive(true);
+        }
+
+        return addressRepository.save(address);
+    }
+
     private AddressResponse updateAddressStatus(Long addressId, boolean isActive) {
         Address address = findMyAddress(addressId);
         address.setIsActive(isActive);
@@ -115,7 +156,35 @@ public class AddressService {
             String state,
             String country,
             String postalCode) {
-        address.setAddressType(parseAddressType(addressType));
+        mapAddressFields(
+                address,
+                parseAddressType(addressType),
+                fullName,
+                phoneNumber,
+                line1,
+                line2,
+                landmark,
+                city,
+                district,
+                state,
+                country,
+                postalCode);
+    }
+
+    private void mapAddressFields(
+            Address address,
+            AddressType addressType,
+            String fullName,
+            String phoneNumber,
+            String line1,
+            String line2,
+            String landmark,
+            String city,
+            String district,
+            String state,
+            String country,
+            String postalCode) {
+        address.setAddressType(addressType);
         address.setFullName(fullName.trim());
         address.setPhoneNumber(trimToNull(phoneNumber));
         address.setLine1(line1.trim());
@@ -173,4 +242,3 @@ public class AddressService {
                 address.getUpdatedAt());
     }
 }
-
