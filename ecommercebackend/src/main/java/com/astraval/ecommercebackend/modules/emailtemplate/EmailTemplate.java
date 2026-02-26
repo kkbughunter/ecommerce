@@ -32,7 +32,7 @@ public class EmailTemplate {
     @Column(name = "body_text", columnDefinition = "TEXT")
     private String bodyText;
 
-    @Column(name = "description", length = 500)
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "type", length = 100)

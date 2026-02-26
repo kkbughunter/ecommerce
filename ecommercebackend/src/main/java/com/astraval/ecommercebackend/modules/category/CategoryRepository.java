@@ -1,4 +1,4 @@
-package com.astraval.ecommercebackend.modules.product;
+package com.astraval.ecommercebackend.modules.category;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
