@@ -1,6 +1,9 @@
 package com.astraval.ecommercebackend.modules.customer;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.astraval.ecommercebackend.common.util.ApiResponse;
 import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
+import com.astraval.ecommercebackend.modules.customer.dto.CustomerListResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.CustomerResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.UpdateCustomerRequest;
 
@@ -30,6 +34,14 @@ public class CustomerController {
     }
 
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "List all customers", description = "Returns a list of all customers for admin view.")
+    public ResponseEntity<ApiResponse<List<CustomerListResponse>>> listCustomers() {
+        List<CustomerListResponse> response = customerService.listAllCustomers();
+        return ResponseEntity.ok(ApiResponseFactory.ok(response, "Customers fetched successfully"));
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Get current user customer profile", description = "Returns the customer profile linked to the authenticated user.")
     public ResponseEntity<ApiResponse<CustomerResponse>> getCurrentCustomer() {
@@ -38,6 +50,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{customerId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get customer profile by ID", description = "Returns a customer profile by ID, with user-level ownership checks.")
     public ResponseEntity<ApiResponse<CustomerResponse>> getCustomer(@PathVariable Long customerId) {
         CustomerResponse response = customerService.getCustomer(customerId);

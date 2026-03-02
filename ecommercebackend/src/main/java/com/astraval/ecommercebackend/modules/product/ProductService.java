@@ -1,5 +1,6 @@
 package com.astraval.ecommercebackend.modules.product;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -53,7 +54,8 @@ public class ProductService {
         product.setCategory(resolveCategory(request.categoryId()));
         product.setIsActive(request.isActive() != null ? request.isActive() : true);
         product.setCreatedBy(actorUserId);
-        product.setModifiedBy(actorUserId);
+        product.setCreatedDt(LocalDateTime.now());
+
 
         return toProductResponse(productRepository.save(product));
     }

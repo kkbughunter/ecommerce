@@ -1,6 +1,8 @@
 package com.astraval.ecommercebackend.modules.customer;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,7 +16,9 @@ import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.address.Address;
 import com.astraval.ecommercebackend.modules.address.AddressService;
 import com.astraval.ecommercebackend.modules.address.AddressType;
+import com.astraval.ecommercebackend.modules.address.dto.AddressResponse;
 import com.astraval.ecommercebackend.modules.address.dto.AddressUpsertRequest;
+import com.astraval.ecommercebackend.modules.customer.dto.CustomerListResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.CustomerResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.UpdateCustomerRequest;
 
@@ -40,6 +44,13 @@ public class CustomerService {
         Customer customer = customerRepository.findByUserUserId(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
         return updateCustomerInternal(customer, request);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CustomerListResponse> listAllCustomers() {
+        return customerRepository.findAll().stream()
+                .map(this::toListResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -165,11 +176,42 @@ public class CustomerService {
                 customer.getLastName(),
                 customer.getGender() != null ? customer.getGender().toUpperCase(Locale.ROOT) : null,
                 customer.getDateOfBirth(),
-                customer.getBillingAddress() != null ? customer.getBillingAddress().getAddressId() : null,
-                customer.getShippingAddress() != null ? customer.getShippingAddress().getAddressId() : null,
+                customer.getBillingAddress() != null ? toAddressResponse(customer.getBillingAddress()) : null,
+                customer.getShippingAddress() != null ? toAddressResponse(customer.getShippingAddress()) : null,
                 customer.getIsActive(),
                 customer.getCreatedAt(),
                 customer.getUpdatedAt());
+    }
+
+    private AddressResponse toAddressResponse(Address address) {
+        return new AddressResponse(
+                address.getAddressId(),
+                address.getUser().getUserId(),
+                address.getAddressType().name(),
+                address.getFullName(),
+                address.getPhoneNumber(),
+                address.getLine1(),
+                address.getLine2(),
+                address.getLandmark(),
+                address.getCity(),
+                address.getDistrict(),
+                address.getState(),
+                address.getCountry(),
+                address.getPostalCode(),
+                address.getIsActive(),
+                address.getCreatedAt(),
+                address.getUpdatedAt());
+    }
+
+    private CustomerListResponse toListResponse(Customer customer) {
+        return new CustomerListResponse(
+                customer.getCustomerId(),
+                customer.getUser().getUserId(),
+                customer.getFirstName(),
+                customer.getLastName(),
+                customer.getUser().getEmail(),
+                customer.getIsActive(),
+                customer.getCreatedAt());
     }
 }
 

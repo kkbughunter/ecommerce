@@ -3,6 +3,7 @@ package com.astraval.ecommercebackend.modules.product;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,6 +50,7 @@ public class ProductController {
 
     @PostMapping("/api/products")
     @Operation(summary = "Create product")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody CreateProductRequest request) {
         ProductResponse response = productService.createProduct(request);
         return ResponseEntity.status(201).body(ApiResponseFactory.created(response, "Product created successfully"));
@@ -56,6 +58,7 @@ public class ProductController {
 
     @PutMapping("/api/products/{productId}")
     @Operation(summary = "Update product details")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody UpdateProductRequest request) {
@@ -65,6 +68,7 @@ public class ProductController {
 
     @PatchMapping("/api/products/{productId}/activate")
     @Operation(summary = "Activate product")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> activateProduct(@PathVariable Long productId) {
         ProductResponse response = productService.activateProduct(productId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Product activated successfully"));
@@ -72,6 +76,7 @@ public class ProductController {
 
     @PatchMapping("/api/products/{productId}/deactivate")
     @Operation(summary = "Deactivate product")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> deactivateProduct(@PathVariable Long productId) {
         ProductResponse response = productService.deactivateProduct(productId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Product deactivated successfully"));

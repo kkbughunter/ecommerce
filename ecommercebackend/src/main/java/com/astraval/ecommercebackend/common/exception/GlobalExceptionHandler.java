@@ -7,10 +7,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import com.astraval.ecommercebackend.common.util.ApiResponse;
 import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
@@ -53,10 +55,33 @@ public class GlobalExceptionHandler {
                 .body(ApiResponseFactory.badRequest("Malformed request body"));
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponseFactory.error("Method '" + ex.getMethod() + "' is not supported for this endpoint", HttpStatus.METHOD_NOT_ALLOWED.value()));
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthorizationDenied(AuthorizationDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponseFactory.error("Access denied", HttpStatus.FORBIDDEN.value()));
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.error("Data integrity violation", ex);
+        String message = "Request violates data constraints";
+        if (ex.getMessage() != null) {
+            if (ex.getMessage().contains("foreign key constraint")) {
+                message = "Invalid reference: related entity does not exist";
+            } else if (ex.getMessage().contains("unique constraint") || ex.getMessage().contains("duplicate")) {
+                message = "Duplicate entry: record already exists";
+            } else if (ex.getMessage().contains("not-null") || ex.getMessage().contains("NULL")) {
+                message = "Required field is missing";
+            }
+        }
         return ResponseEntity.badRequest()
-                .body(ApiResponseFactory.badRequest("Request violates data constraints"));
+                .body(ApiResponseFactory.badRequest(message));
     }
 
     @ExceptionHandler(Exception.class)
