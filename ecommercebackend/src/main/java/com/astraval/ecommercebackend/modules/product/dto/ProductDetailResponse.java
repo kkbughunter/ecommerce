@@ -8,6 +8,7 @@ public record ProductDetailResponse(
         String name,
         String description,
         BigDecimal price,
+        BigDecimal gstPercentage,
         Integer stockQuantity,
         Boolean isActive,
         Integer categoryId,

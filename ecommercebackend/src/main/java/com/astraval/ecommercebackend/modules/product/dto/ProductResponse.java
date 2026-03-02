@@ -8,6 +8,7 @@ public record ProductResponse(
         String name,
         String description,
         BigDecimal price,
+        BigDecimal gstPercentage,
         Integer stockQuantity,
         Integer categoryId,
         String categoryName,

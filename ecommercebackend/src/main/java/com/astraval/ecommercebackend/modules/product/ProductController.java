@@ -37,6 +37,7 @@ public class ProductController {
 
     @GetMapping("/api/products")
     @Operation(summary = "List all products")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
         return ResponseEntity.ok(ApiResponseFactory.ok(productService.getAllProducts(), "Products fetched successfully"));
     }
@@ -91,6 +92,7 @@ public class ProductController {
 
     @GetMapping("/api/products/category/{categoryId}")
     @Operation(summary = "View products by category")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getProductsByCategory(@PathVariable Integer categoryId) {
         List<ProductResponse> response = productService.getProductsByCategory(categoryId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Category products fetched successfully"));

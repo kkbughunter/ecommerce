@@ -1,30 +1,5 @@
--- Seed email templates used by auth flows.
-
-ALTER TABLE email_templates
-    ALTER COLUMN body_html TYPE TEXT USING body_html::text,
-    ALTER COLUMN body_text TYPE TEXT USING body_text::text;
-
-INSERT INTO email_templates (
-    name,
-    from_email,
-    to_email,
-    subject,
-    body_html,
-    body_text,
-    description,
-    type,
-    is_active,
-    created_by,
-    created_dt,
-    modified_by,
-    modified_dt
-)
-VALUES (
-    'OTP Verification',
-    null,
-    null,
-    'Your Verification Code',
-    '<!DOCTYPE html>
+INSERT INTO public.email_templates ("name",body_html,body_text,created_by,created_dt,description,from_email,is_active,modified_by,modified_dt,subject,to_email,"type") VALUES
+	 ('OTP Verification','<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -55,8 +30,7 @@ VALUES (
         </div>
     </div>
 </body>
-</html>',
-    'Hello,
+</html>','Hello,
 
 Use the following one-time password (OTP) to verify your account:
 
@@ -67,24 +41,51 @@ This code is valid for the next {{otp_expiry_minutes}} minutes.
 If you did not request this, please ignore this email.
 
 Best regards,
-IotRoot Team',
-    'Email template used for sending OTP during account verification.',
-    'TRANSACTIONAL',
-    true,
-    0,
-    NOW(),
-    0,
-    NOW()
-)
-ON CONFLICT (name) DO UPDATE
-SET subject = EXCLUDED.subject,
-    body_html = EXCLUDED.body_html,
-    body_text = EXCLUDED.body_text,
-    description = EXCLUDED.description,
-    type = EXCLUDED.type,
-    is_active = EXCLUDED.is_active,
-    modified_by = 0,
-    modified_dt = NOW();
+IotRoot Team',0,'2026-02-25 16:27:31.496059','Email template used for sending OTP during account verification.',NULL,true,0,'2026-02-26 12:58:23.729764','Your Verification Code',NULL,'TRANSACTIONAL'),
+	 ('Password Reset OTP','<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Reset Password</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .header { background: #dc3545; color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; text-align: center; }
+        .otp-code { font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #dc3545; margin: 20px 0; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Password Reset</h1>
+        </div>
+        <div class="content">
+            <p>Hello,</p>
+            <p>Use the following OTP to reset your password:</p>
+            <div class="otp-code">{{otp}}</div>
+            <p>This code is valid for the next {{otp_expiry_minutes}} minutes.</p>
+            <p>If you did not request this, please secure your account.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 IotRoot. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>','Hello,
+
+Use the following OTP to reset your password:
+
+{{otp}}
+
+This code is valid for the next {{otp_expiry_minutes}} minutes.
+
+If you did not request this, please secure your account.
+
+Best regards,
+IotRoot Team',0,'2026-02-25 16:27:31.500097','Email template used for password reset OTP.',NULL,true,0,'2026-02-26 12:58:23.731476','Your Password Reset Code',NULL,'TRANSACTIONAL');
+
 
 INSERT INTO roles (role_code, landing_url, role_name)
 VALUES

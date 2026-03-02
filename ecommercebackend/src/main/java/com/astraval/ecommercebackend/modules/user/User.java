@@ -38,6 +38,15 @@ public class User {
     @Column(name = "email", length = 100, nullable = false, unique = true)
     private String email;
 
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "default_shipping_address_id")
+    private Long defaultShippingAddressId;
+
+    @Column(name = "default_billing_address_id")
+    private Long defaultBillingAddressId;
+
     @Column(name = "verified")
     private boolean verified = false;
 

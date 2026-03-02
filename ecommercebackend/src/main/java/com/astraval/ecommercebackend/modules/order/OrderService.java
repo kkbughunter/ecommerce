@@ -17,6 +17,7 @@ import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
+import com.astraval.ecommercebackend.modules.address.AddressRepository;
 import com.astraval.ecommercebackend.modules.order.dto.CancelOrderRequest;
 import com.astraval.ecommercebackend.modules.order.dto.OrderDetailResponse;
 import com.astraval.ecommercebackend.modules.order.dto.OrderItemResponse;
@@ -34,6 +35,8 @@ import com.astraval.ecommercebackend.modules.user.UserRepository;
 public class OrderService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+    private static final BigDecimal SHIPPING_FEE = new BigDecimal("40.00");
+    private static final BigDecimal DISCOUNT_AMOUNT = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
     private static final Map<OrderStatus, Set<OrderStatus>> VALID_STATUS_TRANSITIONS = Map.of(
             OrderStatus.PLACED, EnumSet.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED),
             OrderStatus.CONFIRMED, EnumSet.of(OrderStatus.PACKED, OrderStatus.CANCELLED),
@@ -49,6 +52,7 @@ public class OrderService {
     private final OrderTrackingEventRepository orderTrackingEventRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final AddressRepository addressRepository;
     private final SecurityUtil securityUtil;
 
     public OrderService(
@@ -56,11 +60,13 @@ public class OrderService {
             OrderTrackingEventRepository orderTrackingEventRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
+            AddressRepository addressRepository,
             SecurityUtil securityUtil) {
         this.orderRepository = orderRepository;
         this.orderTrackingEventRepository = orderTrackingEventRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.addressRepository = addressRepository;
         this.securityUtil = securityUtil;
     }
 
@@ -70,20 +76,37 @@ public class OrderService {
         User user = userRepository.findByUserIdAndIsActiveTrue(actorUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        Long shippingAddressId = user.getDefaultShippingAddressId();
+        Long billingAddressId = user.getDefaultBillingAddressId();
+        String phoneNumber = trimToNull(user.getPhoneNumber());
+
+        if (shippingAddressId == null || billingAddressId == null) {
+            throw new BadRequestException("Please set default shipping and billing addresses in your profile before placing an order");
+        }
+        if (phoneNumber == null) {
+            throw new BadRequestException("Please set a phone number in your profile before placing an order");
+        }
+
+        addressRepository.findByAddressIdAndUserUserIdAndIsActiveTrue(shippingAddressId, actorUserId)
+                .orElseThrow(() -> new BadRequestException("Default shipping address not found or inactive"));
+        addressRepository.findByAddressIdAndUserUserIdAndIsActiveTrue(billingAddressId, actorUserId)
+                .orElseThrow(() -> new BadRequestException("Default billing address not found or inactive"));
+
         Order order = new Order();
         order.setOrderNumber(generateTemporaryOrderNumber());
         order.setUser(user);
         order.setStatus(OrderStatus.PLACED);
         order.setPaymentStatus(PaymentStatus.PENDING);
-        order.setShippingAddress(trimToNull(request.shippingAddress()));
-        order.setBillingAddress(trimToNull(request.billingAddress()));
-        order.setContactPhone(trimToNull(request.contactPhone()));
-        order.setCurrency(normalizeCurrency(request.currency()));
+        order.setShippingAddressId(shippingAddressId);
+        order.setBillingAddressId(billingAddressId);
+        order.setContactPhone(phoneNumber);
+        order.setCurrency("INR");
         order.setCreatedBy(actorUserId);
         order.setModifiedBy(actorUserId);
 
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal subtotal = ZERO;
+        BigDecimal totalTax = ZERO;
         for (PlaceOrderItemRequest itemRequest : request.items()) {
             Product product = productRepository.findById(itemRequest.productId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + itemRequest.productId()));
@@ -105,6 +128,10 @@ public class OrderService {
                     .setScale(2, RoundingMode.HALF_UP);
             subtotal = subtotal.add(lineTotal).setScale(2, RoundingMode.HALF_UP);
 
+            BigDecimal gstPercentage = product.getGstPercentage() != null ? product.getGstPercentage() : ZERO;
+            BigDecimal itemTax = lineTotal.multiply(gstPercentage).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+            totalTax = totalTax.add(itemTax).setScale(2, RoundingMode.HALF_UP);
+
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setProduct(product);
@@ -115,19 +142,13 @@ public class OrderService {
             orderItems.add(orderItem);
         }
 
-        BigDecimal shippingFee = safeMoney(request.shippingFee());
-        BigDecimal taxAmount = safeMoney(request.taxAmount());
-        BigDecimal discountAmount = safeMoney(request.discountAmount());
-        BigDecimal totalAmount = subtotal.add(shippingFee).add(taxAmount).subtract(discountAmount)
+        BigDecimal totalAmount = subtotal.add(SHIPPING_FEE).add(totalTax).subtract(DISCOUNT_AMOUNT)
                 .setScale(2, RoundingMode.HALF_UP);
-        if (totalAmount.compareTo(ZERO) < 0) {
-            throw new BadRequestException("Order total amount cannot be negative");
-        }
 
         order.setSubtotalAmount(subtotal);
-        order.setShippingFee(shippingFee);
-        order.setTaxAmount(taxAmount);
-        order.setDiscountAmount(discountAmount);
+        order.setShippingFee(SHIPPING_FEE);
+        order.setTaxAmount(totalTax);
+        order.setDiscountAmount(DISCOUNT_AMOUNT);
         order.setTotalAmount(totalAmount);
         order.setItems(orderItems);
 
@@ -351,8 +372,8 @@ public class OrderService {
                 order.getDiscountAmount(),
                 order.getTotalAmount(),
                 order.getCurrency(),
-                order.getShippingAddress(),
-                order.getBillingAddress(),
+                order.getShippingAddressId(),
+                order.getBillingAddressId(),
                 order.getContactPhone(),
                 order.getCreatedDt(),
                 order.getModifiedDt(),

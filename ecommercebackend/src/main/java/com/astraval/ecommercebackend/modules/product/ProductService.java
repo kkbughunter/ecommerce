@@ -50,6 +50,7 @@ public class ProductService {
         product.setName(request.name().trim());
         product.setDescription(request.description());
         product.setPrice(request.price());
+        product.setGstPercentage(request.gstPercentage());
         product.setStockQuantity(request.stockQuantity());
         product.setCategory(resolveCategory(request.categoryId()));
         product.setIsActive(request.isActive() != null ? request.isActive() : true);
@@ -69,6 +70,7 @@ public class ProductService {
         product.setName(request.name().trim());
         product.setDescription(request.description());
         product.setPrice(request.price());
+        product.setGstPercentage(request.gstPercentage());
         product.setStockQuantity(request.stockQuantity());
         product.setCategory(resolveCategory(request.categoryId()));
         product.setModifiedBy(actorUserId);
@@ -148,6 +150,7 @@ public class ProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
+                product.getGstPercentage(),
                 product.getStockQuantity(),
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,
@@ -163,6 +166,7 @@ public class ProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
+                product.getGstPercentage(),
                 product.getStockQuantity(),
                 product.getIsActive(),
                 category != null ? category.getCategoryId() : null,

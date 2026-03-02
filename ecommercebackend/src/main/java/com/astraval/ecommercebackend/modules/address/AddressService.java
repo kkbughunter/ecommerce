@@ -122,13 +122,7 @@ public class AddressService {
                 request.country(),
                 request.postalCode());
 
-        if (request.isActive() != null) {
-            address.setIsActive(request.isActive());
-        } else if (address.getIsActive() == null) {
-            address.setIsActive(true);
-        }
-
-        return addressRepository.save(address);
+       return addressRepository.save(address);
     }
 
     private AddressResponse updateAddressStatus(Long addressId, boolean isActive) {

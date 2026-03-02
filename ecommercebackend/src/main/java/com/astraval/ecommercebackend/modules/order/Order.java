@@ -67,11 +67,11 @@ public class Order {
     @Column(name = "currency", length = 3, nullable = false)
     private String currency = "INR";
 
-    @Column(name = "shipping_address", columnDefinition = "TEXT")
-    private String shippingAddress;
+    @Column(name = "shipping_address_id")
+    private Long shippingAddressId;
 
-    @Column(name = "billing_address", columnDefinition = "TEXT")
-    private String billingAddress;
+    @Column(name = "billing_address_id")
+    private Long billingAddressId;
 
     @Column(name = "contact_phone", length = 30)
     private String contactPhone;
