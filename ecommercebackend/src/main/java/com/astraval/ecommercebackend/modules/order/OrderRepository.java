@@ -1,5 +1,6 @@
 package com.astraval.ecommercebackend.modules.order;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Override
     @EntityGraph(attributePaths = { "items", "trackingEvents", "user" })
     List<Order> findAll();
+
+    @EntityGraph(attributePaths = { "items", "items.product" })
+    List<Order> findByStatusAndCreatedDtBefore(OrderStatus status, LocalDateTime createdDt);
 }

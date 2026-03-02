@@ -65,3 +65,14 @@ springdoc:
     enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}
     path: /swagger-ui.html
     disable-swagger-default-url: true
+
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID:}
+    secret: ${RAZORPAY_KEY_SECRET:}
+  webhook:
+    secret: ${RAZORPAY_WEBHOOK_SECRET:}
+
+payment:
+  timeout:
+    minutes: ${PAYMENT_TIMEOUT_MINUTES:30}

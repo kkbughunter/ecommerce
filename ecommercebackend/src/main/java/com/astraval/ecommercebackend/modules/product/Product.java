@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Data;
 
 @Data
@@ -42,6 +43,13 @@ public class Product {
 
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity = 0;
+
+    @Column(name = "reserved_quantity", nullable = false)
+    private Integer reservedQuantity = 0;
+
+    @Column(name = "version", nullable = false)
+    @Version
+    private Integer version = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -73,6 +81,9 @@ public class Product {
         if (stockQuantity == null) {
             stockQuantity = 0;
         }
+        if (reservedQuantity == null) {
+            reservedQuantity = 0;
+        }
         if (gstPercentage == null) {
             gstPercentage = BigDecimal.ZERO;
         }
@@ -86,6 +97,9 @@ public class Product {
         }
         if (stockQuantity == null) {
             stockQuantity = 0;
+        }
+        if (reservedQuantity == null) {
+            reservedQuantity = 0;
         }
         if (gstPercentage == null) {
             gstPercentage = BigDecimal.ZERO;

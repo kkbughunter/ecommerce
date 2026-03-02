@@ -2,6 +2,7 @@ package com.astraval.ecommercebackend.modules.order;
 
 public enum OrderStatus {
     PLACED,
+    PAYMENT_PENDING,
     CONFIRMED,
     PACKED,
     SHIPPED,
