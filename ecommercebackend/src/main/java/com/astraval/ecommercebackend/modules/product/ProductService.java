@@ -3,6 +3,9 @@ package com.astraval.ecommercebackend.modules.product;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,11 +16,13 @@ import com.astraval.ecommercebackend.modules.category.Category;
 import com.astraval.ecommercebackend.modules.category.CategoryRepository;
 import com.astraval.ecommercebackend.modules.product.dto.CreateProductRequest;
 import com.astraval.ecommercebackend.modules.product.dto.ProductDetailResponse;
+import com.astraval.ecommercebackend.modules.product.dto.ProductPageResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductResponse;
 import com.astraval.ecommercebackend.modules.product.dto.UpdateProductRequest;
 
 @Service
 public class ProductService {
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -33,13 +38,19 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProductResponse> getAllProducts() {
-        return productRepository.findAll().stream().map(this::toProductResponse).toList();
+    public ProductPageResponse getAllProducts(int page, int size) {
+        validatePageRequest(page, size);
+        Page<Product> productPage = productRepository.findAll(
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+        return toProductPageResponse(productPage);
     }
 
     @Transactional(readOnly = true)
-    public List<ProductResponse> getAllActiveProducts() {
-        return productRepository.findByIsActiveTrue().stream().map(this::toProductResponse).toList();
+    public ProductPageResponse getAllActiveProducts(int page, int size) {
+        validatePageRequest(page, size);
+        Page<Product> productPage = productRepository.findByIsActiveTrue(
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+        return toProductPageResponse(productPage);
     }
 
     @Transactional
@@ -96,17 +107,23 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProductResponse> getProductsByCategory(Integer categoryId) {
+    public ProductPageResponse getProductsByCategory(Integer categoryId, int page, int size) {
         assertCategoryExists(categoryId);
-        return productRepository.findByCategoryCategoryId(categoryId).stream().map(this::toProductResponse).toList();
+        validatePageRequest(page, size);
+        Page<Product> productPage = productRepository.findByCategoryCategoryId(
+                categoryId,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+        return toProductPageResponse(productPage);
     }
 
     @Transactional(readOnly = true)
-    public List<ProductResponse> getActiveProductsByCategory(Integer categoryId) {
+    public ProductPageResponse getActiveProductsByCategory(Integer categoryId, int page, int size) {
         assertCategoryExists(categoryId);
-        return productRepository.findByCategoryCategoryIdAndIsActiveTrue(categoryId).stream()
-                .map(this::toProductResponse)
-                .toList();
+        validatePageRequest(page, size);
+        Page<Product> productPage = productRepository.findByCategoryCategoryIdAndIsActiveTrue(
+                categoryId,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+        return toProductPageResponse(productPage);
     }
 
     private ProductResponse updateProductStatus(Long productId, boolean active) {
@@ -134,6 +151,15 @@ public class ProductService {
         }
     }
 
+    private void validatePageRequest(int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException("Page must be greater than or equal to 0");
+        }
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new BadRequestException("Size must be between 1 and " + MAX_PAGE_SIZE);
+        }
+    }
+
     private Long getCurrentUserId() {
         String sub = securityUtil.getCurrentSub();
         try {
@@ -157,6 +183,20 @@ public class ProductService {
                 product.getIsActive(),
                 product.getCreatedDt(),
                 product.getModifiedDt());
+    }
+
+    private ProductPageResponse toProductPageResponse(Page<Product> productPage) {
+        List<ProductResponse> content = productPage.getContent().stream()
+                .map(this::toProductResponse)
+                .toList();
+        return new ProductPageResponse(
+                content,
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements(),
+                productPage.getTotalPages(),
+                productPage.isFirst(),
+                productPage.isLast());
     }
 
     private ProductDetailResponse toProductDetailResponse(Product product) {

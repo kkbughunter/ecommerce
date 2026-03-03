@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,7 @@ import com.astraval.ecommercebackend.common.util.ApiResponse;
 import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
 import com.astraval.ecommercebackend.modules.order.dto.CancelOrderRequest;
 import com.astraval.ecommercebackend.modules.order.dto.OrderDetailResponse;
+import com.astraval.ecommercebackend.modules.order.dto.OrderPageResponse;
 import com.astraval.ecommercebackend.modules.order.dto.OrderSummaryResponse;
 import com.astraval.ecommercebackend.modules.order.dto.OrderTrackingResponse;
 import com.astraval.ecommercebackend.modules.order.dto.PlaceOrderRequest;
@@ -74,8 +76,10 @@ public class OrderController {
 
     @GetMapping("/admin/orders")
     @Operation(summary = "Admin: list all orders")
-    public ResponseEntity<ApiResponse<List<OrderSummaryResponse>>> getAllOrdersForAdmin() {
-        List<OrderSummaryResponse> response = orderService.getAllOrdersForAdmin();
+    public ResponseEntity<ApiResponse<OrderPageResponse>> getAllOrdersForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        OrderPageResponse response = orderService.getAllOrdersForAdmin(page, size);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "All orders fetched successfully"));
     }
 

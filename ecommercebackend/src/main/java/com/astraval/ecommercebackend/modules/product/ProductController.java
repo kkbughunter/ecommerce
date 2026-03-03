@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.astraval.ecommercebackend.common.util.ApiResponse;
 import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
 import com.astraval.ecommercebackend.modules.product.dto.CreateProductRequest;
 import com.astraval.ecommercebackend.modules.product.dto.ProductDetailResponse;
+import com.astraval.ecommercebackend.modules.product.dto.ProductPageResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductResponse;
 import com.astraval.ecommercebackend.modules.product.dto.UpdateProductRequest;
 
@@ -38,15 +40,20 @@ public class ProductController {
     @GetMapping("/api/products")
     @Operation(summary = "List all products")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
-        return ResponseEntity.ok(ApiResponseFactory.ok(productService.getAllProducts(), "Products fetched successfully"));
+    public ResponseEntity<ApiResponse<ProductPageResponse>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(
+                ApiResponseFactory.ok(productService.getAllProducts(page, size), "Products fetched successfully"));
     }
 
     @GetMapping("/api/products/active")
     @Operation(summary = "List all active products")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllActiveProducts() {
+    public ResponseEntity<ApiResponse<ProductPageResponse>> getAllActiveProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(
-                ApiResponseFactory.ok(productService.getAllActiveProducts(), "Active products fetched successfully"));
+                ApiResponseFactory.ok(productService.getAllActiveProducts(page, size), "Active products fetched successfully"));
     }
 
     @PostMapping("/api/products")
@@ -93,16 +100,21 @@ public class ProductController {
     @GetMapping("/api/products/category/{categoryId}")
     @Operation(summary = "View products by category")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getProductsByCategory(@PathVariable Integer categoryId) {
-        List<ProductResponse> response = productService.getProductsByCategory(categoryId);
+    public ResponseEntity<ApiResponse<ProductPageResponse>> getProductsByCategory(
+            @PathVariable Integer categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        ProductPageResponse response = productService.getProductsByCategory(categoryId, page, size);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Category products fetched successfully"));
     }
 
     @GetMapping("/api/products/category/{categoryId}/active")
     @Operation(summary = "View active products by category")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getActiveProductsByCategory(
-            @PathVariable Integer categoryId) {
-        List<ProductResponse> response = productService.getActiveProductsByCategory(categoryId);
+    public ResponseEntity<ApiResponse<ProductPageResponse>> getActiveProductsByCategory(
+            @PathVariable Integer categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        ProductPageResponse response = productService.getActiveProductsByCategory(categoryId, page, size);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Active category products fetched successfully"));
     }
 }
