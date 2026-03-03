@@ -1,7 +1,5 @@
 package com.astraval.ecommercebackend.modules.product;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.astraval.ecommercebackend.common.util.ApiResponse;
 import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
+import com.astraval.ecommercebackend.modules.product.dto.CategoryProductsPageResponse;
 import com.astraval.ecommercebackend.modules.product.dto.CreateProductRequest;
 import com.astraval.ecommercebackend.modules.product.dto.ProductDetailResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductPageResponse;
@@ -42,18 +41,20 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductPageResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q) {
         return ResponseEntity.ok(
-                ApiResponseFactory.ok(productService.getAllProducts(page, size), "Products fetched successfully"));
+                ApiResponseFactory.ok(productService.getAllProducts(page, size, q), "Products fetched successfully"));
     }
 
     @GetMapping("/api/products/active")
     @Operation(summary = "List all active products")
     public ResponseEntity<ApiResponse<ProductPageResponse>> getAllActiveProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q) {
         return ResponseEntity.ok(
-                ApiResponseFactory.ok(productService.getAllActiveProducts(page, size), "Active products fetched successfully"));
+                ApiResponseFactory.ok(productService.getAllActiveProducts(page, size, q), "Active products fetched successfully"));
     }
 
     @PostMapping("/api/products")
@@ -103,8 +104,9 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductPageResponse>> getProductsByCategory(
             @PathVariable Integer categoryId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        ProductPageResponse response = productService.getProductsByCategory(categoryId, page, size);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q) {
+        ProductPageResponse response = productService.getProductsByCategory(categoryId, page, size, q);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Category products fetched successfully"));
     }
 
@@ -113,8 +115,30 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductPageResponse>> getActiveProductsByCategory(
             @PathVariable Integer categoryId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        ProductPageResponse response = productService.getActiveProductsByCategory(categoryId, page, size);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q) {
+        ProductPageResponse response = productService.getActiveProductsByCategory(categoryId, page, size, q);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Active category products fetched successfully"));
+    }
+
+    @GetMapping("/api/categories/active/products")
+    @Operation(summary = "Search active categories with active products")
+    public ResponseEntity<ApiResponse<CategoryProductsPageResponse>> getActiveCategoriesWithActiveProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q) {
+        CategoryProductsPageResponse response = productService.getActiveCategoriesWithActiveProducts(page, size, q);
+        return ResponseEntity.ok(ApiResponseFactory.ok(response, "Active categories and products fetched successfully"));
+    }
+
+    @GetMapping("/api/admin/categories/products")
+    @Operation(summary = "Admin: search all categories with all products")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CategoryProductsPageResponse>> getAllCategoriesWithAllProductsForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q) {
+        CategoryProductsPageResponse response = productService.getAllCategoriesWithAllProductsForAdmin(page, size, q);
+        return ResponseEntity.ok(ApiResponseFactory.ok(response, "All categories and products fetched successfully"));
     }
 }

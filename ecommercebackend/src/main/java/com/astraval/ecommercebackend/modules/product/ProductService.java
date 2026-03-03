@@ -1,7 +1,11 @@
 package com.astraval.ecommercebackend.modules.product;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +18,8 @@ import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.category.Category;
 import com.astraval.ecommercebackend.modules.category.CategoryRepository;
+import com.astraval.ecommercebackend.modules.product.dto.CategoryProductsPageResponse;
+import com.astraval.ecommercebackend.modules.product.dto.CategoryProductsResponse;
 import com.astraval.ecommercebackend.modules.product.dto.CreateProductRequest;
 import com.astraval.ecommercebackend.modules.product.dto.ProductDetailResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductPageResponse;
@@ -23,6 +29,8 @@ import com.astraval.ecommercebackend.modules.product.dto.UpdateProductRequest;
 @Service
 public class ProductService {
     private static final int MAX_PAGE_SIZE = 100;
+    private static final Sort PRODUCT_SORT = Sort.by(Sort.Direction.DESC, "createdDt");
+    private static final Sort CATEGORY_SORT = Sort.by(Sort.Direction.ASC, "categoryName");
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -38,18 +46,22 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductPageResponse getAllProducts(int page, int size) {
+    public ProductPageResponse getAllProducts(int page, int size, String query) {
         validatePageRequest(page, size);
-        Page<Product> productPage = productRepository.findAll(
-                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+        String normalizedQuery = normalizeSearchQuery(query);
+        Page<Product> productPage = productRepository.searchAllProducts(
+                normalizedQuery,
+                PageRequest.of(page, size, PRODUCT_SORT));
         return toProductPageResponse(productPage);
     }
 
     @Transactional(readOnly = true)
-    public ProductPageResponse getAllActiveProducts(int page, int size) {
+    public ProductPageResponse getAllActiveProducts(int page, int size, String query) {
         validatePageRequest(page, size);
-        Page<Product> productPage = productRepository.findByIsActiveTrue(
-                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+        String normalizedQuery = normalizeSearchQuery(query);
+        Page<Product> productPage = productRepository.searchActiveProducts(
+                normalizedQuery,
+                PageRequest.of(page, size, PRODUCT_SORT));
         return toProductPageResponse(productPage);
     }
 
@@ -107,23 +119,47 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductPageResponse getProductsByCategory(Integer categoryId, int page, int size) {
+    public ProductPageResponse getProductsByCategory(Integer categoryId, int page, int size, String query) {
         assertCategoryExists(categoryId);
         validatePageRequest(page, size);
-        Page<Product> productPage = productRepository.findByCategoryCategoryId(
+        String normalizedQuery = normalizeSearchQuery(query);
+        Page<Product> productPage = productRepository.searchProductsByCategory(
                 categoryId,
-                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+                normalizedQuery,
+                PageRequest.of(page, size, PRODUCT_SORT));
         return toProductPageResponse(productPage);
     }
 
     @Transactional(readOnly = true)
-    public ProductPageResponse getActiveProductsByCategory(Integer categoryId, int page, int size) {
+    public ProductPageResponse getActiveProductsByCategory(Integer categoryId, int page, int size, String query) {
         assertCategoryExists(categoryId);
         validatePageRequest(page, size);
-        Page<Product> productPage = productRepository.findByCategoryCategoryIdAndIsActiveTrue(
+        String normalizedQuery = normalizeSearchQuery(query);
+        Page<Product> productPage = productRepository.searchActiveProductsByCategory(
                 categoryId,
-                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+                normalizedQuery,
+                PageRequest.of(page, size, PRODUCT_SORT));
         return toProductPageResponse(productPage);
+    }
+
+    @Transactional(readOnly = true)
+    public CategoryProductsPageResponse getActiveCategoriesWithActiveProducts(int page, int size, String query) {
+        validatePageRequest(page, size);
+        String normalizedQuery = normalizeSearchQuery(query);
+        Page<Category> categoryPage = categoryRepository.searchActiveCategoriesWithActiveProducts(
+                normalizedQuery,
+                PageRequest.of(page, size, CATEGORY_SORT));
+        return toCategoryProductsPageResponse(categoryPage, normalizedQuery, true);
+    }
+
+    @Transactional(readOnly = true)
+    public CategoryProductsPageResponse getAllCategoriesWithAllProductsForAdmin(int page, int size, String query) {
+        validatePageRequest(page, size);
+        String normalizedQuery = normalizeSearchQuery(query);
+        Page<Category> categoryPage = categoryRepository.searchAllCategories(
+                normalizedQuery,
+                PageRequest.of(page, size, CATEGORY_SORT));
+        return toCategoryProductsPageResponse(categoryPage, normalizedQuery, false);
     }
 
     private ProductResponse updateProductStatus(Long productId, boolean active) {
@@ -197,6 +233,88 @@ public class ProductService {
                 productPage.getTotalPages(),
                 productPage.isFirst(),
                 productPage.isLast());
+    }
+
+    private CategoryProductsPageResponse toCategoryProductsPageResponse(
+            Page<Category> categoryPage,
+            String query,
+            boolean activeOnly) {
+        List<Category> categories = categoryPage.getContent();
+        if (categories.isEmpty()) {
+            return new CategoryProductsPageResponse(
+                    List.of(),
+                    categoryPage.getNumber(),
+                    categoryPage.getSize(),
+                    categoryPage.getTotalElements(),
+                    categoryPage.getTotalPages(),
+                    categoryPage.isFirst(),
+                    categoryPage.isLast());
+        }
+
+        List<Integer> categoryIds = categories.stream().map(Category::getCategoryId).toList();
+        List<Product> products = activeOnly
+                ? productRepository.findByCategoryCategoryIdInAndIsActiveTrue(categoryIds)
+                : productRepository.findByCategoryCategoryIdIn(categoryIds);
+
+        Map<Integer, List<Product>> allProductsByCategoryId = new HashMap<>();
+        Map<Integer, List<Product>> matchedProductsByCategoryId = new HashMap<>();
+        for (Product product : products) {
+            if (product.getCategory() == null || product.getCategory().getCategoryId() == null) {
+                continue;
+            }
+            Integer categoryId = product.getCategory().getCategoryId();
+            allProductsByCategoryId.computeIfAbsent(categoryId, key -> new ArrayList<>()).add(product);
+            if (query == null || productMatchesQuery(product, query)) {
+                matchedProductsByCategoryId.computeIfAbsent(categoryId, key -> new ArrayList<>()).add(product);
+            }
+        }
+
+        List<CategoryProductsResponse> content = new ArrayList<>();
+        for (Category category : categories) {
+            Integer categoryId = category.getCategoryId();
+            List<Product> categoryProducts;
+            if (query == null || textMatches(category.getCategoryName(), query)) {
+                categoryProducts = allProductsByCategoryId.getOrDefault(categoryId, List.of());
+            } else {
+                categoryProducts = matchedProductsByCategoryId.getOrDefault(categoryId, List.of());
+            }
+
+            List<ProductResponse> productResponses = categoryProducts.stream()
+                    .map(this::toProductResponse)
+                    .toList();
+            content.add(new CategoryProductsResponse(
+                    categoryId,
+                    category.getCategoryName(),
+                    productResponses));
+        }
+
+        return new CategoryProductsPageResponse(
+                content,
+                categoryPage.getNumber(),
+                categoryPage.getSize(),
+                categoryPage.getTotalElements(),
+                categoryPage.getTotalPages(),
+                categoryPage.isFirst(),
+                categoryPage.isLast());
+    }
+
+    private String normalizeSearchQuery(String query) {
+        if (query == null) {
+            return null;
+        }
+        String normalized = query.trim();
+        return normalized.isEmpty() ? null : normalized;
+    }
+
+    private boolean productMatchesQuery(Product product, String query) {
+        return textMatches(product.getName(), query) || textMatches(product.getDescription(), query);
+    }
+
+    private boolean textMatches(String value, String query) {
+        if (value == null || query == null) {
+            return false;
+        }
+        return value.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT));
     }
 
     private ProductDetailResponse toProductDetailResponse(Product product) {

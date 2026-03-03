@@ -1,0 +1,13 @@
+package com.astraval.ecommercebackend.modules.product.dto;
+
+import java.util.List;
+
+public record CategoryProductsPageResponse(
+        List<CategoryProductsResponse> content,
+        int page,
+        int size,
+        long totalElements,
+        int totalPages,
+        boolean first,
+        boolean last) {
+}
