@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -72,7 +71,23 @@ public class OrderService {
 
     @Transactional
     public OrderDetailResponse placeOrder(PlaceOrderRequest request) {
+        if (request == null) {
+            throw new BadRequestException("Order payload is required");
+        }
+        return placeOrderFromItems(request.items());
+    }
+
+    @Transactional
+    public OrderDetailResponse placeOrderFromItems(List<PlaceOrderItemRequest> itemRequests) {
         Long actorUserId = getCurrentUserId();
+        return createOrderFromItems(actorUserId, itemRequests);
+    }
+
+    private OrderDetailResponse createOrderFromItems(Long actorUserId, List<PlaceOrderItemRequest> itemRequests) {
+        if (itemRequests == null || itemRequests.isEmpty()) {
+            throw new BadRequestException("At least one order item is required");
+        }
+
         User user = userRepository.findByUserIdAndIsActiveTrue(actorUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -107,7 +122,12 @@ public class OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal subtotal = ZERO;
         BigDecimal totalTax = ZERO;
-        for (PlaceOrderItemRequest itemRequest : request.items()) {
+        for (PlaceOrderItemRequest itemRequest : itemRequests) {
+            if (itemRequest == null || itemRequest.productId() == null || itemRequest.quantity() == null
+                    || itemRequest.quantity() < 1) {
+                throw new BadRequestException("Each order item must include valid product id and quantity");
+            }
+
             Product product = productRepository.findById(itemRequest.productId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + itemRequest.productId()));
 
@@ -310,15 +330,15 @@ public class OrderService {
         return "ORD-" + String.format("%08d", orderId);
     }
 
-    private BigDecimal safeMoney(BigDecimal value) {
-        if (value == null) {
-            return ZERO;
-        }
-        if (value.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException("Amount values cannot be negative");
-        }
-        return value.setScale(2, RoundingMode.HALF_UP);
-    }
+    // private BigDecimal safeMoney(BigDecimal value) {
+    //     if (value == null) {
+    //         return ZERO;
+    //     }
+    //     if (value.compareTo(BigDecimal.ZERO) < 0) {
+    //         throw new BadRequestException("Amount values cannot be negative");
+    //     }
+    //     return value.setScale(2, RoundingMode.HALF_UP);
+    // }
 
     private String trimToNull(String value) {
         if (value == null) {
@@ -328,16 +348,16 @@ public class OrderService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    private String normalizeCurrency(String currency) {
-        String normalized = trimToNull(currency);
-        if (normalized == null) {
-            return "INR";
-        }
-        if (normalized.length() != 3) {
-            throw new BadRequestException("Currency must be 3 characters");
-        }
-        return normalized.toUpperCase(Locale.ROOT);
-    }
+    // private String normalizeCurrency(String currency) {
+    //     String normalized = trimToNull(currency);
+    //     if (normalized == null) {
+    //         return "INR";
+    //     }
+    //     if (normalized.length() != 3) {
+    //         throw new BadRequestException("Currency must be 3 characters");
+    //     }
+    //     return normalized.toUpperCase(Locale.ROOT);
+    // }
 
     private OrderSummaryResponse toOrderSummaryResponse(Order order) {
         return new OrderSummaryResponse(

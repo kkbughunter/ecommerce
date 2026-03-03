@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.astraval.ecommercebackend.common.util.ApiResponse;
 import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
@@ -59,6 +60,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(ApiResponseFactory.error("Method '" + ex.getMethod() + "' is not supported for this endpoint", HttpStatus.METHOD_NOT_ALLOWED.value()));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNoResourceFound(NoResourceFoundException ex) {
+        String message = "No endpoint found for request path: /" + ex.getResourcePath();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponseFactory.error(message, HttpStatus.NOT_FOUND.value()));
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)

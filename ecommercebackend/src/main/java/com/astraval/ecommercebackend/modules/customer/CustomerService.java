@@ -21,6 +21,7 @@ import com.astraval.ecommercebackend.modules.address.dto.AddressUpsertRequest;
 import com.astraval.ecommercebackend.modules.customer.dto.CustomerListResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.CustomerResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.UpdateCustomerRequest;
+import com.astraval.ecommercebackend.modules.user.User;
 
 @Service
 public class CustomerService {
@@ -94,7 +95,31 @@ public class CustomerService {
                 request.shippingAddress(),
                 customer.getShippingAddress()));
 
+        syncUserCheckoutDefaults(customer);
         return toResponse(customerRepository.save(customer));
+    }
+
+    private void syncUserCheckoutDefaults(Customer customer) {
+        User user = customer.getUser();
+        if (user == null) {
+            return;
+        }
+
+        user.setDefaultBillingAddressId(
+                customer.getBillingAddress() != null ? customer.getBillingAddress().getAddressId() : null);
+        user.setDefaultShippingAddressId(
+                customer.getShippingAddress() != null ? customer.getShippingAddress().getAddressId() : null);
+
+        String preferredPhone = null;
+        if (customer.getShippingAddress() != null) {
+            preferredPhone = trimToNull(customer.getShippingAddress().getPhoneNumber());
+        }
+        if (preferredPhone == null && customer.getBillingAddress() != null) {
+            preferredPhone = trimToNull(customer.getBillingAddress().getPhoneNumber());
+        }
+        if (preferredPhone != null) {
+            user.setPhoneNumber(preferredPhone);
+        }
     }
 
     private CustomerResponse updateCustomerStatus(Long customerId, boolean isActive) {

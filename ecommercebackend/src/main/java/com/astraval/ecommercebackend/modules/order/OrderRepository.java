@@ -10,13 +10,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    @EntityGraph(attributePaths = { "items", "trackingEvents", "user" })
+    @EntityGraph(attributePaths = { "user" })
     List<Order> findByUserUserIdOrderByCreatedDtDesc(Long userId);
 
-    @EntityGraph(attributePaths = { "items", "trackingEvents", "user" })
+    @EntityGraph(attributePaths = { "items", "user" })
     Optional<Order> findWithDetailsByOrderId(Long orderId);
 
     @Override
-    @EntityGraph(attributePaths = { "items", "trackingEvents", "user" })
+    @EntityGraph(attributePaths = { "user" })
     List<Order> findAll();
 }
