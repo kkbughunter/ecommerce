@@ -36,6 +36,7 @@ server:
 
 upload:
   path: ${UPLOAD_PATH:uploads}
+  product-image-folder: ${UPLOAD_PRODUCT_IMAGE_FOLDER:products}
 
 frontend:
   url: ${FRONTEND_URL:http://localhost:3000}
@@ -65,3 +66,10 @@ springdoc:
     enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}
     path: /swagger-ui.html
     disable-swagger-default-url: true
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:}
+  key-secret: ${RAZORPAY_KEY_SECRET:}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+  api-base-url: ${RAZORPAY_API_BASE_URL:https://api.razorpay.com}
+  create-order-timeout-ms: ${RAZORPAY_CREATE_ORDER_TIMEOUT_MS:10000}
