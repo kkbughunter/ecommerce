@@ -25,6 +25,8 @@ import com.astraval.ecommercebackend.modules.product.dto.ProductDetailResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductPageResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductResponse;
 import com.astraval.ecommercebackend.modules.product.dto.UpdateProductRequest;
+import com.astraval.ecommercebackend.modules.upload.UploadService;
+import com.astraval.ecommercebackend.modules.upload.dto.UploadResponse;
 
 @Service
 public class ProductService {
@@ -35,14 +37,17 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final SecurityUtil securityUtil;
+    private final UploadService uploadService;
 
     public ProductService(
             ProductRepository productRepository,
             CategoryRepository categoryRepository,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil,
+            UploadService uploadService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.securityUtil = securityUtil;
+        this.uploadService = uploadService;
     }
 
     @Transactional(readOnly = true)
@@ -319,6 +324,7 @@ public class ProductService {
 
     private ProductDetailResponse toProductDetailResponse(Product product) {
         Category category = product.getCategory();
+        List<UploadResponse> images = uploadService.getProductImagesByRelatedId(String.valueOf(product.getProductId()));
         return new ProductDetailResponse(
                 product.getProductId(),
                 product.getName(),
@@ -329,6 +335,7 @@ public class ProductService {
                 product.getIsActive(),
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,
+                images,
                 product.getCreatedDt(),
                 product.getModifiedDt());
     }
