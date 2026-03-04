@@ -1,5 +1,6 @@
 package com.astraval.ecommercebackend.modules.product;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,6 +84,7 @@ public class ProductService {
         product.setName(request.name().trim());
         product.setDescription(request.description());
         product.setPrice(request.price());
+        product.setMaxPrice(resolveMaxPrice(request.maxPrice(), request.price()));
         product.setGstPercentage(request.gstPercentage());
         product.setStockQuantity(request.stockQuantity());
         product.setCategory(resolveCategory(request.categoryId()));
@@ -104,6 +106,7 @@ public class ProductService {
         product.setName(request.name().trim());
         product.setDescription(request.description());
         product.setPrice(request.price());
+        product.setMaxPrice(resolveMaxPrice(request.maxPrice(), request.price()));
         product.setGstPercentage(request.gstPercentage());
         product.setStockQuantity(request.stockQuantity());
         product.setCategory(resolveCategory(request.categoryId()));
@@ -225,6 +228,7 @@ public class ProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
+                resolveResponseMaxPrice(product),
                 product.getGstPercentage(),
                 product.getStockQuantity(),
                 product.getMainImageUploadId(),
@@ -339,6 +343,7 @@ public class ProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
+                resolveResponseMaxPrice(product),
                 product.getGstPercentage(),
                 product.getStockQuantity(),
                 product.getMainImageUploadId(),
@@ -370,5 +375,20 @@ public class ProductService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private BigDecimal resolveMaxPrice(BigDecimal maxPrice, BigDecimal price) {
+        BigDecimal effectiveMaxPrice = maxPrice != null ? maxPrice : price;
+        if (effectiveMaxPrice == null) {
+            return null;
+        }
+        if (price != null && effectiveMaxPrice.compareTo(price) < 0) {
+            throw new BadRequestException("Max price must be greater than or equal to price");
+        }
+        return effectiveMaxPrice;
+    }
+
+    private BigDecimal resolveResponseMaxPrice(Product product) {
+        return product.getMaxPrice() != null ? product.getMaxPrice() : product.getPrice();
     }
 }

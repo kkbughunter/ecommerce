@@ -8,6 +8,7 @@ public record ProductResponse(
         String name,
         String description,
         BigDecimal price,
+        BigDecimal maxPrice,
         BigDecimal gstPercentage,
         Integer stockQuantity,
         String mainImageUploadId,

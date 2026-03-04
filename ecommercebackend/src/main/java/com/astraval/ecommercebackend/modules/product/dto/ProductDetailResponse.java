@@ -11,6 +11,7 @@ public record ProductDetailResponse(
         String name,
         String description,
         BigDecimal price,
+        BigDecimal maxPrice,
         BigDecimal gstPercentage,
         Integer stockQuantity,
         String mainImageUploadId,

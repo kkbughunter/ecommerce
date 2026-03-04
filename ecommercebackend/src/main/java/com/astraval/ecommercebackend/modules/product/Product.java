@@ -37,6 +37,9 @@ public class Product {
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
     private BigDecimal price;
 
+    @Column(name = "max_price", precision = 10, scale = 2)
+    private BigDecimal maxPrice;
+
     @Column(name = "gst_percentage", precision = 5, scale = 2, nullable = false)
     private BigDecimal gstPercentage = BigDecimal.ZERO;
 
@@ -79,6 +82,9 @@ public class Product {
         if (gstPercentage == null) {
             gstPercentage = BigDecimal.ZERO;
         }
+        if (maxPrice == null) {
+            maxPrice = price;
+        }
     }
 
     @PreUpdate
@@ -92,6 +98,9 @@ public class Product {
         }
         if (gstPercentage == null) {
             gstPercentage = BigDecimal.ZERO;
+        }
+        if (maxPrice == null) {
+            maxPrice = price;
         }
     }
 }
