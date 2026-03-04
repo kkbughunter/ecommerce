@@ -40,6 +40,7 @@ const AdminProductsView = () => {
       ) : null}
       <ProductTable
         readOnly
+        enableRowNavigation
         products={products}
         isLoading={isLoadingProducts}
         pageMeta={pageMeta}

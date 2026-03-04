@@ -1,24 +1,24 @@
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { clearAuthSession } from "../../../core/auth/session";
+import ENV from "../../../core/config/env";
+import ClientTopNav from "../components/ClientTopNav";
 import ProductCard from "../components/ProductCard";
 import useClientCategories from "../hooks/useClientCategories";
 import useCart from "../hooks/useCart";
 import useClientProducts from "../hooks/useClientProducts";
 
 const trustPoints = [
-  {
-    title: "Fast Delivery",
-    subtitle: "Express shipping across major cities",
-  },
-  {
-    title: "Secure Payment",
-    subtitle: "Card, UPI and wallet friendly checkout",
-  },
-  {
-    title: "Easy Returns",
-    subtitle: "Simple returns within 7 days",
-  },
+  // {
+  //   title: "Fast Delivery",
+  //   subtitle: "Express shipping across major cities",
+  // },
+  // {
+  //   title: "Secure Payment",
+  //   subtitle: "Card, UPI and wallet friendly checkout",
+  // },
+  // {
+  //   title: "Easy Returns",
+  //   subtitle: "Simple returns within 7 days",
+  // },
 ];
 
 const SectionTitle = ({ eyebrow, title, action }) => (
@@ -35,8 +35,15 @@ const SectionTitle = ({ eyebrow, title, action }) => (
   </div>
 );
 
+const getCategoryImageUrl = (apiBase, category) => {
+  if (!apiBase || !category?.categoryImageProductId || !category?.categoryImageUploadId) {
+    return null;
+  }
+  return `${apiBase}/products/${category.categoryImageProductId}/images/${category.categoryImageUploadId}/file`;
+};
+
 const ClientHomeView = () => {
-  const navigate = useNavigate();
+  const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
   const {
     filters,
     products,
@@ -70,71 +77,22 @@ const ClientHomeView = () => {
   );
   const categoryTiles = useMemo(() => categories.slice(0, 8), [categories]);
 
-  const handleLogout = () => {
-    clearAuthSession();
-    navigate("/login", { replace: true });
-  };
-
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
-      <header className="sticky top-0 z-20 border-b border-[#e8ebfb] bg-white/85 backdrop-blur">
-        <div className="flex w-full flex-wrap items-center justify-between gap-3 px-2 py-4 md:px-3">
-          <div className="flex items-center gap-8">
-            <h1 className="text-[24px] font-bold tracking-tight text-[#111827]">Villpo Store</h1>
-            <nav className="hidden items-center gap-5 text-[14px] text-[#475569] md:flex">
-              <a href="#discover" className="transition hover:text-[#2563eb]">Discover</a>
-              <a href="#categories" className="transition hover:text-[#2563eb]">Categories</a>
-              <a href="#flash" className="transition hover:text-[#2563eb]">Flash</a>
-              <a href="#trending" className="transition hover:text-[#2563eb]">Trending</a>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={filters.q}
-              onChange={(event) => updateSearch(event.target.value)}
-              placeholder="Search products..."
-              className="h-10 w-56 rounded-xl border border-[#d7dcf3] bg-[#f8faff] px-3 text-[13px] outline-none focus:border-[#7c3aed]"
-            />
-            <button
-              type="button"
-              onClick={refresh}
-              className="h-10 rounded-xl bg-[linear-gradient(90deg,#2563eb,#7c3aed)] px-4 text-[12px] font-semibold text-white"
-            >
-              Search
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client/account")}
-              className="h-10 rounded-xl border border-[#d7dcf3] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              My Account
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client/cart")}
-              className="h-10 rounded-xl border border-[#d7dcf3] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              Cart ({cartCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client/orders")}
-              className="h-10 rounded-xl border border-[#d7dcf3] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              Orders
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="h-10 rounded-xl border border-[#e2e8f0] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <ClientTopNav
+        title="Villpo Store"
+        quickLinks={[
+          { label: "Discover", href: "#discover" },
+          { label: "Categories", href: "#categories" },
+          { label: "Flash", href: "#flash" },
+          { label: "Trending", href: "#trending" },
+        ]}
+        showSearch
+        searchValue={filters.q}
+        onSearchChange={updateSearch}
+        onSearchSubmit={refresh}
+        cartCount={cartCount}
+      />
 
       <section id="discover" className="mt-6 w-full px-2 md:px-3">
         <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
@@ -200,12 +158,22 @@ const ClientHomeView = () => {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
           {categoryTiles.map((category) => (
             <button
-              key={category}
+              key={`${category?.categoryId || "cat"}-${category?.categoryName || "home-kitchen"}`}
               type="button"
-              onClick={() => updateSearch(category)}
-              className="rounded-2xl border border-[#dde2f8] bg-white px-3 py-4 text-center text-[12px] font-semibold text-[#334155] transition hover:border-[#7c3aed] hover:text-[#7c3aed]"
+              onClick={() => updateSearch(category?.categoryName || "")}
+              className="rounded-2xl border border-[#dde2f8] bg-white px-3 py-3 text-center text-[12px] font-semibold text-[#334155] transition hover:border-[#7c3aed] hover:text-[#7c3aed]"
             >
-              {category}
+              {getCategoryImageUrl(apiBase, category) ? (
+                <div
+                  className="mb-2 h-16 rounded-xl border border-[#dce2f9] bg-cover bg-center"
+                  style={{ backgroundImage: `url(${getCategoryImageUrl(apiBase, category)})` }}
+                />
+              ) : (
+                <div className="mb-2 flex h-16 items-center justify-center rounded-xl border border-[#dce2f9] bg-[linear-gradient(145deg,#eef2ff,#e2e8f8)] text-lg font-semibold text-[#475569]">
+                  {(category?.categoryName || "C").charAt(0).toUpperCase()}
+                </div>
+              )}
+              <p className="line-clamp-2">{category?.categoryName || "Home & Kitchen"}</p>
             </button>
           ))}
         </div>

@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import orderApi from "../../../core/api/orderApi";
 import paymentApi from "../../../core/api/paymentApi";
-import { clearAuthSession } from "../../../core/auth/session";
 import getApiErrorMessage from "../../../core/utils/apiError";
 import AppFooter from "../../../layouts/AppFooter";
+import ClientTopNav from "../components/ClientTopNav";
 
 const formatMoney = (value, currency = "INR") =>
   new Intl.NumberFormat("en-IN", {
@@ -30,6 +29,33 @@ const formatDateTime = (value) => {
   });
 };
 
+const formatCustomerName = (order) => {
+  const name = [order?.customerFirstName, order?.customerLastName]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return name || "-";
+};
+
+const formatAddressLine = (address) => {
+  if (!address) {
+    return "-";
+  }
+  const parts = [
+    address?.line1,
+    address?.line2,
+    address?.landmark,
+    address?.city,
+    address?.district,
+    address?.state,
+    address?.country,
+    address?.postalCode,
+  ]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean);
+  return parts.length ? parts.join(", ") : "-";
+};
+
 const formatPaymentAttemptStatus = (status) => {
   if (!status) {
     return "-";
@@ -41,7 +67,6 @@ const formatPaymentAttemptStatus = (status) => {
 };
 
 const ClientOrdersView = () => {
-  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -110,41 +135,9 @@ const ClientOrdersView = () => {
     loadOrderDetails(selectedOrderId);
   }, [selectedOrderId]);
 
-  const handleLogout = () => {
-    clearAuthSession();
-    navigate("/login", { replace: true });
-  };
-
   return (
     <main className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
-      <header className="sticky top-0 z-20 border-b border-[#e8ebfb] bg-white/85 backdrop-blur">
-        <div className="flex w-full flex-wrap items-center justify-between gap-3 px-2 py-4 md:px-3">
-          <h1 className="text-[24px] font-bold tracking-tight text-[#111827]">My Orders</h1>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => navigate("/client")}
-              className="h-10 rounded-xl border border-[#d8deef] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              Home
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client/cart")}
-              className="h-10 rounded-xl border border-[#d8deef] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              Cart
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="h-10 rounded-xl border border-[#e2e8f0] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <ClientTopNav title="My Orders" />
 
       <section className="w-full flex-1 px-2 py-6 md:px-3">
         {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
@@ -178,7 +171,7 @@ const ClientOrdersView = () => {
                     <p className="text-sm font-semibold text-slate-900">{order.orderNumber}</p>
                     <p className="mt-1 text-xs text-slate-500">{formatDateTime(order.createdDt)}</p>
                     <p className="mt-1 text-xs text-slate-700">
-                      {order.status} • {order.paymentStatus}
+                      {order.status} | {order.paymentStatus}
                     </p>
                     <p className="mt-1 text-sm font-semibold text-slate-900">
                       {formatMoney(order.totalAmount, order.currency)}
@@ -203,6 +196,15 @@ const ClientOrdersView = () => {
                     {selectedOrder?.orderNumber || selectedOrderSummary?.orderNumber}
                   </h3>
                   <p className="mt-1 text-sm text-slate-700">
+                    Customer: <span className="font-semibold">{formatCustomerName(selectedOrder)}</span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    Email: <span className="font-semibold">{selectedOrder?.userEmail || "-"}</span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    Phone: <span className="font-semibold">{selectedOrder?.contactPhone || "-"}</span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">
                     Status: <span className="font-semibold">{selectedOrder?.status || selectedOrderSummary?.status}</span>
                   </p>
                   <p className="mt-1 text-sm text-slate-700">
@@ -219,6 +221,30 @@ const ClientOrdersView = () => {
                   </p>
                 </section>
 
+                <section className="grid gap-3 md:grid-cols-2">
+                  <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-700">Shipping Address</h4>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">
+                      {selectedOrder?.shippingAddress?.fullName || "-"}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      Phone: {selectedOrder?.shippingAddress?.phoneNumber || selectedOrder?.contactPhone || "-"}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-600">{formatAddressLine(selectedOrder?.shippingAddress)}</p>
+                  </article>
+
+                  <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-700">Billing Address</h4>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">
+                      {selectedOrder?.billingAddress?.fullName || "-"}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      Phone: {selectedOrder?.billingAddress?.phoneNumber || selectedOrder?.contactPhone || "-"}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-600">{formatAddressLine(selectedOrder?.billingAddress)}</p>
+                  </article>
+                </section>
+
                 <section>
                   <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Items</h4>
                   <div className="space-y-2">
@@ -228,7 +254,7 @@ const ClientOrdersView = () => {
                           {item.productName}
                         </p>
                         <p className="text-xs text-slate-600">
-                          Qty {item.quantity} • {formatMoney(item.unitPrice, selectedOrder?.currency || "INR")}
+                          Qty {item.quantity} | {formatMoney(item.unitPrice, selectedOrder?.currency || "INR")}
                         </p>
                       </div>
                     ))}
@@ -255,10 +281,10 @@ const ClientOrdersView = () => {
                     {(paymentDetails?.attempts || []).map((attempt) => (
                       <div key={attempt.paymentTransactionId} className="rounded-lg border border-slate-200 p-3">
                         <p className="text-sm font-semibold text-slate-900">
-                          Attempt #{attempt.attemptNumber} • {formatPaymentAttemptStatus(attempt.status)}
+                          Attempt #{attempt.attemptNumber} | {formatPaymentAttemptStatus(attempt.status)}
                         </p>
                         <p className="text-xs text-slate-600">
-                          {formatMoney(attempt.amount, attempt.currency)} • {attempt.gateway}
+                          {formatMoney(attempt.amount, attempt.currency)} | {attempt.gateway}
                         </p>
                         <p className="text-xs text-slate-500">{formatDateTime(attempt.createdDt)}</p>
                       </div>
@@ -279,3 +305,4 @@ const ClientOrdersView = () => {
 };
 
 export default ClientOrdersView;
+

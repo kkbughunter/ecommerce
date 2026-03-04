@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { clearAuthSession } from "../../../core/auth/session";
 import ENV from "../../../core/config/env";
 import AppFooter from "../../../layouts/AppFooter";
+import ClientTopNav from "../components/ClientTopNav";
 import useCart from "../hooks/useCart";
 
 const formatMoney = (value) =>
@@ -31,11 +31,6 @@ const ClientCartView = () => {
     .toLowerCase()
     .includes("please set default shipping and billing addresses in your profile");
 
-  const handleLogout = () => {
-    clearAuthSession();
-    navigate("/login", { replace: true });
-  };
-
   useEffect(() => {
     const ids = (cart?.items || []).map((item) => item.productId).filter(Boolean);
     setSelectedProductIds(ids);
@@ -49,41 +44,7 @@ const ClientCartView = () => {
 
   return (
     <main className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
-      <header className="sticky top-0 z-20 border-b border-[#e8ebfb] bg-white/85 backdrop-blur">
-        <div className="flex w-full flex-wrap items-center justify-between gap-3 px-2 py-4 md:px-3">
-          <h1 className="text-[24px] font-bold tracking-tight text-[#111827]">Your Cart</h1>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => navigate("/client/account")}
-              className="h-10 rounded-xl border border-[#d8deef] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              My Account
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client")}
-              className="h-10 rounded-xl border border-[#d8deef] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              Back To Home
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client/orders")}
-              className="h-10 rounded-xl border border-[#d8deef] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              My Orders
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="h-10 rounded-xl border border-[#e2e8f0] bg-white px-4 text-[12px] font-semibold text-[#334155]"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <ClientTopNav title="Your Cart" cartCount={cart?.totalItems || 0} />
 
       <section className="w-full flex-1 px-2 py-6 md:px-3">
         {showAddressSetupError ? (

@@ -38,6 +38,7 @@ const ProductTable = ({
   onNext,
   onNewProduct = () => {},
   readOnly = false,
+  enableRowNavigation = false,
   updatingMaxPriceProductId = null,
   updatingTagProductId = null,
   onUpdateMaxPrice = () => {},
@@ -67,8 +68,10 @@ const ProductTable = ({
     setTagDrafts(nextTagDrafts);
   }, [products]);
 
+  const isRowNavigationEnabled = !readOnly || enableRowNavigation;
+
   const openProductDetails = (productId) => {
-    if (readOnly) {
+    if (!productId || !isRowNavigationEnabled) {
       return;
     }
     navigate(`/products/${productId}`);
@@ -127,8 +130,9 @@ const ProductTable = ({
               products.map((product) => (
                 <tr
                   key={product.productId}
-                  className={`${readOnly ? "" : "cursor-pointer"} border-b border-slate-100 text-sm text-slate-700 hover:bg-slate-50`}
+                  className={`${isRowNavigationEnabled ? "cursor-pointer" : ""} border-b border-slate-100 text-sm text-slate-700 hover:bg-slate-50`}
                   onClick={() => openProductDetails(product.productId)}
+                  title={isRowNavigationEnabled ? "Open product details" : undefined}
                 >
                   <td className="py-3 pr-3">
                     {buildImageUrl(product) ? (

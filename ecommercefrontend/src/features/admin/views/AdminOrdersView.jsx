@@ -19,6 +19,12 @@ const ORDER_STATUSES = [
 
 const PAYMENT_STATUSES = ["PENDING", "PAID", "FAILED", "REFUNDED"];
 
+const TopBarIcon = ({ path }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-current">
+    <path d={path} />
+  </svg>
+);
+
 const formatMoney = (value, currency = "INR") =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -41,6 +47,33 @@ const formatDateTime = (value) => {
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const formatCustomerName = (order) => {
+  const name = [order?.customerFirstName, order?.customerLastName]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return name || "-";
+};
+
+const formatAddressLine = (address) => {
+  if (!address) {
+    return "-";
+  }
+  const parts = [
+    address?.line1,
+    address?.line2,
+    address?.landmark,
+    address?.city,
+    address?.district,
+    address?.state,
+    address?.country,
+    address?.postalCode,
+  ]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean);
+  return parts.length ? parts.join(", ") : "-";
 };
 
 const formatPaymentAttemptStatus = (status) => {
@@ -240,16 +273,20 @@ const AdminOrdersView = () => {
           <button
             type="button"
             onClick={() => navigate("/admin/invoices")}
-            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+            title="Open Invoices"
+            aria-label="Open Invoices"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8dde6] bg-white text-[#334155]"
           >
-            Open Invoices
+            <TopBarIcon path="M6 2h12v20l-3-2-3 2-3-2-3 2V2zm2 4v2h8V6H8zm0 4v2h8v-2H8z" />
           </button>
           <button
             type="button"
             onClick={() => loadAdminOrders(ordersPage.page, ordersPage.size)}
-            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+            title="Refresh Orders"
+            aria-label="Refresh Orders"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8dde6] bg-white text-[#334155]"
           >
-            Refresh Orders
+            <TopBarIcon path="M17.65 6.35A7.95 7.95 0 0 0 12 4V1L7 6l5 5V7a5 5 0 1 1-4.9 6h-2.02A7 7 0 1 0 17.65 6.35z" />
           </button>
         </div>
       }
@@ -351,7 +388,8 @@ const AdminOrdersView = () => {
                         {selectedOrder?.orderNumber || selectedOrderSummary?.orderNumber}
                       </h3>
                       <p className="text-xs text-[#64748b]">
-                        Customer: {selectedOrder?.userEmail || "-"} | Phone: {selectedOrder?.contactPhone || "-"}
+                        Customer: {formatCustomerName(selectedOrder)} | Email: {selectedOrder?.userEmail || "-"} | Phone:{" "}
+                        {selectedOrder?.contactPhone || "-"}
                       </p>
                     </div>
                     <button
@@ -376,6 +414,41 @@ const AdminOrdersView = () => {
                       )}
                     </span>
                   </div>
+                </section>
+
+                <section className="grid gap-3 lg:grid-cols-3">
+                  <article className="rounded-xl border border-[#e8ecf2] bg-[#fbfcfd] p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Customer Info</p>
+                    <p className="mt-1 text-sm font-semibold text-[#111827]">{formatCustomerName(selectedOrder)}</p>
+                    <p className="text-xs text-[#64748b]">Email: {selectedOrder?.userEmail || "-"}</p>
+                    <p className="text-xs text-[#64748b]">Phone: {selectedOrder?.contactPhone || "-"}</p>
+                    <p className="mt-1 text-xs text-[#64748b]">User ID: {selectedOrder?.userId || "-"}</p>
+                    <p className="text-xs text-[#64748b]">Customer ID: {selectedOrder?.customerId || "-"}</p>
+                  </article>
+
+                  <article className="rounded-xl border border-[#e8ecf2] bg-[#fbfcfd] p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Shipping Address</p>
+                    <p className="mt-1 text-sm font-medium text-[#111827]">
+                      {selectedOrder?.shippingAddress?.fullName || "-"}
+                    </p>
+                    <p className="text-xs text-[#64748b]">
+                      Phone: {selectedOrder?.shippingAddress?.phoneNumber || selectedOrder?.contactPhone || "-"}
+                    </p>
+                    <p className="mt-1 text-xs text-[#64748b]">{formatAddressLine(selectedOrder?.shippingAddress)}</p>
+                    <p className="mt-1 text-xs text-[#64748b]">Address ID: {selectedOrder?.shippingAddressId || "-"}</p>
+                  </article>
+
+                  <article className="rounded-xl border border-[#e8ecf2] bg-[#fbfcfd] p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Billing Address</p>
+                    <p className="mt-1 text-sm font-medium text-[#111827]">
+                      {selectedOrder?.billingAddress?.fullName || "-"}
+                    </p>
+                    <p className="text-xs text-[#64748b]">
+                      Phone: {selectedOrder?.billingAddress?.phoneNumber || selectedOrder?.contactPhone || "-"}
+                    </p>
+                    <p className="mt-1 text-xs text-[#64748b]">{formatAddressLine(selectedOrder?.billingAddress)}</p>
+                    <p className="mt-1 text-xs text-[#64748b]">Address ID: {selectedOrder?.billingAddressId || "-"}</p>
+                  </article>
                 </section>
 
                 <section className="grid gap-3 md:grid-cols-2">

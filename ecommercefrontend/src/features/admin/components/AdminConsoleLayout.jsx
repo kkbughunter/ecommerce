@@ -11,6 +11,12 @@ const navItems = [
     icon: "M3 13h8V3H3v10zm10 8h8V3h-8v18zm-10 0h8v-6H3v6z",
   },
   {
+    key: "products",
+    label: "Products",
+    path: "/admin/products",
+    icon: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z",
+  },
+  {
     key: "orders",
     label: "Orders",
     path: "/admin/orders",
@@ -27,12 +33,6 @@ const navItems = [
     label: "Invoices",
     path: "/admin/invoices",
     icon: "M6 2h12v20l-3-2-3 2-3-2-3 2V2zm2 4v2h8V6H8zm0 4v2h8v-2H8z",
-  },
-  {
-    key: "products",
-    label: "Products",
-    path: "/admin/products",
-    icon: "M11 2v9H2v2h9v9h2v-9h9v-2h-9V2h-2z",
   },
 ];
 
@@ -95,7 +95,7 @@ const AdminConsoleLayout = ({
                 <div className="h-8 w-8 rounded-lg bg-[linear-gradient(140deg,#0f172a,#334155)]" />
                 {!isSidebarCollapsed ? (
                   <div>
-                    <p className="text-base font-semibold text-[#0f172a]">eComma</p>
+                    <p className="text-base font-semibold text-[#0f172a]">Villpo</p>
                     <p className="text-[11px] text-[#667085]">Admin Console</p>
                   </div>
                 ) : null}

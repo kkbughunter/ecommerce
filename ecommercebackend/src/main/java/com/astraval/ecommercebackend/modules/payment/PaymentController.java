@@ -59,7 +59,7 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Payment marked as failed"));
     }
 
-    @GetMapping("/orders/{orderId}")
+    @GetMapping({"/orders/{orderId}", "/orders/{orderId}/"})
     @Operation(summary = "Get full payment attempts and status timeline for an order")
     public ResponseEntity<ApiResponse<OrderPaymentDetailsResponse>> getOrderPaymentDetails(@PathVariable Long orderId) {
         OrderPaymentDetailsResponse response = razorpayPaymentService.getOrderPaymentDetails(orderId);

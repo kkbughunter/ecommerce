@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import categoryApi from "../../../core/api/categoryApi";
 import productApi from "../../../core/api/productApi";
 import { clearAuthSession, getHomePathByRole, hasAnyRole } from "../../../core/auth/session";
 import ENV from "../../../core/config/env";
@@ -14,6 +15,23 @@ const formatMoney = (value) =>
     currency: "INR",
     maximumFractionDigits: 2,
   }).format(Number(value || 0));
+
+const formatDateTime = (value) => {
+  if (!value) {
+    return "-";
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 const getTagLabel = (tag) => {
   if (tag === "FLASH_SALES") {
@@ -39,6 +57,9 @@ const ProductDetailView = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const descriptionRef = useRef(null);
   const [editForm, setEditForm] = useState({
     name: "",
@@ -169,6 +190,33 @@ const ProductDetailView = () => {
   }, [loadProduct]);
 
   useEffect(() => {
+    if (!isAdmin) {
+      return;
+    }
+
+    const loadCategories = async () => {
+      setIsLoadingCategories(true);
+      try {
+        const response = await categoryApi.getAllCategories();
+        const list = Array.isArray(response?.data?.data) ? response.data.data : [];
+        const normalized = list
+          .map((item) => ({
+            categoryId: Number(item?.categoryId),
+            categoryName: String(item?.categoryName || "").trim(),
+          }))
+          .filter((item) => Number.isFinite(item.categoryId) && item.categoryName);
+        setCategories(normalized);
+      } catch {
+        setCategories([]);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    loadCategories();
+  }, [isAdmin]);
+
+  useEffect(() => {
     const loadRelatedProducts = async () => {
       if (!product?.categoryId) {
         setRelatedProducts([]);
@@ -227,6 +275,7 @@ const ProductDetailView = () => {
       };
       await productApi.updateProduct(productId, payload);
       setSuccess("Product updated successfully.");
+      setIsEditMode(false);
       await loadProduct();
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to update product."));
@@ -277,8 +326,8 @@ const ProductDetailView = () => {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#eef2ff_0%,#f8fafc_52%,#f5f7fb_100%)] px-2 py-4 md:px-3">
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex gap-2">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleBack}
@@ -294,7 +343,12 @@ const ProductDetailView = () => {
               Logout
             </button>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Product Details</p>
+          <div className="text-right">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              {isAdmin ? "Admin Product Studio" : "Product Details"}
+            </p>
+            <p className="text-sm font-semibold text-slate-900">ID #{productId}</p>
+          </div>
         </div>
 
         {isLoading ? (
@@ -379,12 +433,29 @@ const ProductDetailView = () => {
                 <p className="mt-2 text-sm text-slate-600">
                   Category: <span className="font-medium">{product.categoryName || "-"}</span>
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                    GST {product.gstPercentage}%
+                  </span>
+                  <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                    Stock {product.stockQuantity}
+                  </span>
+                  <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                    Number(product.stockQuantity || 0) > 0
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border-rose-200 bg-rose-50 text-rose-700"
+                  }`}>
+                    {Number(product.stockQuantity || 0) > 0 ? "In Stock" : "Out of Stock"}
+                  </span>
+                </div>
                 <div className="mt-3 flex items-baseline gap-2">
                   <p className="text-xl font-bold text-slate-900">{formatMoney(price)}</p>
                   {maxPrice > price && <p className="text-sm text-slate-500 line-through">{formatMoney(maxPrice)}</p>}
                 </div>
                 {maxPrice > price && <p className="mt-1 text-sm font-semibold text-emerald-600">Save {savePercentage}%</p>}
-                <p className="mt-1 text-sm text-slate-600">GST {product.gstPercentage}% | Stock {product.stockQuantity}</p>
+                <p className="mt-2 text-xs text-slate-500">
+                  Created {formatDateTime(product.createdDt)} | Updated {formatDateTime(product.modifiedDt)}
+                </p>
                 {!isAdmin && (
                   <button
                     type="button"
@@ -401,218 +472,281 @@ const ProductDetailView = () => {
 
               {isAdmin ? (
                 <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <h2 className="text-base font-semibold text-slate-900">Update Product</h2>
-                  <form className="mt-4 grid gap-3" onSubmit={handleUpdate}>
-                    <label className="space-y-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Product Name</span>
-                      <input
-                        type="text"
-                        name="name"
-                        value={editForm.name}
-                        onChange={handleEditChange}
-                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                        placeholder="Enter product name"
-                        required
-                      />
-                    </label>
-                    <label className="space-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Description</span>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="text-base font-semibold text-slate-900">Admin Controls</h2>
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => applyDescriptionFormat("bold")}
-                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                        onClick={() => setIsEditMode(false)}
+                        className={`h-8 rounded-md border px-3 text-xs font-semibold ${
+                          !isEditMode
+                            ? "border-slate-900 bg-slate-900 text-white"
+                            : "border-slate-300 bg-white text-slate-700"
+                        }`}
                       >
-                        Bold
+                        Overview
                       </button>
                       <button
                         type="button"
-                        onClick={() => applyDescriptionFormat("italic")}
-                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                        onClick={() => setIsEditMode(true)}
+                        className={`h-8 rounded-md border px-3 text-xs font-semibold ${
+                          isEditMode
+                            ? "border-slate-900 bg-slate-900 text-white"
+                            : "border-slate-300 bg-white text-slate-700"
+                        }`}
                       >
-                        Italic
+                        Edit Product
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => applyDescriptionFormat("bullet")}
-                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
-                      >
-                        Bullet
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyDescriptionFormat("number")}
-                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
-                      >
-                        Number
-                      </button>
-                    </div>
-                    <textarea
-                      ref={descriptionRef}
-                      name="description"
-                      value={editForm.description}
-                      onChange={handleEditChange}
-                      rows={3}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                      placeholder="Enter product description"
-                    />
-                    <p className="text-xs text-slate-500">Supports basic markdown-style text formatting.</p>
-                  </label>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <label className="space-y-1">
-                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Price</span>
-                        <input
-                          type="number"
-                          name="price"
-                          value={editForm.price}
-                          onChange={handleEditChange}
-                          min="0"
-                          step="0.01"
-                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                          placeholder="0.00"
-                          required
-                        />
-                      </label>
-                      <label className="space-y-1">
-                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Max Price</span>
-                        <input
-                          type="number"
-                          name="maxPrice"
-                          value={editForm.maxPrice}
-                          onChange={handleEditChange}
-                          min="0"
-                          step="0.01"
-                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                          placeholder="0.00"
-                        />
-                      </label>
-                      <label className="space-y-1">
-                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">GST %</span>
-                        <input
-                          type="number"
-                          name="gstPercentage"
-                          value={editForm.gstPercentage}
-                          onChange={handleEditChange}
-                          min="0"
-                          max="100"
-                          step="0.01"
-                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                          placeholder="0.00"
-                          required
-                        />
-                      </label>
-                      <label className="space-y-1">
-                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Stock Quantity</span>
-                        <input
-                          type="number"
-                          name="stockQuantity"
-                          value={editForm.stockQuantity}
-                          onChange={handleEditChange}
-                          min="0"
-                          step="1"
-                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                          placeholder="0"
-                          required
-                        />
-                      </label>
-                      <label className="space-y-1">
-                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Category ID</span>
-                        <input
-                          type="number"
-                          name="categoryId"
-                          value={editForm.categoryId}
-                          onChange={handleEditChange}
-                          min="1"
-                          step="1"
-                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                          placeholder="Category ID"
-                        />
-                      </label>
-                      <label className="space-y-1">
-                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Product Tag</span>
-                        <select
-                          name="productTag"
-                          value={editForm.productTag}
-                          onChange={handleEditChange}
-                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                        >
-                          <option value="">No tag</option>
-                          <option value="FLASH_SALES">Flash Sales</option>
-                          <option value="TRENDING_PRODUCTS">Trending Products</option>
-                        </select>
-                      </label>
-                    </div>
-                    <label className="space-y-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Main Image Upload ID</span>
-                      <input
-                        type="text"
-                        name="mainImageUploadId"
-                        value={editForm.mainImageUploadId}
-                        onChange={handleEditChange}
-                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                        placeholder="Paste upload id from product image upload"
-                      />
-                    </label>
-                    {success && <p className="text-sm text-emerald-600">{success}</p>}
-                    {error && <p className="text-sm text-red-600">{error}</p>}
-                    <button
-                      type="submit"
-                      disabled={isUpdating}
-                      className="h-10 rounded-lg bg-slate-900 px-3 text-sm font-semibold text-white disabled:opacity-60"
-                    >
-                      {isUpdating ? "Updating..." : "Update Product"}
-                    </button>
-                  </form>
-
-                  <hr className="my-4 border-slate-200" />
-                  <h3 className="text-sm font-semibold text-slate-900">Upload Product Images</h3>
-                  <form className="mt-3 space-y-3" onSubmit={handleUploadImages}>
-                    <input type="file" accept="image/*" multiple onChange={handleFileChange} className="block w-full text-sm text-slate-700" />
-                    <button
-                      type="submit"
-                      disabled={isUploading}
-                      className="h-10 rounded-lg bg-blue-700 px-3 text-sm font-semibold text-white disabled:opacity-60"
-                    >
-                      {isUploading ? "Uploading..." : "Upload Images"}
-                    </button>
-                  </form>
-
-                  <div className="mt-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Uploaded Images</p>
-                    <div className="grid gap-2 md:grid-cols-2">
-                      {(product?.images || []).map((image) => (
-                        <button
-                          key={image.uploadId}
-                          type="button"
-                          onClick={() =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              mainImageUploadId: image.uploadId,
-                            }))
-                          }
-                          className="rounded-lg border border-slate-200 bg-white p-2 text-left hover:border-blue-400"
-                          title="Click to set as main image id in update form"
-                        >
-                          <img
-                            src={buildImageFileUrl(image.uploadId)}
-                            alt={image.filename || "Product image"}
-                            className="aspect-square w-full rounded object-cover"
-                            loading="lazy"
-                          />
-                          <p className="mt-1 truncate text-xs text-slate-600">{image.uploadId}</p>
-                        </button>
-                      ))}
-                      {!product?.images?.length && <p className="text-sm text-slate-500">No uploaded images yet.</p>}
                     </div>
                   </div>
+
+                  {!isEditMode ? (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <article className="rounded-lg border border-slate-200 bg-white p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Pricing</p>
+                        <p className="mt-2 text-sm text-slate-700">Selling Price: <span className="font-semibold">{formatMoney(price)}</span></p>
+                        <p className="text-sm text-slate-700">Max Price: <span className="font-semibold">{formatMoney(maxPrice)}</span></p>
+                        <p className="text-sm text-slate-700">Discount: <span className="font-semibold">{savePercentage}%</span></p>
+                      </article>
+                      <article className="rounded-lg border border-slate-200 bg-white p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Inventory</p>
+                        <p className="mt-2 text-sm text-slate-700">Stock: <span className="font-semibold">{product?.stockQuantity}</span></p>
+                        <p className="text-sm text-slate-700">GST: <span className="font-semibold">{product?.gstPercentage}%</span></p>
+                        <p className="text-sm text-slate-700">Main Image ID: <span className="font-semibold">{product?.mainImageUploadId || "-"}</span></p>
+                      </article>
+                    </div>
+                  ) : (
+                    <>
+                      <form className="mt-4 grid gap-3" onSubmit={handleUpdate}>
+                        <label className="space-y-1">
+                          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Product Name</span>
+                          <input
+                            type="text"
+                            name="name"
+                            value={editForm.name}
+                            onChange={handleEditChange}
+                            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                            placeholder="Enter product name"
+                            required
+                          />
+                        </label>
+                        <label className="space-y-1">
+                          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Description</span>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => applyDescriptionFormat("bold")}
+                              className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                            >
+                              Bold
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => applyDescriptionFormat("italic")}
+                              className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                            >
+                              Italic
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => applyDescriptionFormat("bullet")}
+                              className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                            >
+                              Bullet
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => applyDescriptionFormat("number")}
+                              className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                            >
+                              Number
+                            </button>
+                          </div>
+                          <textarea
+                            ref={descriptionRef}
+                            name="description"
+                            value={editForm.description}
+                            onChange={handleEditChange}
+                            rows={3}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            placeholder="Enter product description"
+                          />
+                          <p className="text-xs text-slate-500">Supports basic markdown-style text formatting.</p>
+                        </label>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Price</span>
+                            <input
+                              type="number"
+                              name="price"
+                              value={editForm.price}
+                              onChange={handleEditChange}
+                              min="0"
+                              step="0.01"
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                              placeholder="0.00"
+                              required
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Max Price</span>
+                            <input
+                              type="number"
+                              name="maxPrice"
+                              value={editForm.maxPrice}
+                              onChange={handleEditChange}
+                              min="0"
+                              step="0.01"
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                              placeholder="0.00"
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">GST %</span>
+                            <input
+                              type="number"
+                              name="gstPercentage"
+                              value={editForm.gstPercentage}
+                              onChange={handleEditChange}
+                              min="0"
+                              max="100"
+                              step="0.01"
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                              placeholder="0.00"
+                              required
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Stock Quantity</span>
+                            <input
+                              type="number"
+                              name="stockQuantity"
+                              value={editForm.stockQuantity}
+                              onChange={handleEditChange}
+                              min="0"
+                              step="1"
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                              placeholder="0"
+                              required
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Category</span>
+                            <select
+                              name="categoryId"
+                              value={editForm.categoryId}
+                              onChange={handleEditChange}
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                            >
+                              <option value="">
+                                {isLoadingCategories ? "Loading categories..." : "Select category"}
+                              </option>
+                              {categories.map((category) => (
+                                <option key={category.categoryId} value={category.categoryId}>
+                                  {category.categoryName}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Product Tag</span>
+                            <select
+                              name="productTag"
+                              value={editForm.productTag}
+                              onChange={handleEditChange}
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                            >
+                              <option value="">No tag</option>
+                              <option value="FLASH_SALES">Flash Sales</option>
+                              <option value="TRENDING_PRODUCTS">Trending Products</option>
+                            </select>
+                          </label>
+                        </div>
+                        <label className="space-y-1">
+                          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Main Image Upload ID</span>
+                          <input
+                            type="text"
+                            name="mainImageUploadId"
+                            value={editForm.mainImageUploadId}
+                            onChange={handleEditChange}
+                            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                            placeholder="Paste upload id from product image upload"
+                          />
+                        </label>
+                        {success && <p className="text-sm text-emerald-600">{success}</p>}
+                        {error && <p className="text-sm text-red-600">{error}</p>}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditMode(false)}
+                            className="h-10 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isUpdating}
+                            className="h-10 rounded-lg bg-slate-900 px-3 text-sm font-semibold text-white disabled:opacity-60"
+                          >
+                            {isUpdating ? "Updating..." : "Save Changes"}
+                          </button>
+                        </div>
+                      </form>
+
+                      <hr className="my-4 border-slate-200" />
+                      <h3 className="text-sm font-semibold text-slate-900">Upload Product Images</h3>
+                      <form className="mt-3 space-y-3" onSubmit={handleUploadImages}>
+                        <input type="file" accept="image/*" multiple onChange={handleFileChange} className="block w-full text-sm text-slate-700" />
+                        <button
+                          type="submit"
+                          disabled={isUploading}
+                          className="h-10 rounded-lg bg-blue-700 px-3 text-sm font-semibold text-white disabled:opacity-60"
+                        >
+                          {isUploading ? "Uploading..." : "Upload Images"}
+                        </button>
+                      </form>
+
+                      <div className="mt-4">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Uploaded Images</p>
+                        <div className="grid gap-2 md:grid-cols-2">
+                          {(product?.images || []).map((image) => (
+                            <button
+                              key={image.uploadId}
+                              type="button"
+                              onClick={() =>
+                                setEditForm((prev) => ({
+                                  ...prev,
+                                  mainImageUploadId: image.uploadId,
+                                }))
+                              }
+                              className="rounded-lg border border-slate-200 bg-white p-2 text-left hover:border-blue-400"
+                              title="Click to set as main image id in update form"
+                            >
+                              <img
+                                src={buildImageFileUrl(image.uploadId)}
+                                alt={image.filename || "Product image"}
+                                className="aspect-square w-full rounded object-cover"
+                                loading="lazy"
+                              />
+                              <p className="mt-1 truncate text-xs text-slate-600">{image.uploadId}</p>
+                            </button>
+                          ))}
+                          {!product?.images?.length && <p className="text-sm text-slate-500">No uploaded images yet.</p>}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </article>
               ) : (
                 <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <h2 className="text-base font-semibold text-slate-900">Product Info</h2>
-                  <p className="mt-2 text-sm text-slate-600">Created: {product.createdDt || "-"}</p>
-                  <p className="text-sm text-slate-600">Last modified: {product.modifiedDt || "-"}</p>
-                  <p className="text-sm text-slate-600">Main Image Upload ID: {product.mainImageUploadId || "-"}</p>
-                  <p className="text-sm text-slate-600">Tag: {getTagLabel(product?.productTag)}</p>
+                  <h2 className="text-base font-semibold text-slate-900">About This Product</h2>
+                  <div className="mt-3 grid gap-2">
+                    <p className="text-sm text-slate-700">Category: <span className="font-semibold">{product.categoryName || "-"}</span></p>
+                    <p className="text-sm text-slate-700">Main Image ID: <span className="font-semibold">{product.mainImageUploadId || "-"}</span></p>
+                    <p className="text-sm text-slate-700">Tag: <span className="font-semibold">{getTagLabel(product?.productTag)}</span></p>
+                    <p className="text-sm text-slate-700">Created: <span className="font-semibold">{formatDateTime(product.createdDt)}</span></p>
+                    <p className="text-sm text-slate-700">Last modified: <span className="font-semibold">{formatDateTime(product.modifiedDt)}</span></p>
+                  </div>
                 </article>
               )}
             </div>

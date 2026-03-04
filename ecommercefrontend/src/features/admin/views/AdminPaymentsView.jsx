@@ -39,6 +39,12 @@ const normalizeAttemptStatus = (status) => {
   return status;
 };
 
+const TopBarIcon = ({ path }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-current">
+    <path d={path} />
+  </svg>
+);
+
 const getOrderStatusBadgeClass = (status) => {
   switch (status) {
     case "DELIVERED":
@@ -176,16 +182,20 @@ const AdminPaymentsView = () => {
           <button
             type="button"
             onClick={() => navigate("/admin/orders")}
-            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+            title="Go To Orders"
+            aria-label="Go To Orders"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8dde6] bg-white text-[#334155]"
           >
-            Go To Orders
+            <TopBarIcon path="M4 4h16v3H4V4zm0 5h16v11H4V9zm3 3v2h10v-2H7z" />
           </button>
           <button
             type="button"
             onClick={() => loadAdminOrders(ordersPage.page, ordersPage.size)}
-            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+            title="Refresh"
+            aria-label="Refresh"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8dde6] bg-white text-[#334155]"
           >
-            Refresh
+            <TopBarIcon path="M17.65 6.35A7.95 7.95 0 0 0 12 4V1L7 6l5 5V7a5 5 0 1 1-4.9 6h-2.02A7 7 0 1 0 17.65 6.35z" />
           </button>
         </div>
       }
