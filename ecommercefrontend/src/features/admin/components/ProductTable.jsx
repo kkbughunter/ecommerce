@@ -1,3 +1,6 @@
+import { useNavigate } from "react-router-dom";
+import ENV from "../../../core/config/env";
+
 const formatMoney = (value) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -12,6 +15,20 @@ const ProductTable = ({
   onPrev,
   onNext,
 }) => {
+  const navigate = useNavigate();
+  const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
+
+  const openProductDetails = (productId) => {
+    navigate(`/products/${productId}`);
+  };
+
+  const buildImageUrl = (product) => {
+    if (!product?.productId || !product?.mainImageUploadId) {
+      return null;
+    }
+    return `${apiBase}/products/${product.productId}/images/${product.mainImageUploadId}/file`;
+  };
+
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -25,17 +42,19 @@ const ProductTable = ({
         <table className="min-w-full border-collapse">
           <thead>
             <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-[0.08em] text-slate-500">
+              <th className="py-2 pr-3">Image</th>
               <th className="py-2 pr-3">Name</th>
               <th className="py-2 pr-3">Category</th>
               <th className="py-2 pr-3">Price</th>
               <th className="py-2 pr-3">Stock</th>
               <th className="py-2 pr-3">Status</th>
+              <th className="py-2 pr-3">Action</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={7} className="py-6 text-center text-sm text-slate-500">
                   Loading products...
                 </td>
               </tr>
@@ -43,8 +62,23 @@ const ProductTable = ({
               products.map((product) => (
                 <tr
                   key={product.productId}
-                  className="border-b border-slate-100 text-sm text-slate-700"
+                  className="cursor-pointer border-b border-slate-100 text-sm text-slate-700 hover:bg-slate-50"
+                  onClick={() => openProductDetails(product.productId)}
                 >
+                  <td className="py-3 pr-3">
+                    {buildImageUrl(product) ? (
+                      <img
+                        src={buildImageUrl(product)}
+                        alt={product?.name || "Product"}
+                        className="h-12 w-12 rounded-md border border-slate-200 object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-md border border-dashed border-slate-300 text-[10px] text-slate-400">
+                        N/A
+                      </div>
+                    )}
+                  </td>
                   <td className="py-3 pr-3">
                     <p className="font-medium text-slate-900">{product.name}</p>
                     <p className="text-xs text-slate-500">ID #{product.productId}</p>
@@ -63,11 +97,23 @@ const ProductTable = ({
                       {product.isActive ? "ACTIVE" : "INACTIVE"}
                     </span>
                   </td>
+                  <td className="py-3 pr-3">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openProductDetails(product.productId);
+                      }}
+                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                    >
+                      View / Edit
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={7} className="py-6 text-center text-sm text-slate-500">
                   No products found for current search.
                 </td>
               </tr>

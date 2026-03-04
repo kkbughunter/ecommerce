@@ -12,6 +12,19 @@ const productApi = {
     apiClient.get(ENDPOINTS.PRODUCTS.ADMIN_CATEGORIES_WITH_PRODUCTS, { params }),
   createProduct: (data) =>
     apiClient.post(ENDPOINTS.PRODUCTS.CREATE, data),
+  updateProduct: (productId, data) =>
+    apiClient.put(`${ENDPOINTS.PRODUCTS.UPDATE}/${productId}`, data),
+  getProductDetails: (productId) =>
+    apiClient.get(`${ENDPOINTS.PRODUCTS.DETAILS}/${productId}/details`),
+  uploadProductImages: (productId, files) => {
+    const formData = new FormData();
+    Array.from(files || []).forEach((file) => formData.append("files", file));
+    return apiClient.post(`${ENDPOINTS.PRODUCTS.IMAGES}/${productId}/images`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };
 
 export default productApi;

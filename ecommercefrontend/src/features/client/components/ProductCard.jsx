@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ENV from "../../../core/config/env";
 
 const formatMoney = (value) =>
@@ -9,6 +10,7 @@ const formatMoney = (value) =>
   }).format(Number(value || 0));
 
 const ProductCard = ({ product }) => {
+  const navigate = useNavigate();
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const originalPrice = Number(product?.price || 0) * 1.2;
   const isOutOfStock = Number(product?.stockQuantity || 0) <= 0;
@@ -22,8 +24,18 @@ const ProductCard = ({ product }) => {
 
   const shouldShowImage = Boolean(imageUrl) && !imageLoadFailed;
 
+  const openProductDetails = () => {
+    if (!product?.productId) {
+      return;
+    }
+    navigate(`/products/${product.productId}`);
+  };
+
   return (
-    <article className="group overflow-hidden rounded-2xl border border-[#ececf5] bg-white shadow-[0_6px_25px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
+    <article
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-[#ececf5] bg-white shadow-[0_6px_25px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(15,23,42,0.12)]"
+      onClick={openProductDetails}
+    >
       <div className="relative h-44 bg-[linear-gradient(145deg,#f8f9ff,#eef1ff)] p-4">
         <span
           className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${
@@ -34,6 +46,7 @@ const ProductCard = ({ product }) => {
         </span>
         <button
           type="button"
+          onClick={(event) => event.stopPropagation()}
           className="absolute right-3 top-3 h-7 rounded-full border border-[#dce1f5] bg-white px-2 text-[10px] font-medium text-[#4a5578]"
         >
           Save
@@ -75,6 +88,7 @@ const ProductCard = ({ product }) => {
 
         <button
           type="button"
+          onClick={(event) => event.stopPropagation()}
           disabled={isOutOfStock}
           className="mt-1 h-10 w-full rounded-xl bg-[linear-gradient(90deg,#2563eb,#7c3aed)] text-[12px] font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#cbd5e1]"
         >

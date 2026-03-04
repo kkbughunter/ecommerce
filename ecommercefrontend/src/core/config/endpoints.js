@@ -13,6 +13,9 @@ const ENDPOINTS = {
     ACTIVE_CATEGORIES_WITH_PRODUCTS: "/categories/active/products",
     ADMIN_LIST: "/products",
     CREATE: "/products",
+    UPDATE: "/products",
+    DETAILS: "/products",
+    IMAGES: "/products",
     ADMIN_CATEGORIES_WITH_PRODUCTS: "/admin/categories/products",
   },
 };
