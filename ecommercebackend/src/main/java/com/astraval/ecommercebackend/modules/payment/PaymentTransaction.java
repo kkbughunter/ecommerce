@@ -58,6 +58,22 @@ public class PaymentTransaction {
     @Column(name = "gateway_signature", length = 255)
     private String gatewaySignature;
 
+    // Legacy schema compatibility fields still present as NOT NULL/UNIQUE in existing DB.
+    @Column(name = "provider", length = 20, nullable = false)
+    private String provider = "RAZORPAY";
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(name = "razorpay_order_id", length = 80, nullable = false, unique = true)
+    private String razorpayOrderId;
+
+    @Column(name = "razorpay_payment_id", length = 80)
+    private String razorpayPaymentId;
+
+    @Column(name = "razorpay_signature", length = 255)
+    private String razorpaySignature;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 30, nullable = false)
     private PaymentTransactionStatus status = PaymentTransactionStatus.CREATED;
@@ -113,6 +129,9 @@ public class PaymentTransaction {
         }
         if (gateway == null) {
             gateway = PaymentGateway.RAZORPAY;
+        }
+        if (provider == null || provider.isBlank()) {
+            provider = "RAZORPAY";
         }
         if (attemptNumber == null || attemptNumber < 1) {
             attemptNumber = 1;

@@ -1,30 +1,23 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
-import Login from './features/login/pages/Login'
-import Shop from './features/shop/pages/Shop'
-import ProtectedRoute from './shared/components/ProtectedRoute'
-import RootRedirect from './shared/components/RootRedirect'
+import { Navigate, createBrowserRouter } from "react-router-dom";
+import AppEntryRedirect from "./core/auth/AppEntryRedirect";
+import adminRoutes from "./features/admin/routes";
+import authRoutes from "./features/auth/routes";
+import clientRoutes from "./features/client/routes";
+import productRoutes from "./features/product/routes";
 
 const router = createBrowserRouter([
   {
-    path: '/',
-    element: <RootRedirect />,
+    path: "/",
+    element: <AppEntryRedirect />,
   },
+  ...authRoutes,
+  ...adminRoutes,
+  ...clientRoutes,
+  ...productRoutes,
   {
-    path: '/login',
-    element: <Login />,
-  },
-  {
-    path: '/shop',
-    element: (
-      <ProtectedRoute>
-        <Shop />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '*',
+    path: "*",
     element: <Navigate to="/" replace />,
   },
-])
+]);
 
-export default router
+export default router;

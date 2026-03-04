@@ -22,6 +22,7 @@ import com.astraval.ecommercebackend.modules.customer.dto.CustomerListResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.CustomerResponse;
 import com.astraval.ecommercebackend.modules.customer.dto.UpdateCustomerRequest;
 import com.astraval.ecommercebackend.modules.user.User;
+import com.astraval.ecommercebackend.modules.user.UserRepository;
 
 @Service
 public class CustomerService {
@@ -29,14 +30,17 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final AddressService addressService;
     private final SecurityUtil securityUtil;
+    private final UserRepository userRepository;
 
     public CustomerService(
             CustomerRepository customerRepository,
             AddressService addressService,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil,
+            UserRepository userRepository) {
         this.customerRepository = customerRepository;
         this.addressService = addressService;
         this.securityUtil = securityUtil;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -128,6 +132,11 @@ public class CustomerService {
         assertCanAccessCustomer(customer);
 
         customer.setIsActive(isActive);
+        User user = customer.getUser();
+        if (user != null) {
+            user.setIsActive(isActive);
+            userRepository.save(user);
+        }
         return toResponse(customerRepository.save(customer));
     }
 

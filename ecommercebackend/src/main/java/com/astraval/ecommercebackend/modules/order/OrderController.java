@@ -74,7 +74,7 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Order cancelled successfully"));
     }
 
-    @GetMapping("/admin/orders")
+    @GetMapping({"/admin/orders", "/admin/orders/", "/orders/admin", "/orders/admin/"})
     @Operation(summary = "Admin: list all orders")
     public ResponseEntity<ApiResponse<OrderPageResponse>> getAllOrdersForAdmin(
             @RequestParam(defaultValue = "0") int page,
@@ -83,7 +83,11 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "All orders fetched successfully"));
     }
 
-    @PatchMapping("/admin/orders/{orderId}/status")
+    @PatchMapping({
+            "/admin/orders/{orderId}/status",
+            "/admin/orders/{orderId}/status/",
+            "/orders/admin/{orderId}/status",
+            "/orders/admin/{orderId}/status/"})
     @Operation(summary = "Admin: update order status and tracking")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> updateOrderStatusForAdmin(
             @PathVariable Long orderId,

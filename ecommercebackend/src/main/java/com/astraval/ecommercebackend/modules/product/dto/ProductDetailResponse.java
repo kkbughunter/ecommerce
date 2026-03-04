@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.astraval.ecommercebackend.modules.product.ProductTag;
 import com.astraval.ecommercebackend.modules.upload.dto.UploadResponse;
 
 public record ProductDetailResponse(
@@ -11,8 +12,11 @@ public record ProductDetailResponse(
         String name,
         String description,
         BigDecimal price,
+        BigDecimal maxPrice,
         BigDecimal gstPercentage,
         Integer stockQuantity,
+        String mainImageUploadId,
+        ProductTag productTag,
         Boolean isActive,
         Integer categoryId,
         String categoryName,

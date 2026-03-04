@@ -26,14 +26,7 @@ public class CategoryInitializer implements CommandLineRunner {
         }
 
         List<String> defaultCategories = Arrays.asList(
-                "Electronics",
-                "Fashion",
-                "Home & Kitchen",
-                "Books",
-                "Sports & Outdoors",
-                "Beauty & Personal Care",
-                "Toys & Games",
-                "Health & Wellness"
+                "Home & Kitchen"
         );
 
         defaultCategories.forEach(name -> {

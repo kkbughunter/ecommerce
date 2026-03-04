@@ -9,4 +9,9 @@ import org.springframework.stereotype.Repository;
 public interface UploadRepository extends JpaRepository<Upload, String> {
 
     List<Upload> findByRelatedIdAndUploadTypeAndIsActiveTrueOrderByCreatedDtAsc(String relatedId, String uploadType);
+
+    boolean existsByUploadIdAndRelatedIdAndUploadTypeAndIsActiveTrue(
+            String uploadId,
+            String relatedId,
+            String uploadType);
 }

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,7 +30,9 @@ import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
+import com.astraval.ecommercebackend.modules.emailtemplate.EmailTemplateService;
 import com.astraval.ecommercebackend.modules.order.Order;
+import com.astraval.ecommercebackend.modules.order.OrderItem;
 import com.astraval.ecommercebackend.modules.order.OrderRepository;
 import com.astraval.ecommercebackend.modules.order.OrderStatus;
 import com.astraval.ecommercebackend.modules.order.PaymentStatus;
@@ -44,15 +47,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class RazorpayPaymentService {
 
     private static final String HMAC_SHA256 = "HmacSHA256";
+    private static final String PAYMENT_SUCCESS_TEMPLATE = "Order Payment Success";
+    private static final String PAYMENT_FAILED_TEMPLATE = "Order Payment Failed";
 
     private final RazorpayProperties razorpayProperties;
     private final OrderRepository orderRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final PaymentStatusTrackingRepository paymentStatusTrackingRepository;
+    private final EmailTemplateService emailTemplateService;
     private final SecurityUtil securityUtil;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
@@ -62,12 +71,14 @@ public class RazorpayPaymentService {
             OrderRepository orderRepository,
             PaymentTransactionRepository paymentTransactionRepository,
             PaymentStatusTrackingRepository paymentStatusTrackingRepository,
+            EmailTemplateService emailTemplateService,
             SecurityUtil securityUtil,
             ObjectMapper objectMapper) {
         this.razorpayProperties = razorpayProperties;
         this.orderRepository = orderRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.paymentStatusTrackingRepository = paymentStatusTrackingRepository;
+        this.emailTemplateService = emailTemplateService;
         this.securityUtil = securityUtil;
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder().build();
@@ -95,6 +106,9 @@ public class RazorpayPaymentService {
         paymentTransaction.setOrder(order);
         paymentTransaction.setGateway(PaymentGateway.RAZORPAY);
         paymentTransaction.setGatewayOrderId(razorpayOrderId);
+        paymentTransaction.setProvider("RAZORPAY");
+        paymentTransaction.setUserId(actorUserId);
+        paymentTransaction.setRazorpayOrderId(razorpayOrderId);
         paymentTransaction.setStatus(mapGatewayOrderStatus(textValue(razorpayOrderResponse, "status")));
         paymentTransaction.setAmount(order.getTotalAmount().setScale(2, RoundingMode.HALF_UP));
         paymentTransaction.setCurrency(order.getCurrency());
@@ -151,6 +165,8 @@ public class RazorpayPaymentService {
         Long actorUserId = getCurrentUserId();
         paymentTransaction.setGatewayPaymentId(trimToNull(request.razorpayPaymentId()));
         paymentTransaction.setGatewaySignature(trimToNull(request.razorpaySignature()));
+        paymentTransaction.setRazorpayPaymentId(trimToNull(request.razorpayPaymentId()));
+        paymentTransaction.setRazorpaySignature(trimToNull(request.razorpaySignature()));
         paymentTransaction.setModifiedBy(actorUserId);
 
         boolean signatureValid = verifyCheckoutSignature(
@@ -177,7 +193,7 @@ public class RazorpayPaymentService {
         paymentTransaction.setErrorDescription(null);
         applyStatusChange(
                 paymentTransaction,
-                PaymentTransactionStatus.PAID,
+                PaymentTransactionStatus.SUCCESS,
                 PaymentEventSource.API,
                 PaymentEventType.PAYMENT_VERIFIED,
                 request.razorpayPaymentId(),
@@ -201,6 +217,7 @@ public class RazorpayPaymentService {
 
         Long actorUserId = getCurrentUserId();
         paymentTransaction.setGatewayPaymentId(trimToNull(request.razorpayPaymentId()));
+        paymentTransaction.setRazorpayPaymentId(trimToNull(request.razorpayPaymentId()));
         paymentTransaction.setErrorCode(trimToNull(request.errorCode()));
         paymentTransaction.setErrorDescription(trimToNull(request.errorDescription()));
         paymentTransaction.setModifiedBy(actorUserId);
@@ -282,6 +299,7 @@ public class RazorpayPaymentService {
         WebhookEventResolution resolution = resolveWebhookEvent(event);
 
         paymentTransaction.setGatewayPaymentId(gatewayPaymentId != null ? gatewayPaymentId : paymentTransaction.getGatewayPaymentId());
+        paymentTransaction.setRazorpayPaymentId(gatewayPaymentId != null ? gatewayPaymentId : paymentTransaction.getRazorpayPaymentId());
         paymentTransaction.setMethod(trimToNull(textValue(paymentEntity, "method")));
         paymentTransaction.setErrorCode(trimToNull(textValue(paymentEntity, "error_code")));
         paymentTransaction.setErrorDescription(trimToNull(textValue(paymentEntity, "error_description")));
@@ -377,8 +395,8 @@ public class RazorpayPaymentService {
 
         writeStatusTracking(
                 paymentTransaction,
-                previousStatus,
-                paymentTransaction.getStatus(),
+                toTrackingStatus(previousStatus),
+                toTrackingStatus(paymentTransaction.getStatus()),
                 eventSource,
                 eventType,
                 providerEventId,
@@ -386,6 +404,7 @@ public class RazorpayPaymentService {
                 payload,
                 actorUserId);
         syncOrderPaymentStatus(paymentTransaction.getOrder(), paymentTransaction.getStatus(), actorUserId);
+        notifyCustomerPaymentStatusEmail(paymentTransaction, previousStatus, paymentTransaction.getStatus());
     }
 
     private void writeStatusTracking(
@@ -400,10 +419,13 @@ public class RazorpayPaymentService {
             Long actorUserId) {
         PaymentStatusTracking tracking = new PaymentStatusTracking();
         tracking.setPaymentTransaction(paymentTransaction);
-        tracking.setPreviousStatus(previousStatus);
-        tracking.setNewStatus(newStatus);
-        tracking.setEventSource(source);
-        tracking.setEventType(eventType);
+        // Keep audit status fields non-null for compatibility with stricter DB constraints.
+        PaymentTransactionStatus resolvedNewStatus = newStatus != null ? newStatus : paymentTransaction.getStatus();
+        PaymentTransactionStatus resolvedPreviousStatus = previousStatus != null ? previousStatus : resolvedNewStatus;
+        tracking.setPreviousStatus(resolvedPreviousStatus);
+        tracking.setNewStatus(resolvedNewStatus);
+        tracking.setEventSource(source != null ? source : PaymentEventSource.SYSTEM);
+        tracking.setEventType(eventType != null ? eventType : PaymentEventType.WEBHOOK_EVENT);
         tracking.setProviderEventId(trimToNull(providerEventId));
         tracking.setNote(trimToNull(note));
         tracking.setPayload(trimToNull(payload));
@@ -416,7 +438,7 @@ public class RazorpayPaymentService {
         PaymentStatus current = order.getPaymentStatus();
         PaymentStatus target;
         switch (paymentTransactionStatus) {
-            case PAID, CAPTURED -> target = PaymentStatus.PAID;
+            case SUCCESS, PAID, CAPTURED -> target = PaymentStatus.PAID;
             case REFUNDED -> target = PaymentStatus.REFUNDED;
             case FAILED, CANCELLED -> target = current == PaymentStatus.PAID ? PaymentStatus.PAID : PaymentStatus.FAILED;
             case CREATED, AUTHORIZED -> {
@@ -520,9 +542,20 @@ public class RazorpayPaymentService {
             return PaymentTransactionStatus.CREATED;
         }
         return switch (gatewayStatus.trim().toLowerCase()) {
-            case "paid" -> PaymentTransactionStatus.PAID;
+            case "paid" -> PaymentTransactionStatus.SUCCESS;
             default -> PaymentTransactionStatus.CREATED;
         };
+    }
+
+    private PaymentTransactionStatus toTrackingStatus(PaymentTransactionStatus status) {
+        if (status == null) {
+            return null;
+        }
+        // Legacy DB compatibility: payment_status_tracking check constraint supports PAID but not SUCCESS.
+        if (status == PaymentTransactionStatus.SUCCESS) {
+            return PaymentTransactionStatus.PAID;
+        }
+        return status;
     }
 
     private boolean verifyCheckoutSignature(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature) {
@@ -630,21 +663,175 @@ public class RazorpayPaymentService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    private void notifyCustomerPaymentStatusEmail(
+            PaymentTransaction paymentTransaction,
+            PaymentTransactionStatus previousStatus,
+            PaymentTransactionStatus currentStatus) {
+        if (paymentTransaction == null || currentStatus == null) {
+            return;
+        }
+        if (previousStatus == currentStatus) {
+            return;
+        }
+
+        boolean paymentSucceeded = currentStatus == PaymentTransactionStatus.SUCCESS
+                || currentStatus == PaymentTransactionStatus.PAID
+                || currentStatus == PaymentTransactionStatus.CAPTURED;
+        boolean paymentFailed = currentStatus == PaymentTransactionStatus.FAILED
+                || currentStatus == PaymentTransactionStatus.CANCELLED;
+        if (!paymentSucceeded && !paymentFailed) {
+            return;
+        }
+
+        try {
+            Order order = loadOrder(paymentTransaction.getOrder().getOrderId());
+            String recipient = trimToNull(order.getUser() != null ? order.getUser().getEmail() : null);
+            if (recipient == null) {
+                return;
+            }
+
+            String customerName = "Customer";
+            if (order.getUser() != null && order.getUser().getEmail() != null) {
+                customerName = order.getUser().getEmail();
+            }
+            String templateName = paymentSucceeded ? PAYMENT_SUCCESS_TEMPLATE : PAYMENT_FAILED_TEMPLATE;
+            String gatewayPaymentId = trimToNull(paymentTransaction.getGatewayPaymentId());
+            String paymentMethod = trimToNull(paymentTransaction.getMethod());
+            String failureReason = trimToNull(paymentTransaction.getErrorDescription());
+            if (failureReason == null) {
+                failureReason = trimToNull(paymentTransaction.getErrorCode());
+            }
+            if (failureReason == null && paymentFailed) {
+                failureReason = "Payment was not completed";
+            }
+
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("customer_name", customerName);
+            placeholders.put("order_number", safeString(order.getOrderNumber()));
+            placeholders.put("order_id", String.valueOf(order.getOrderId()));
+            placeholders.put("order_date", order.getCreatedDt() != null ? order.getCreatedDt().toString() : "-");
+            placeholders.put("payment_status", paymentSucceeded ? "PAID" : "FAILED");
+            placeholders.put("payment_transaction_status", safeString(currentStatus.name()));
+            placeholders.put("payment_gateway", paymentTransaction.getGateway() != null
+                    ? paymentTransaction.getGateway().name()
+                    : "RAZORPAY");
+            placeholders.put("payment_id", gatewayPaymentId != null ? gatewayPaymentId : "N/A");
+            placeholders.put("payment_method", paymentMethod != null ? paymentMethod : "N/A");
+            placeholders.put("currency", safeString(order.getCurrency()));
+            placeholders.put("order_subtotal", formatAmount(order.getSubtotalAmount()));
+            placeholders.put("shipping_fee", formatAmount(order.getShippingFee()));
+            placeholders.put("tax_amount", formatAmount(order.getTaxAmount()));
+            placeholders.put("discount_amount", formatAmount(order.getDiscountAmount()));
+            placeholders.put("order_total", formatAmount(order.getTotalAmount()));
+            placeholders.put("failure_reason", failureReason != null ? failureReason : "N/A");
+            placeholders.put("items_html_rows", buildItemsHtmlRows(order.getItems(), order.getCurrency()));
+            placeholders.put("items_text", buildItemsText(order.getItems(), order.getCurrency()));
+
+            boolean sent = emailTemplateService.sendTemplatedEmail(templateName, recipient, placeholders);
+            if (!sent) {
+                log.warn("Payment status email was not sent for order {} template {}", order.getOrderNumber(), templateName);
+            }
+        } catch (Exception ex) {
+            log.warn("Unable to send payment status email for paymentTransactionId {}: {}",
+                    paymentTransaction.getPaymentTransactionId(),
+                    ex.getMessage());
+        }
+    }
+
+    private String buildItemsHtmlRows(List<OrderItem> items, String currency) {
+        if (items == null || items.isEmpty()) {
+            return "<tr><td colspan=\"4\" style=\"padding:8px;border:1px solid #e5e7eb;\">No items</td></tr>";
+        }
+        StringBuilder rows = new StringBuilder();
+        for (OrderItem item : items) {
+            if (item == null) {
+                continue;
+            }
+            rows.append("<tr>")
+                    .append("<td style=\"padding:8px;border:1px solid #e5e7eb;\">")
+                    .append(escapeHtml(safeString(item.getProductName())))
+                    .append("</td>")
+                    .append("<td style=\"padding:8px;border:1px solid #e5e7eb;text-align:right;\">")
+                    .append(item.getQuantity() != null ? item.getQuantity() : 0)
+                    .append("</td>")
+                    .append("<td style=\"padding:8px;border:1px solid #e5e7eb;text-align:right;\">")
+                    .append(escapeHtml(formatCurrencyAmount(currency, item.getUnitPrice())))
+                    .append("</td>")
+                    .append("<td style=\"padding:8px;border:1px solid #e5e7eb;text-align:right;\">")
+                    .append(escapeHtml(formatCurrencyAmount(currency, item.getLineTotal())))
+                    .append("</td>")
+                    .append("</tr>");
+        }
+        return rows.toString();
+    }
+
+    private String buildItemsText(List<OrderItem> items, String currency) {
+        if (items == null || items.isEmpty()) {
+            return "No items";
+        }
+        StringBuilder content = new StringBuilder();
+        int index = 1;
+        for (OrderItem item : items) {
+            if (item == null) {
+                continue;
+            }
+            content.append(index++)
+                    .append(". ")
+                    .append(safeString(item.getProductName()))
+                    .append(" | Qty: ")
+                    .append(item.getQuantity() != null ? item.getQuantity() : 0)
+                    .append(" | Unit: ")
+                    .append(formatCurrencyAmount(currency, item.getUnitPrice()))
+                    .append(" | Line Total: ")
+                    .append(formatCurrencyAmount(currency, item.getLineTotal()))
+                    .append("\n");
+        }
+        return content.toString().trim();
+    }
+
+    private String formatCurrencyAmount(String currency, BigDecimal amount) {
+        String resolvedCurrency = trimToNull(currency);
+        if (resolvedCurrency == null) {
+            resolvedCurrency = "INR";
+        }
+        return resolvedCurrency.toUpperCase(Locale.ROOT) + " " + formatAmount(amount);
+    }
+
+    private String formatAmount(BigDecimal value) {
+        BigDecimal amount = value != null ? value : BigDecimal.ZERO;
+        return amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+    }
+
+    private String safeString(String value) {
+        return value != null ? value : "";
+    }
+
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
     private WebhookEventResolution resolveWebhookEvent(String event) {
         if (event == null) {
             return new WebhookEventResolution(null, PaymentEventType.WEBHOOK_EVENT, "Webhook event received");
         }
         return switch (event) {
             case "payment.authorized" -> new WebhookEventResolution(
-                    PaymentTransactionStatus.AUTHORIZED,
+                    PaymentTransactionStatus.CREATED,
                     PaymentEventType.PAYMENT_AUTHORIZED,
                     "Payment authorized on Razorpay");
             case "payment.captured" -> new WebhookEventResolution(
-                    PaymentTransactionStatus.CAPTURED,
+                    PaymentTransactionStatus.SUCCESS,
                     PaymentEventType.PAYMENT_CAPTURED,
                     "Payment captured on Razorpay");
             case "order.paid" -> new WebhookEventResolution(
-                    PaymentTransactionStatus.PAID,
+                    PaymentTransactionStatus.SUCCESS,
                     PaymentEventType.PAYMENT_CAPTURED,
                     "Order marked paid on Razorpay");
             case "payment.failed" -> new WebhookEventResolution(

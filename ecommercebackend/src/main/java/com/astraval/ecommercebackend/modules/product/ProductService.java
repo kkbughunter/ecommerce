@@ -1,5 +1,6 @@
 package com.astraval.ecommercebackend.modules.product;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,8 @@ import com.astraval.ecommercebackend.modules.product.dto.ProductPageResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductResponse;
 import com.astraval.ecommercebackend.modules.product.dto.UpdateProductRequest;
 import com.astraval.ecommercebackend.modules.upload.UploadService;
+import com.astraval.ecommercebackend.modules.upload.UploadRepository;
+import com.astraval.ecommercebackend.modules.upload.UploadType;
 import com.astraval.ecommercebackend.modules.upload.dto.UploadResponse;
 
 @Service
@@ -38,16 +41,19 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final SecurityUtil securityUtil;
     private final UploadService uploadService;
+    private final UploadRepository uploadRepository;
 
     public ProductService(
             ProductRepository productRepository,
             CategoryRepository categoryRepository,
             SecurityUtil securityUtil,
-            UploadService uploadService) {
+            UploadService uploadService,
+            UploadRepository uploadRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.securityUtil = securityUtil;
         this.uploadService = uploadService;
+        this.uploadRepository = uploadRepository;
     }
 
     @Transactional(readOnly = true)
@@ -78,15 +84,18 @@ public class ProductService {
         product.setName(request.name().trim());
         product.setDescription(request.description());
         product.setPrice(request.price());
+        product.setMaxPrice(resolveMaxPrice(request.maxPrice(), request.price()));
         product.setGstPercentage(request.gstPercentage());
         product.setStockQuantity(request.stockQuantity());
         product.setCategory(resolveCategory(request.categoryId()));
+        product.setMainImageUploadId(trimToNull(request.mainImageUploadId()));
+        product.setProductTag(request.productTag());
         product.setIsActive(request.isActive() != null ? request.isActive() : true);
         product.setCreatedBy(actorUserId);
         product.setCreatedDt(LocalDateTime.now());
-
-
-        return toProductResponse(productRepository.save(product));
+        Product savedProduct = productRepository.save(product);
+        validateMainImageUploadId(savedProduct.getMainImageUploadId(), savedProduct.getProductId());
+        return toProductResponse(savedProduct);
     }
 
     @Transactional
@@ -98,10 +107,14 @@ public class ProductService {
         product.setName(request.name().trim());
         product.setDescription(request.description());
         product.setPrice(request.price());
+        product.setMaxPrice(resolveMaxPrice(request.maxPrice(), request.price()));
         product.setGstPercentage(request.gstPercentage());
         product.setStockQuantity(request.stockQuantity());
         product.setCategory(resolveCategory(request.categoryId()));
+        product.setMainImageUploadId(trimToNull(request.mainImageUploadId()));
+        product.setProductTag(request.productTag());
         product.setModifiedBy(actorUserId);
+        validateMainImageUploadId(product.getMainImageUploadId(), product.getProductId());
 
         return toProductResponse(productRepository.save(product));
     }
@@ -217,8 +230,11 @@ public class ProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
+                resolveResponseMaxPrice(product),
                 product.getGstPercentage(),
                 product.getStockQuantity(),
+                product.getMainImageUploadId(),
+                product.getProductTag(),
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,
                 product.getIsActive(),
@@ -330,13 +346,53 @@ public class ProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
+                resolveResponseMaxPrice(product),
                 product.getGstPercentage(),
                 product.getStockQuantity(),
+                product.getMainImageUploadId(),
+                product.getProductTag(),
                 product.getIsActive(),
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,
                 images,
                 product.getCreatedDt(),
                 product.getModifiedDt());
+    }
+
+    private void validateMainImageUploadId(String mainImageUploadId, Long productId) {
+        if (mainImageUploadId == null) {
+            return;
+        }
+
+        boolean exists = uploadRepository.existsByUploadIdAndRelatedIdAndUploadTypeAndIsActiveTrue(
+                mainImageUploadId,
+                String.valueOf(productId),
+                UploadType.PRODUCT_IMAGE.name());
+        if (!exists) {
+            throw new BadRequestException("Main image upload id does not belong to this product");
+        }
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private BigDecimal resolveMaxPrice(BigDecimal maxPrice, BigDecimal price) {
+        BigDecimal effectiveMaxPrice = maxPrice != null ? maxPrice : price;
+        if (effectiveMaxPrice == null) {
+            return null;
+        }
+        if (price != null && effectiveMaxPrice.compareTo(price) < 0) {
+            throw new BadRequestException("Max price must be greater than or equal to price");
+        }
+        return effectiveMaxPrice;
+    }
+
+    private BigDecimal resolveResponseMaxPrice(Product product) {
+        return product.getMaxPrice() != null ? product.getMaxPrice() : product.getPrice();
     }
 }

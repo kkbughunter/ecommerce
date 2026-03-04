@@ -19,7 +19,11 @@ import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
+import com.astraval.ecommercebackend.modules.address.Address;
 import com.astraval.ecommercebackend.modules.address.AddressRepository;
+import com.astraval.ecommercebackend.modules.address.dto.AddressResponse;
+import com.astraval.ecommercebackend.modules.customer.Customer;
+import com.astraval.ecommercebackend.modules.customer.CustomerRepository;
 import com.astraval.ecommercebackend.modules.order.dto.CancelOrderRequest;
 import com.astraval.ecommercebackend.modules.order.dto.OrderDetailResponse;
 import com.astraval.ecommercebackend.modules.order.dto.OrderItemResponse;
@@ -56,6 +60,7 @@ public class OrderService {
     private final OrderTrackingEventRepository orderTrackingEventRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final AddressRepository addressRepository;
     private final SecurityUtil securityUtil;
 
@@ -64,12 +69,14 @@ public class OrderService {
             OrderTrackingEventRepository orderTrackingEventRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
+            CustomerRepository customerRepository,
             AddressRepository addressRepository,
             SecurityUtil securityUtil) {
         this.orderRepository = orderRepository;
         this.orderTrackingEventRepository = orderTrackingEventRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.customerRepository = customerRepository;
         this.addressRepository = addressRepository;
         this.securityUtil = securityUtil;
     }
@@ -399,11 +406,19 @@ public class OrderService {
                 .map(this::toOrderTrackingResponse)
                 .toList();
 
+        Long userId = order.getUser().getUserId();
+        Customer customer = customerRepository.findByUserUserId(userId).orElse(null);
+        Address shippingAddress = resolveOrderAddress(order.getShippingAddressId(), userId);
+        Address billingAddress = resolveOrderAddress(order.getBillingAddressId(), userId);
+
         return new OrderDetailResponse(
                 order.getOrderId(),
                 order.getOrderNumber(),
-                order.getUser().getUserId(),
+                userId,
                 order.getUser().getEmail(),
+                customer != null ? customer.getCustomerId() : null,
+                customer != null ? customer.getFirstName() : null,
+                customer != null ? customer.getLastName() : null,
                 order.getStatus(),
                 order.getPaymentStatus(),
                 order.getSubtotalAmount(),
@@ -415,10 +430,39 @@ public class OrderService {
                 order.getShippingAddressId(),
                 order.getBillingAddressId(),
                 order.getContactPhone(),
+                shippingAddress != null ? toAddressResponse(shippingAddress) : null,
+                billingAddress != null ? toAddressResponse(billingAddress) : null,
                 order.getCreatedDt(),
                 order.getModifiedDt(),
                 itemResponses,
                 trackingResponses);
+    }
+
+    private Address resolveOrderAddress(Long addressId, Long userId) {
+        if (addressId == null || userId == null) {
+            return null;
+        }
+        return addressRepository.findByAddressIdAndUserUserId(addressId, userId).orElse(null);
+    }
+
+    private AddressResponse toAddressResponse(Address address) {
+        return new AddressResponse(
+                address.getAddressId(),
+                address.getUser().getUserId(),
+                address.getAddressType().name(),
+                address.getFullName(),
+                address.getPhoneNumber(),
+                address.getLine1(),
+                address.getLine2(),
+                address.getLandmark(),
+                address.getCity(),
+                address.getDistrict(),
+                address.getState(),
+                address.getCountry(),
+                address.getPostalCode(),
+                address.getIsActive(),
+                address.getCreatedAt(),
+                address.getUpdatedAt());
     }
 
     private OrderItemResponse toOrderItemResponse(OrderItem item) {

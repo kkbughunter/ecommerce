@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,12 +17,17 @@ import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.cart.dto.AddCartItemRequest;
+import com.astraval.ecommercebackend.modules.cart.dto.CartCheckoutResponse;
 import com.astraval.ecommercebackend.modules.cart.dto.CartItemResponse;
 import com.astraval.ecommercebackend.modules.cart.dto.CartResponse;
+import com.astraval.ecommercebackend.modules.cart.dto.CheckoutCartRequest;
 import com.astraval.ecommercebackend.modules.cart.dto.UpdateCartItemRequest;
 import com.astraval.ecommercebackend.modules.order.OrderService;
 import com.astraval.ecommercebackend.modules.order.dto.OrderDetailResponse;
 import com.astraval.ecommercebackend.modules.order.dto.PlaceOrderItemRequest;
+import com.astraval.ecommercebackend.modules.payment.RazorpayPaymentService;
+import com.astraval.ecommercebackend.modules.payment.dto.CreateRazorpayOrderRequest;
+import com.astraval.ecommercebackend.modules.payment.dto.RazorpayOrderCreateResponse;
 import com.astraval.ecommercebackend.modules.product.Product;
 import com.astraval.ecommercebackend.modules.product.ProductRepository;
 import com.astraval.ecommercebackend.modules.user.User;
@@ -38,18 +45,21 @@ public class CartService {
     private final UserRepository userRepository;
     private final SecurityUtil securityUtil;
     private final OrderService orderService;
+    private final RazorpayPaymentService razorpayPaymentService;
 
     public CartService(
             CartRepository cartRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
             SecurityUtil securityUtil,
-            OrderService orderService) {
+            OrderService orderService,
+            RazorpayPaymentService razorpayPaymentService) {
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.securityUtil = securityUtil;
         this.orderService = orderService;
+        this.razorpayPaymentService = razorpayPaymentService;
     }
 
     @Transactional(readOnly = true)
@@ -73,7 +83,6 @@ public class CartService {
         CartItem existingItem = findCartItem(cart, product.getProductId());
         int existingQuantity = existingItem != null && existingItem.getQuantity() != null ? existingItem.getQuantity() : 0;
         int requestedQuantity = existingQuantity + request.quantity();
-        ensureQuantityWithinStock(requestedQuantity, product);
 
         if (existingItem == null) {
             CartItem newItem = new CartItem();
@@ -108,7 +117,6 @@ public class CartService {
             throw new BadRequestException("Inactive product cannot remain in cart: " + productId);
         }
 
-        ensureQuantityWithinStock(request.quantity(), product);
         item.setQuantity(request.quantity());
         cart.setModifiedBy(actorUserId);
 
@@ -149,23 +157,39 @@ public class CartService {
     }
 
     @Transactional
-    public OrderDetailResponse checkout() {
+    public CartCheckoutResponse checkout(CheckoutCartRequest request) {
         Long actorUserId = getCurrentUserId();
         Cart cart = loadExistingCart(actorUserId);
         if (cart.getItems().isEmpty()) {
             throw new BadRequestException("Cart is empty");
         }
 
-        List<PlaceOrderItemRequest> orderItems = cart.getItems().stream()
+        if (request == null || request.productIds() == null || request.productIds().isEmpty()) {
+            throw new BadRequestException("Please select at least one cart item for checkout");
+        }
+
+        Set<Long> selectedProductIds = new HashSet<>(request.productIds());
+        List<CartItem> selectedCartItems = cart.getItems().stream()
+                .filter(item -> item.getProduct() != null && selectedProductIds.contains(item.getProduct().getProductId()))
+                .toList();
+        if (selectedCartItems.isEmpty()) {
+            throw new BadRequestException("Selected cart items are not available for checkout");
+        }
+
+        List<PlaceOrderItemRequest> orderItems = selectedCartItems.stream()
                 .map(item -> new PlaceOrderItemRequest(item.getProduct().getProductId(), item.getQuantity()))
                 .toList();
 
         OrderDetailResponse order = orderService.placeOrderFromItems(orderItems);
+        RazorpayOrderCreateResponse payment = razorpayPaymentService
+                .createRazorpayOrder(new CreateRazorpayOrderRequest(order.orderId()));
 
-        cart.getItems().clear();
+        cart.getItems().removeIf(item -> item.getProduct() != null
+                && selectedProductIds.contains(item.getProduct().getProductId()));
         cart.setModifiedBy(actorUserId);
         cartRepository.save(cart);
-        return order;
+
+        return new CartCheckoutResponse(order, payment);
     }
 
     private Cart getOrCreateCart(Long userId) {
@@ -197,13 +221,6 @@ public class CartService {
             throw new BadRequestException("Inactive product cannot be added to cart: " + productId);
         }
         return product;
-    }
-
-    private void ensureQuantityWithinStock(int quantity, Product product) {
-        int availableStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
-        if (quantity > availableStock) {
-            throw new BadRequestException("Insufficient stock for product: " + product.getProductId());
-        }
     }
 
     private CartItem findCartItem(Cart cart, Long productId) {
@@ -242,6 +259,7 @@ public class CartService {
             itemResponses.add(new CartItemResponse(
                     product.getProductId(),
                     product.getName(),
+                    product.getMainImageUploadId(),
                     unitPrice,
                     quantity,
                     lineSubtotal,

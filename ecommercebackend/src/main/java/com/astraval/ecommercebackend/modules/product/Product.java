@@ -7,6 +7,8 @@ import com.astraval.ecommercebackend.modules.category.Category;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -37,11 +39,21 @@ public class Product {
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
     private BigDecimal price;
 
+    @Column(name = "max_price", precision = 10, scale = 2)
+    private BigDecimal maxPrice;
+
     @Column(name = "gst_percentage", precision = 5, scale = 2, nullable = false)
     private BigDecimal gstPercentage = BigDecimal.ZERO;
 
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity = 0;
+
+    @Column(name = "main_image_upload_id", length = 36)
+    private String mainImageUploadId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_tag", length = 30)
+    private ProductTag productTag;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -76,6 +88,9 @@ public class Product {
         if (gstPercentage == null) {
             gstPercentage = BigDecimal.ZERO;
         }
+        if (maxPrice == null) {
+            maxPrice = price;
+        }
     }
 
     @PreUpdate
@@ -89,6 +104,9 @@ public class Product {
         }
         if (gstPercentage == null) {
             gstPercentage = BigDecimal.ZERO;
+        }
+        if (maxPrice == null) {
+            maxPrice = price;
         }
     }
 }

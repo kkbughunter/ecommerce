@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.astraval.ecommercebackend.modules.address.dto.AddressResponse;
 import com.astraval.ecommercebackend.modules.order.OrderStatus;
 import com.astraval.ecommercebackend.modules.order.PaymentStatus;
 
@@ -12,6 +13,9 @@ public record OrderDetailResponse(
         String orderNumber,
         Long userId,
         String userEmail,
+        Long customerId,
+        String customerFirstName,
+        String customerLastName,
         OrderStatus status,
         PaymentStatus paymentStatus,
         BigDecimal subtotalAmount,
@@ -23,6 +27,8 @@ public record OrderDetailResponse(
         Long shippingAddressId,
         Long billingAddressId,
         String contactPhone,
+        AddressResponse shippingAddress,
+        AddressResponse billingAddress,
         LocalDateTime createdDt,
         LocalDateTime modifiedDt,
         List<OrderItemResponse> items,
