@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { clearAuthSession } from "../../../core/auth/session";
-import FullLayout from "../../../layouts/FullLayout";
+import AdminConsoleLayout from "../components/AdminConsoleLayout";
 import CreateProductForm from "../components/CreateProductForm";
 import useAdminDashboard from "../hooks/useAdminDashboard";
 
@@ -19,52 +18,46 @@ const AdminCreateProductView = () => {
     createProduct,
   } = useAdminDashboard();
 
-  const handleLogout = () => {
-    clearAuthSession();
-    navigate("/login", { replace: true });
-  };
-
   return (
-    <FullLayout
+    <AdminConsoleLayout
+      activeNav="products"
       title="Add Product"
-      subtitle="Create a new product using the same admin product setup."
-      onLogout={handleLogout}
+      subtitle="Create a new product with multiple images and pricing details."
+      topActions={
+        <button
+          type="button"
+          onClick={() => navigate("/admin")}
+          className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+        >
+          Back To Dashboard
+        </button>
+      }
     >
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => navigate("/admin", { replace: true })}
-            className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700"
-          >
-            Back To Products
-          </button>
-        </div>
+        {error ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        ) : null}
 
-        {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        {success && (
+        {success ? (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
             {success}
           </div>
-        )}
+        ) : null}
 
-        <CreateProductForm
-          form={createForm}
-          categories={categories}
-          isLoadingCategories={isLoadingCategories}
-          isCreatingProduct={isCreatingProduct}
-          createFiles={createFiles}
-          onFilesChange={handleCreateFilesChange}
-          onChange={handleCreateFormChange}
-          onSubmit={createProduct}
-        />
+        <div className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+          <CreateProductForm
+            form={createForm}
+            categories={categories}
+            isLoadingCategories={isLoadingCategories}
+            isCreatingProduct={isCreatingProduct}
+            createFiles={createFiles}
+            onFilesChange={handleCreateFilesChange}
+            onChange={handleCreateFormChange}
+            onSubmit={createProduct}
+          />
+        </div>
       </div>
-    </FullLayout>
+    </AdminConsoleLayout>
   );
 };
 

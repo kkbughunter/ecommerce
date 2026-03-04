@@ -9,6 +9,27 @@ const formatMoney = (value) =>
     maximumFractionDigits: 2,
   }).format(Number(value || 0));
 
+const getStockBadgeClass = (stock) => {
+  const qty = Number(stock || 0);
+  if (qty <= 0) {
+    return "bg-rose-100 text-rose-700";
+  }
+  if (qty <= 5) {
+    return "bg-amber-100 text-amber-700";
+  }
+  return "bg-emerald-100 text-emerald-700";
+};
+
+const getTagBadgeClass = (tag) => {
+  if (tag === "FLASH_SALES") {
+    return "bg-orange-100 text-orange-700";
+  }
+  if (tag === "TRENDING_PRODUCTS") {
+    return "bg-sky-100 text-sky-700";
+  }
+  return "bg-slate-100 text-slate-600";
+};
+
 const ProductTable = ({
   products,
   isLoading,
@@ -16,6 +37,7 @@ const ProductTable = ({
   onPrev,
   onNext,
   onNewProduct = () => {},
+  readOnly = false,
   updatingMaxPriceProductId = null,
   updatingTagProductId = null,
   onUpdateMaxPrice = () => {},
@@ -46,6 +68,9 @@ const ProductTable = ({
   }, [products]);
 
   const openProductDetails = (productId) => {
+    if (readOnly) {
+      return;
+    }
     navigate(`/products/${productId}`);
   };
 
@@ -64,13 +89,15 @@ const ProductTable = ({
           <p className="text-sm text-slate-600">
             Page {pageMeta.page + 1} of {Math.max(pageMeta.totalPages, 1)} | Total {pageMeta.totalElements}
           </p>
-          <button
-            type="button"
-            onClick={onNewProduct}
-            className="h-9 rounded-lg bg-violet-600 px-3 text-sm font-semibold text-white hover:bg-violet-700"
-          >
-            + New Product
-          </button>
+          {!readOnly ? (
+            <button
+              type="button"
+              onClick={onNewProduct}
+              className="h-9 rounded-lg bg-violet-600 px-3 text-sm font-semibold text-white hover:bg-violet-700"
+            >
+              + New Product
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -85,14 +112,14 @@ const ProductTable = ({
               <th className="py-2 pr-3">Stock</th>
               <th className="py-2 pr-3">Tag</th>
               <th className="py-2 pr-3">Status</th>
-              <th className="py-2 pr-3">Update Max Price</th>
-              <th className="py-2 pr-3">Action</th>
+              {!readOnly ? <th className="py-2 pr-3">Update Max Price</th> : null}
+              {!readOnly ? <th className="py-2 pr-3">Action</th> : null}
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={9} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={readOnly ? 7 : 9} className="py-6 text-center text-sm text-slate-500">
                   Loading products...
                 </td>
               </tr>
@@ -100,7 +127,7 @@ const ProductTable = ({
               products.map((product) => (
                 <tr
                   key={product.productId}
-                  className="cursor-pointer border-b border-slate-100 text-sm text-slate-700 hover:bg-slate-50"
+                  className={`${readOnly ? "" : "cursor-pointer"} border-b border-slate-100 text-sm text-slate-700 hover:bg-slate-50`}
                   onClick={() => openProductDetails(product.productId)}
                 >
                   <td className="py-3 pr-3">
@@ -131,11 +158,11 @@ const ProductTable = ({
                   </td>
                   <td className="py-3 pr-3">{product.categoryName || "-"}</td>
                   <td className="py-3 pr-3">
-                    <p className="font-medium text-slate-900">{formatMoney(product.price)}</p>
+                    <p className="font-semibold text-emerald-700">{formatMoney(product.price)}</p>
                     {Number(product?.maxPrice || 0) > Number(product?.price || 0) && (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-amber-700">
                         <span className="line-through">{formatMoney(product.maxPrice)}</span>
-                        {" • "}
+                        {" | "}
                         {Math.round(
                           ((Number(product.maxPrice) - Number(product.price)) / Number(product.maxPrice)) * 100,
                         )}
@@ -143,41 +170,55 @@ const ProductTable = ({
                       </p>
                     )}
                   </td>
-                  <td className="py-3 pr-3">{product.stockQuantity}</td>
                   <td className="py-3 pr-3">
-                    <div className="space-y-2" onClick={(event) => event.stopPropagation()}>
-                      <p className="text-xs font-medium text-slate-600">
+                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${getStockBadgeClass(product.stockQuantity)}`}>
+                      {product.stockQuantity}
+                    </span>
+                  </td>
+                  <td className="py-3 pr-3">
+                    {readOnly ? (
+                      <p className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${getTagBadgeClass(product?.productTag)}`}>
                         {product?.productTag === "FLASH_SALES"
                           ? "Flash Sales"
                           : product?.productTag === "TRENDING_PRODUCTS"
                             ? "Trending Products"
                             : "No tag"}
                       </p>
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={tagDrafts[product.productId] ?? ""}
-                          onChange={(event) =>
-                            setTagDrafts((prev) => ({
-                              ...prev,
-                              [product.productId]: event.target.value,
-                            }))
-                          }
-                          className="h-8 rounded-md border border-slate-300 px-2 text-xs text-slate-700 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-100"
-                        >
-                          <option value="">No tag</option>
-                          <option value="FLASH_SALES">Flash Sales</option>
-                          <option value="TRENDING_PRODUCTS">Trending Products</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => onUpdateTag(product, tagDrafts[product.productId] ?? "")}
-                          disabled={updatingTagProductId === product.productId}
-                          className="h-8 rounded-md border border-violet-300 px-2 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {updatingTagProductId === product.productId ? "Saving..." : "Save"}
-                        </button>
+                    ) : (
+                      <div className="space-y-2" onClick={(event) => event.stopPropagation()}>
+                        <p className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${getTagBadgeClass(product?.productTag)}`}>
+                          {product?.productTag === "FLASH_SALES"
+                            ? "Flash Sales"
+                            : product?.productTag === "TRENDING_PRODUCTS"
+                              ? "Trending Products"
+                              : "No tag"}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={tagDrafts[product.productId] ?? ""}
+                            onChange={(event) =>
+                              setTagDrafts((prev) => ({
+                                ...prev,
+                                [product.productId]: event.target.value,
+                              }))
+                            }
+                            className="h-8 rounded-md border border-slate-300 px-2 text-xs text-slate-700 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-100"
+                          >
+                            <option value="">No tag</option>
+                            <option value="FLASH_SALES">Flash Sales</option>
+                            <option value="TRENDING_PRODUCTS">Trending Products</option>
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => onUpdateTag(product, tagDrafts[product.productId] ?? "")}
+                            disabled={updatingTagProductId === product.productId}
+                            className="h-8 rounded-md border border-violet-300 px-2 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {updatingTagProductId === product.productId ? "Saving..." : "Save"}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </td>
                   <td className="py-3 pr-3">
                     <span
@@ -190,52 +231,56 @@ const ProductTable = ({
                       {product.isActive ? "ACTIVE" : "INACTIVE"}
                     </span>
                   </td>
-                  <td className="py-3 pr-3">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={maxPriceDrafts[product.productId] ?? ""}
-                        onClick={(event) => event.stopPropagation()}
-                        onChange={(event) =>
-                          setMaxPriceDrafts((prev) => ({
-                            ...prev,
-                            [product.productId]: event.target.value,
-                          }))
-                        }
-                        className="h-8 w-24 rounded-md border border-slate-300 px-2 text-xs text-slate-700 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-100"
-                      />
+                  {!readOnly ? (
+                    <td className="py-3 pr-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={maxPriceDrafts[product.productId] ?? ""}
+                          onClick={(event) => event.stopPropagation()}
+                          onChange={(event) =>
+                            setMaxPriceDrafts((prev) => ({
+                              ...prev,
+                              [product.productId]: event.target.value,
+                            }))
+                          }
+                          className="h-8 w-24 rounded-md border border-slate-300 px-2 text-xs text-slate-700 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-100"
+                        />
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onUpdateMaxPrice(product, maxPriceDrafts[product.productId]);
+                          }}
+                          disabled={updatingMaxPriceProductId === product.productId}
+                          className="h-8 rounded-md border border-violet-300 px-2 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {updatingMaxPriceProductId === product.productId ? "Saving..." : "Save"}
+                        </button>
+                      </div>
+                    </td>
+                  ) : null}
+                  {!readOnly ? (
+                    <td className="py-3 pr-3">
                       <button
                         type="button"
                         onClick={(event) => {
                           event.stopPropagation();
-                          onUpdateMaxPrice(product, maxPriceDrafts[product.productId]);
+                          openProductDetails(product.productId);
                         }}
-                        disabled={updatingMaxPriceProductId === product.productId}
-                        className="h-8 rounded-md border border-violet-300 px-2 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                       >
-                        {updatingMaxPriceProductId === product.productId ? "Saving..." : "Save"}
+                        View / Edit
                       </button>
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openProductDetails(product.productId);
-                      }}
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-                    >
-                      View / Edit
-                    </button>
-                  </td>
+                    </td>
+                  ) : null}
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={9} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={readOnly ? 7 : 9} className="py-6 text-center text-sm text-slate-500">
                   No products found for current search.
                 </td>
               </tr>

@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import orderApi from "../../../core/api/orderApi";
 import paymentApi from "../../../core/api/paymentApi";
-import { clearAuthSession } from "../../../core/auth/session";
 import getApiErrorMessage from "../../../core/utils/apiError";
-import FullLayout from "../../../layouts/FullLayout";
+import AdminConsoleLayout from "../components/AdminConsoleLayout";
 
 const ORDER_STATUSES = [
   "PLACED",
@@ -54,6 +53,38 @@ const formatPaymentAttemptStatus = (status) => {
   return status;
 };
 
+const getOrderStatusBadgeClass = (status) => {
+  switch (status) {
+    case "DELIVERED":
+      return "bg-emerald-100 text-emerald-700";
+    case "CANCELLED":
+    case "RETURNED":
+      return "bg-rose-100 text-rose-700";
+    case "SHIPPED":
+    case "OUT_FOR_DELIVERY":
+      return "bg-sky-100 text-sky-700";
+    case "PACKED":
+    case "CONFIRMED":
+      return "bg-indigo-100 text-indigo-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+};
+
+const getPaymentStatusBadgeClass = (status) => {
+  switch (status) {
+    case "PAID":
+    case "SUCCESS":
+      return "bg-emerald-100 text-emerald-700";
+    case "FAILED":
+      return "bg-rose-100 text-rose-700";
+    case "REFUNDED":
+      return "bg-violet-100 text-violet-700";
+    default:
+      return "bg-amber-100 text-amber-700";
+  }
+};
+
 const AdminOrdersView = () => {
   const navigate = useNavigate();
   const [ordersPage, setOrdersPage] = useState({
@@ -65,6 +96,7 @@ const AdminOrdersView = () => {
     first: true,
     last: true,
   });
+  const [orderSearch, setOrderSearch] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [paymentDetails, setPaymentDetails] = useState(null);
@@ -80,6 +112,16 @@ const AdminOrdersView = () => {
     note: "",
   });
 
+  const filteredOrders = useMemo(() => {
+    const query = orderSearch.trim().toLowerCase();
+    if (!query) {
+      return ordersPage.content || [];
+    }
+    return (ordersPage.content || []).filter((item) =>
+      String(item?.orderNumber || "").toLowerCase().includes(query),
+    );
+  }, [ordersPage.content, orderSearch]);
+
   const selectedOrderSummary = useMemo(
     () => (ordersPage.content || []).find((order) => order.orderId === selectedOrderId) || null,
     [ordersPage.content, selectedOrderId],
@@ -91,8 +133,9 @@ const AdminOrdersView = () => {
     try {
       const response = await orderApi.getAdminOrders({ page, size });
       const payload = response?.data?.data || {};
+      const content = Array.isArray(payload.content) ? payload.content : [];
       setOrdersPage({
-        content: Array.isArray(payload.content) ? payload.content : [],
+        content,
         page: Number(payload.page || 0),
         size: Number(payload.size || 20),
         totalElements: Number(payload.totalElements || 0),
@@ -100,9 +143,11 @@ const AdminOrdersView = () => {
         first: Boolean(payload.first),
         last: Boolean(payload.last),
       });
-      const firstOrderId = payload?.content?.[0]?.orderId || null;
-      if (!selectedOrderId && firstOrderId) {
-        setSelectedOrderId(firstOrderId);
+
+      if (!selectedOrderId && content.length) {
+        setSelectedOrderId(content[0].orderId);
+      } else if (selectedOrderId && !content.some((item) => item.orderId === selectedOrderId)) {
+        setSelectedOrderId(content[0]?.orderId || null);
       }
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to load admin orders."));
@@ -146,6 +191,7 @@ const AdminOrdersView = () => {
 
   useEffect(() => {
     loadOrderDetails(selectedOrderId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOrderId]);
 
   const updateStatus = async () => {
@@ -162,7 +208,7 @@ const AdminOrdersView = () => {
         location: form.location?.trim() || null,
         note: form.note?.trim() || null,
       });
-      setSuccess("Order status updated successfully.");
+      setSuccess("Order status and payment status updated successfully.");
       await Promise.all([loadAdminOrders(ordersPage.page, ordersPage.size), loadOrderDetails(selectedOrderId)]);
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to update order status."));
@@ -171,207 +217,299 @@ const AdminOrdersView = () => {
     }
   };
 
-  const handleLogout = () => {
-    clearAuthSession();
-    navigate("/login", { replace: true });
-  };
+  const pageStats = useMemo(() => {
+    const list = ordersPage.content || [];
+    return {
+      total: list.length,
+      paid: list.filter((item) => item?.paymentStatus === "PAID").length,
+      pending: list.filter((item) => item?.paymentStatus === "PENDING").length,
+      failed: list.filter((item) => item?.paymentStatus === "FAILED").length,
+    };
+  }, [ordersPage.content]);
 
   return (
-    <FullLayout
-      title="Order Management"
-      subtitle="Review customer orders and update order or payment status."
-      onLogout={handleLogout}
+    <AdminConsoleLayout
+      activeNav="orders"
+      title="Orders"
+      subtitle="Review order items, update order progress, and maintain payment status."
+      searchValue={orderSearch}
+      onSearchChange={setOrderSearch}
+      searchPlaceholder="Search by order number..."
+      topActions={
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/invoices")}
+            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+          >
+            Open Invoices
+          </button>
+          <button
+            type="button"
+            onClick={() => loadAdminOrders(ordersPage.page, ordersPage.size)}
+            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+          >
+            Refresh Orders
+          </button>
+        </div>
+      }
     >
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => navigate("/admin")}
-          className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700"
-        >
-          Back To Products
-        </button>
-        <button
-          type="button"
-          onClick={() => loadAdminOrders(ordersPage.page, ordersPage.size)}
-          className="h-9 rounded-lg border border-violet-300 bg-violet-50 px-3 text-xs font-semibold text-violet-700"
-        >
-          Refresh Orders
-        </button>
-      </div>
-
-      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-      {success && <p className="mb-3 text-sm text-emerald-600">{success}</p>}
-
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
-        <article className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-slate-900">All Orders</h2>
-            <p className="text-xs text-slate-500">Total: {ordersPage.totalElements}</p>
+      <div className="space-y-4">
+        <section className="grid gap-3 md:grid-cols-4">
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3">
+            <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">This Page Orders</p>
+            <p className="mt-1 text-xl font-semibold text-[#111827]">{pageStats.total}</p>
           </div>
-          {isLoadingOrders ? (
-            <p className="text-sm text-slate-500">Loading orders...</p>
-          ) : (
-            <div className="space-y-2">
-              {(ordersPage.content || []).map((order) => (
-                <button
-                  key={order.orderId}
-                  type="button"
-                  onClick={() => setSelectedOrderId(order.orderId)}
-                  className={`w-full rounded-lg border p-3 text-left ${
-                    order.orderId === selectedOrderId ? "border-violet-500 bg-violet-50" : "border-slate-200 bg-slate-50"
-                  }`}
-                >
-                  <p className="text-sm font-semibold text-slate-900">{order.orderNumber}</p>
-                  <p className="text-xs text-slate-600">{formatDateTime(order.createdDt)}</p>
-                  <p className="text-xs text-slate-700">
-                    {order.status} • {order.paymentStatus}
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">{formatMoney(order.totalAmount, order.currency)}</p>
-                </button>
-              ))}
-              {!ordersPage.content?.length && <p className="text-sm text-slate-500">No orders found.</p>}
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3">
+            <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Paid</p>
+            <p className="mt-1 text-xl font-semibold text-[#111827]">{pageStats.paid}</p>
+          </div>
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3">
+            <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Pending</p>
+            <p className="mt-1 text-xl font-semibold text-[#111827]">{pageStats.pending}</p>
+          </div>
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3">
+            <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Failed</p>
+            <p className="mt-1 text-xl font-semibold text-[#111827]">{pageStats.failed}</p>
+          </div>
+        </section>
+
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {success ? <p className="text-sm text-emerald-600">{success}</p> : null}
+
+        <div className="grid gap-4 xl:grid-cols-[1.05fr_1.95fr]">
+          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-[#111827]">Order Queue</h2>
+              <p className="text-xs text-[#94a3b8]">Total: {ordersPage.totalElements}</p>
             </div>
-          )}
-          <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              disabled={ordersPage.first}
-              onClick={() => loadAdminOrders(Math.max(ordersPage.page - 1, 0), ordersPage.size)}
-              className="h-8 rounded-md border border-slate-300 px-2 text-xs font-semibold text-slate-700 disabled:opacity-50"
-            >
-              Prev
-            </button>
-            <button
-              type="button"
-              disabled={ordersPage.last}
-              onClick={() => loadAdminOrders(ordersPage.page + 1, ordersPage.size)}
-              className="h-8 rounded-md border border-slate-300 px-2 text-xs font-semibold text-slate-700 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-slate-200 bg-white p-4">
-          {!selectedOrderId ? (
-            <p className="text-sm text-slate-500">Select an order to manage.</p>
-          ) : isLoadingDetails ? (
-            <p className="text-sm text-slate-500">Loading order details...</p>
-          ) : (
-            <div className="space-y-4">
-              <section className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <h3 className="text-base font-semibold text-slate-900">
-                  {selectedOrder?.orderNumber || selectedOrderSummary?.orderNumber}
-                </h3>
-                <p className="text-xs text-slate-600">Customer: {selectedOrder?.userEmail || "-"}</p>
-                <p className="text-xs text-slate-600">
-                  Total: {formatMoney(selectedOrder?.totalAmount || selectedOrderSummary?.totalAmount, selectedOrder?.currency || "INR")}
-                </p>
-              </section>
-
-              <section className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-700">Order Status</span>
-                  <select
-                    value={form.status}
-                    onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
-                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+            {isLoadingOrders ? (
+              <p className="text-sm text-[#64748b]">Loading orders...</p>
+            ) : filteredOrders.length ? (
+              <div className="space-y-2">
+                {filteredOrders.map((order) => (
+                  <button
+                    key={order.orderId}
+                    type="button"
+                    onClick={() => setSelectedOrderId(order.orderId)}
+                    className={`w-full rounded-xl border p-3 text-left ${
+                      order.orderId === selectedOrderId
+                        ? "border-[#111827] bg-[#f8fafc]"
+                        : "border-[#e5e7eb] bg-[#fbfcfd]"
+                    }`}
                   >
-                    {ORDER_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-700">Payment Status</span>
-                  <select
-                    value={form.paymentStatus}
-                    onChange={(event) => setForm((prev) => ({ ...prev, paymentStatus: event.target.value }))}
-                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                  >
-                    {PAYMENT_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </section>
-
-              <section className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-700">Location</span>
-                  <input
-                    type="text"
-                    value={form.location}
-                    onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
-                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                    placeholder="Eg: Chennai Hub"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-700">Note</span>
-                  <input
-                    type="text"
-                    value={form.note}
-                    onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
-                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                    placeholder="Status update note"
-                  />
-                </label>
-              </section>
-
+                    <p className="text-sm font-semibold text-[#111827]">{order.orderNumber}</p>
+                    <p className="mt-1 text-xs text-[#64748b]">{formatDateTime(order.createdDt)}</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${getOrderStatusBadgeClass(order.status)}`}>
+                        {order.status}
+                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${getPaymentStatusBadgeClass(order.paymentStatus)}`}>
+                        {order.paymentStatus}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm font-semibold text-emerald-700">
+                      {formatMoney(order.totalAmount, order.currency)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[#64748b]">No matching orders found.</p>
+            )}
+            <div className="mt-4 flex gap-2">
               <button
                 type="button"
-                onClick={updateStatus}
-                disabled={isUpdating}
-                className="h-10 rounded-lg bg-violet-600 px-4 text-sm font-semibold text-white disabled:opacity-50"
+                disabled={ordersPage.first}
+                onClick={() => loadAdminOrders(Math.max(ordersPage.page - 1, 0), ordersPage.size)}
+                className="h-8 rounded-lg border border-[#d8dde6] px-2 text-xs font-semibold text-[#334155] disabled:opacity-50"
               >
-                {isUpdating ? "Updating..." : "Update Order"}
+                Prev
               </button>
-
-              <section>
-                <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Order Items</h4>
-                <div className="space-y-2">
-                  {(selectedOrder?.items || []).map((item) => (
-                    <div key={item.orderItemId} className="rounded-lg border border-slate-200 p-3">
-                      <p className="truncate text-sm font-semibold text-slate-900" title={item.productName}>
-                        {item.productName}
-                      </p>
-                      <p className="text-xs text-slate-600">
-                        Qty {item.quantity} • {formatMoney(item.unitPrice, selectedOrder?.currency || "INR")}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section>
-                <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Payment Attempts</h4>
-                <div className="space-y-2">
-                  {(paymentDetails?.attempts || []).map((attempt) => (
-                    <div key={attempt.paymentTransactionId} className="rounded-lg border border-slate-200 p-3">
-                      <p className="text-sm font-semibold text-slate-900">
-                        Attempt #{attempt.attemptNumber} • {formatPaymentAttemptStatus(attempt.status)}
-                      </p>
-                      <p className="text-xs text-slate-600">
-                        {formatMoney(attempt.amount, attempt.currency)} • {attempt.gateway}
-                      </p>
-                      <p className="text-xs text-slate-500">{formatDateTime(attempt.createdDt)}</p>
-                    </div>
-                  ))}
-                  {!paymentDetails?.attempts?.length && (
-                    <p className="text-sm text-slate-500">No payment attempts available.</p>
-                  )}
-                </div>
-              </section>
+              <button
+                type="button"
+                disabled={ordersPage.last}
+                onClick={() => loadAdminOrders(ordersPage.page + 1, ordersPage.size)}
+                className="h-8 rounded-lg border border-[#d8dde6] px-2 text-xs font-semibold text-[#334155] disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
-          )}
-        </article>
+          </article>
+
+          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+            {!selectedOrderId ? (
+              <p className="text-sm text-[#64748b]">Select an order to manage.</p>
+            ) : isLoadingDetails ? (
+              <p className="text-sm text-[#64748b]">Loading order details...</p>
+            ) : (
+              <div className="space-y-4">
+                <section className="rounded-xl border border-[#e8ecf2] bg-[#f8fafc] p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-base font-semibold text-[#111827]">
+                        {selectedOrder?.orderNumber || selectedOrderSummary?.orderNumber}
+                      </h3>
+                      <p className="text-xs text-[#64748b]">
+                        Customer: {selectedOrder?.userEmail || "-"} | Phone: {selectedOrder?.contactPhone || "-"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/admin/invoices?orderId=${selectedOrderId}`)}
+                      className="h-8 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+                    >
+                      Open Invoice
+                    </button>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    <span className={`rounded-full px-2 py-0.5 font-semibold ${getOrderStatusBadgeClass(selectedOrder?.status)}`}>
+                      {selectedOrder?.status || "-"}
+                    </span>
+                    <span className={`rounded-full px-2 py-0.5 font-semibold ${getPaymentStatusBadgeClass(selectedOrder?.paymentStatus)}`}>
+                      {selectedOrder?.paymentStatus || "-"}
+                    </span>
+                    <span className="font-semibold text-emerald-700">
+                      {formatMoney(
+                        selectedOrder?.totalAmount || selectedOrderSummary?.totalAmount,
+                        selectedOrder?.currency || "INR",
+                      )}
+                    </span>
+                  </div>
+                </section>
+
+                <section className="grid gap-3 md:grid-cols-2">
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">
+                      Order Status
+                    </span>
+                    <select
+                      value={form.status}
+                      onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
+                      className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm"
+                    >
+                      {ORDER_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">
+                      Payment Status
+                    </span>
+                    <select
+                      value={form.paymentStatus}
+                      onChange={(event) => setForm((prev) => ({ ...prev, paymentStatus: event.target.value }))}
+                      className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm"
+                    >
+                      {PAYMENT_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </section>
+
+                <section className="grid gap-3 md:grid-cols-2">
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">Location</span>
+                    <input
+                      type="text"
+                      value={form.location}
+                      onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
+                      className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm"
+                      placeholder="Eg: Chennai Hub"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">Note</span>
+                    <input
+                      type="text"
+                      value={form.note}
+                      onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
+                      className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm"
+                      placeholder="Status update note"
+                    />
+                  </label>
+                </section>
+
+                <button
+                  type="button"
+                  onClick={updateStatus}
+                  disabled={isUpdating}
+                  className="h-10 rounded-lg bg-[#111827] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  {isUpdating ? "Updating..." : "Update Order"}
+                </button>
+
+                <section>
+                  <h4 className="mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-[#64748b]">Order Items</h4>
+                  {(selectedOrder?.items || []).length ? (
+                    <div className="overflow-x-auto rounded-xl border border-[#edf0f3]">
+                      <table className="min-w-full border-collapse bg-white">
+                        <thead>
+                          <tr className="border-b border-[#edf0f3] text-left text-xs uppercase tracking-[0.08em] text-[#94a3b8]">
+                            <th className="py-2 px-3">Item</th>
+                            <th className="py-2 px-3">Qty</th>
+                            <th className="py-2 px-3">Unit Price</th>
+                            <th className="py-2 px-3">Line Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(selectedOrder?.items || []).map((item) => (
+                            <tr key={item.orderItemId} className="border-b border-[#f1f5f9] text-sm text-[#334155]">
+                              <td className="px-3 py-2">{item.productName}</td>
+                              <td className="px-3 py-2">{item.quantity}</td>
+                              <td className="px-3 py-2">
+                                {formatMoney(item.unitPrice, selectedOrder?.currency || "INR")}
+                              </td>
+                              <td className="px-3 py-2">
+                                {formatMoney(item.lineTotal, selectedOrder?.currency || "INR")}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-[#64748b]">No order items found.</p>
+                  )}
+                </section>
+
+                <section>
+                  <h4 className="mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                    Payment Attempts
+                  </h4>
+                  {(paymentDetails?.attempts || []).length ? (
+                    <div className="space-y-2">
+                      {(paymentDetails?.attempts || []).map((attempt) => (
+                        <div key={attempt.paymentTransactionId} className="rounded-xl border border-[#edf0f3] bg-[#fbfcfd] p-3">
+                          <p className="text-sm font-semibold text-[#111827]">
+                            Attempt #{attempt.attemptNumber} |{" "}
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${getPaymentStatusBadgeClass(formatPaymentAttemptStatus(attempt.status))}`}>
+                              {formatPaymentAttemptStatus(attempt.status)}
+                            </span>
+                          </p>
+                          <p className="text-xs text-[#64748b]">
+                            {formatMoney(attempt.amount, attempt.currency)} | Gateway: {attempt.gateway}
+                          </p>
+                          <p className="text-xs text-[#64748b]">Created: {formatDateTime(attempt.createdDt)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-[#64748b]">No payment attempts available.</p>
+                  )}
+                </section>
+              </div>
+            )}
+          </article>
+        </div>
       </div>
-    </FullLayout>
+    </AdminConsoleLayout>
   );
 };
 
