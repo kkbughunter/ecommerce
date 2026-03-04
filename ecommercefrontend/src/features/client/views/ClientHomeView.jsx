@@ -76,9 +76,9 @@ const ClientHomeView = () => {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
       <header className="sticky top-0 z-20 border-b border-[#e8ebfb] bg-white/85 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center justify-between gap-3 px-4 py-4 md:px-6">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 px-2 py-4 md:px-3">
           <div className="flex items-center gap-8">
-            <h1 className="text-[24px] font-bold tracking-tight text-[#111827]">NovaCart</h1>
+            <h1 className="text-[24px] font-bold tracking-tight text-[#111827]">Villpo Store</h1>
             <nav className="hidden items-center gap-5 text-[14px] text-[#475569] md:flex">
               <a href="#discover" className="transition hover:text-[#2563eb]">Discover</a>
               <a href="#categories" className="transition hover:text-[#2563eb]">Categories</a>
@@ -113,7 +113,7 @@ const ClientHomeView = () => {
         </div>
       </header>
 
-      <section id="discover" className="mx-auto mt-6 w-full max-w-[1320px] px-4 md:px-6">
+      <section id="discover" className="mt-6 w-full px-2 md:px-3">
         <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
           <article className="rounded-3xl bg-[linear-gradient(135deg,#0f172a,#312e81_45%,#1d4ed8)] p-8 text-white shadow-[0_25px_60px_rgba(30,41,59,0.35)]">
             <p className="text-[12px] uppercase tracking-[0.12em] text-[#93c5fd]">Limited offer</p>
@@ -160,7 +160,7 @@ const ClientHomeView = () => {
         </div>
       </section>
 
-      <section id="categories" className="mx-auto mt-10 w-full max-w-[1320px] px-4 md:px-6">
+      <section id="categories" className="mt-10 w-full px-2 md:px-3">
         <SectionTitle
           eyebrow="Categories"
           title="Browse By Category"
@@ -188,7 +188,7 @@ const ClientHomeView = () => {
         </div>
       </section>
 
-      <section id="flash" className="mx-auto mt-12 w-full max-w-[1320px] px-4 md:px-6">
+      <section id="flash" className="mt-12 w-full px-2 md:px-3">
         <SectionTitle
           eyebrow="Today"
           title="Flash Sales"
@@ -202,7 +202,7 @@ const ClientHomeView = () => {
         </div>
       </section>
 
-      <section className="mx-auto mt-14 w-full max-w-[1320px] px-4 md:px-6">
+      <section className="mt-14 w-full px-2 md:px-3">
         <article className="rounded-3xl bg-[linear-gradient(120deg,#0b1120,#1e293b,#1d4ed8)] p-8 text-white shadow-[0_20px_45px_rgba(15,23,42,0.35)]">
           <p className="text-[11px] uppercase tracking-[0.1em] text-[#93c5fd]">Category highlight</p>
           <h2 className="mt-2 text-[34px] font-semibold leading-[1.12]">Enhance your music experience</h2>
@@ -218,7 +218,7 @@ const ClientHomeView = () => {
         </article>
       </section>
 
-      <section id="trending" className="mx-auto mt-14 w-full max-w-[1320px] px-4 md:px-6">
+      <section id="trending" className="mt-14 w-full px-2 md:px-3">
         <SectionTitle
           eyebrow="Discover"
           title="Trending Products"
@@ -250,7 +250,7 @@ const ClientHomeView = () => {
         </div>
       </section>
 
-      <section className="mx-auto mt-16 w-full max-w-[1320px] px-4 md:px-6">
+      <section className="mt-16 w-full px-2 md:px-3">
         <div className="grid gap-4 md:grid-cols-3">
           {trustPoints.map((item) => (
             <article
@@ -268,14 +268,14 @@ const ClientHomeView = () => {
       </section>
 
       <footer className="mt-16 bg-[#0b1020] text-white">
-        <div className="mx-auto grid w-full max-w-[1320px] gap-8 px-4 py-12 md:grid-cols-4 md:px-6">
+        <div className="grid w-full gap-8 px-2 py-12 md:grid-cols-4 md:px-3">
           <div>
-            <h4 className="text-[22px] font-semibold">NovaCart</h4>
+            <h4 className="text-[22px] font-semibold">Villpo Store</h4>
             <p className="mt-3 text-[13px] text-[#aab2d5]">Smart products. Better prices. Modern shopping experience.</p>
           </div>
           <div>
             <h4 className="text-[14px] font-semibold uppercase tracking-[0.08em] text-[#dbe4ff]">Contact</h4>
-            <p className="mt-3 text-[13px] text-[#aab2d5]">support@novacart.com</p>
+            <p className="mt-3 text-[13px] text-[#aab2d5]">support@Villpo Store.com</p>
             <p className="mt-1 text-[13px] text-[#aab2d5]">+91 98765 43210</p>
           </div>
           <div>
@@ -292,7 +292,7 @@ const ClientHomeView = () => {
           </div>
         </div>
         <p className="border-t border-[#1f2a4f] py-4 text-center text-[12px] text-[#7f8ab4]">
-          (c) {new Date().getFullYear()} NovaCart. All rights reserved.
+          (c) {new Date().getFullYear()} Villpo Store. All rights reserved.
         </p>
       </footer>
     </main>

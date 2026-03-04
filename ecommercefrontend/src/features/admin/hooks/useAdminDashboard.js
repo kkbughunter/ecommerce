@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import categoryApi from "../../../core/api/categoryApi";
 import productApi from "../../../core/api/productApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
 
@@ -16,26 +17,6 @@ const initialCreateForm = {
   stockQuantity: "",
   categoryId: "",
   isActive: true,
-};
-
-const uniqueCategories = (items) => {
-  const seen = new Set();
-  const output = [];
-
-  items.forEach((item) => {
-    const categoryId = item?.categoryId;
-    const categoryName = item?.categoryName;
-    if (!categoryId || !categoryName) {
-      return;
-    }
-    if (seen.has(categoryId)) {
-      return;
-    }
-    seen.add(categoryId);
-    output.push({ categoryId, categoryName });
-  });
-
-  return output;
 };
 
 const useAdminDashboard = () => {
@@ -84,12 +65,14 @@ const useAdminDashboard = () => {
   const fetchCategories = useCallback(async () => {
     setIsLoadingCategories(true);
     try {
-      const response = await productApi.getAdminCategoriesWithProducts({
-        page: 0,
-        size: 200,
-      });
-      const raw = response?.data?.data?.content || [];
-      const normalized = uniqueCategories(raw);
+      const response = await categoryApi.getAllCategories();
+      const raw = response?.data?.data || [];
+      const normalized = raw
+        .map((item) => ({
+          categoryId: item?.categoryId,
+          categoryName: item?.categoryName,
+        }))
+        .filter((item) => item.categoryId && item.categoryName);
       setCategories(normalized);
     } catch {
       setCategories([]);

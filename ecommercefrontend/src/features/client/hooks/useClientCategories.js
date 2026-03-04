@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import productApi from "../../../core/api/productApi";
+import categoryApi from "../../../core/api/categoryApi";
 
 const DEFAULT_CATEGORY_NAMES = [
   "Electronics",
@@ -35,11 +35,8 @@ const useClientCategories = () => {
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await productApi.getActiveCategoriesWithProducts({
-        page: 0,
-        size: 20,
-      });
-      const content = response?.data?.data?.content || [];
+      const response = await categoryApi.getAllCategories();
+      const content = response?.data?.data || [];
       const categoryNames = uniqueNonEmpty(
         content.map((entry) => entry?.categoryName),
       );
