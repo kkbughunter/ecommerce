@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { clearAuthSession } from "../../../core/auth/session";
 import ProductCard from "../components/ProductCard";
 import useClientCategories from "../hooks/useClientCategories";
+import useCart from "../hooks/useCart";
 import useClientProducts from "../hooks/useClientProducts";
 
 const trustPoints = [
@@ -51,6 +52,13 @@ const ClientHomeView = () => {
     isLoading: isCategoriesLoading,
     refreshCategories,
   } = useClientCategories();
+  const {
+    cartCount,
+    isMutatingCart,
+    error: cartError,
+    success: cartSuccess,
+    addToCart,
+  } = useCart();
 
   const flashProducts = useMemo(
     () => products.filter((product) => product?.productTag === "FLASH_SALES"),
@@ -95,6 +103,20 @@ const ClientHomeView = () => {
               className="h-10 rounded-xl bg-[linear-gradient(90deg,#2563eb,#7c3aed)] px-4 text-[12px] font-semibold text-white"
             >
               Search
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/client/account")}
+              className="h-10 rounded-xl border border-[#d7dcf3] bg-white px-4 text-[12px] font-semibold text-[#334155]"
+            >
+              My Account
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/client/cart")}
+              className="h-10 rounded-xl border border-[#d7dcf3] bg-white px-4 text-[12px] font-semibold text-[#334155]"
+            >
+              Cart ({cartCount})
             </button>
             <button
               type="button"
@@ -189,9 +211,16 @@ const ClientHomeView = () => {
           action={<p className="text-[13px] text-[#64748b]">{isLoading ? "Loading..." : `${pageMeta.totalElements} items`}</p>}
         />
         {error && <p className="mb-4 text-sm text-[#dc2626]">{error}</p>}
+        {cartError && <p className="mb-4 text-sm text-[#dc2626]">{cartError}</p>}
+        {cartSuccess && <p className="mb-4 text-sm text-[#059669]">{cartSuccess}</p>}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {flashProducts.map((product) => (
-            <ProductCard key={`${product.productId}-flash`} product={product} />
+            <ProductCard
+              key={`${product.productId}-flash`}
+              product={product}
+              onAddToCart={addToCart}
+              isAddingToCart={isMutatingCart}
+            />
           ))}
         </div>
         {!flashProducts.length && !isLoading && (
@@ -242,7 +271,12 @@ const ClientHomeView = () => {
         />
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {trendingProducts.map((product) => (
-            <ProductCard key={`${product.productId}-trend`} product={product} />
+            <ProductCard
+              key={`${product.productId}-trend`}
+              product={product}
+              onAddToCart={addToCart}
+              isAddingToCart={isMutatingCart}
+            />
           ))}
         </div>
         {!trendingProducts.length && !isLoading && (

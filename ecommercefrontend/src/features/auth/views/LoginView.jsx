@@ -1,4 +1,5 @@
 import loginImage from "../../../core/assets/images/login/login.png";
+import AppFooter from "../../../layouts/AppFooter";
 import useLogin from "../hooks/useLogin";
 
 const LoginView = () => {
@@ -21,8 +22,8 @@ const LoginView = () => {
   } = useLogin();
 
   return (
-    <main className="h-screen overflow-hidden bg-[radial-gradient(circle_at_20%_20%,#ede9fe_0%,#e0e7ff_45%,#f8fafc_100%)] p-4 md:p-6">
-      <section className="mx-auto flex h-full w-full max-w-6xl overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-xl">
+    <main className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_20%_20%,#ede9fe_0%,#e0e7ff_45%,#f8fafc_100%)] p-4 md:p-6">
+      <section className="mx-auto flex w-full max-w-6xl flex-1 overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-xl">
         <div className="flex w-full items-center bg-[#f8f6ff] p-5 md:p-6 lg:w-[40%]">
           <div className="mx-auto flex w-full max-w-sm flex-col gap-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-700">
@@ -269,6 +270,7 @@ const LoginView = () => {
           />
         </div>
       </section>
+      <AppFooter />
     </main>
   );
 };

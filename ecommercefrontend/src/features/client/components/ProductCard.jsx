@@ -9,7 +9,7 @@ const formatMoney = (value) =>
     maximumFractionDigits: 2,
   }).format(Number(value || 0));
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, onAddToCart = () => {}, isAddingToCart = false }) => {
   const navigate = useNavigate();
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const price = Number(product?.price || 0);
@@ -57,13 +57,6 @@ const ProductCard = ({ product }) => {
             {discountPercentage}% off
           </span>
         ) : null}
-        <button
-          type="button"
-          onClick={(event) => event.stopPropagation()}
-          className="absolute right-3 top-3 h-7 rounded-full border border-[#dce1f5] bg-white px-2 text-[10px] font-medium text-[#4a5578]"
-        >
-          {discountPercentage > 0 ? `Save ${discountPercentage}%` : "Save"}
-        </button>
         {shouldShowImage ? (
           <img
             src={imageUrl}
@@ -91,6 +84,9 @@ const ProductCard = ({ product }) => {
         <h3 className="line-clamp-1 text-[15px] font-semibold text-[#0f172a]">
           {product?.name || "Product"}
         </h3>
+        <p className="line-clamp-2 text-[12px] text-[#64748b]">
+          {product?.description || "-"}
+        </p>
         <p className="line-clamp-1 text-[12px] text-[#64748b]">
           GST {product?.gstPercentage}% • Stock {product?.stockQuantity}
         </p>
@@ -108,11 +104,14 @@ const ProductCard = ({ product }) => {
 
         <button
           type="button"
-          onClick={(event) => event.stopPropagation()}
-          disabled={isOutOfStock}
+          onClick={(event) => {
+            event.stopPropagation();
+            onAddToCart(product?.productId);
+          }}
+          disabled={isAddingToCart}
           className="mt-1 h-10 w-full rounded-xl bg-[linear-gradient(90deg,#2563eb,#7c3aed)] text-[12px] font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#cbd5e1]"
         >
-          {isOutOfStock ? "Unavailable" : "Add To Cart"}
+          {isAddingToCart ? "Adding..." : "Add To Cart"}
         </button>
       </div>
     </article>

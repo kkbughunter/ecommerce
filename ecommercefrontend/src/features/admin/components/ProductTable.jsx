@@ -16,7 +16,6 @@ const ProductTable = ({
   onPrev,
   onNext,
   onNewProduct = () => {},
-  showCreateForm = false,
   updatingMaxPriceProductId = null,
   updatingTagProductId = null,
   onUpdateMaxPrice = () => {},
@@ -70,7 +69,7 @@ const ProductTable = ({
             onClick={onNewProduct}
             className="h-9 rounded-lg bg-violet-600 px-3 text-sm font-semibold text-white hover:bg-violet-700"
           >
-            {showCreateForm ? "− Close" : "+ New"}
+            + New Product
           </button>
         </div>
       </div>
@@ -119,7 +118,15 @@ const ProductTable = ({
                     )}
                   </td>
                   <td className="py-3 pr-3">
-                    <p className="font-medium text-slate-900">{product.name}</p>
+                    <p className="max-w-[240px] truncate font-medium text-slate-900" title={product.name}>
+                      {product.name}
+                    </p>
+                    <p
+                      className="max-w-[240px] truncate text-xs text-slate-500"
+                      title={product.description || ""}
+                    >
+                      {product.description || "-"}
+                    </p>
                     <p className="text-xs text-slate-500">ID #{product.productId}</p>
                   </td>
                   <td className="py-3 pr-3">{product.categoryName || "-"}</td>
@@ -260,3 +267,4 @@ const ProductTable = ({
 };
 
 export default ProductTable;
+

@@ -18,6 +18,20 @@ const ENDPOINTS = {
     IMAGES: "/products",
     ADMIN_CATEGORIES_WITH_PRODUCTS: "/admin/categories/products",
   },
+  CART: {
+    ROOT: "/cart",
+    ITEMS: "/cart/items",
+    CHECKOUT: "/cart/checkout",
+  },
+  PAYMENTS: {
+    CREATE_RAZORPAY_ORDER: "/payments/razorpay/order",
+    VERIFY_RAZORPAY: "/payments/razorpay/verify",
+    MARK_RAZORPAY_FAILED: "/payments/razorpay/failure",
+    ORDER_DETAILS: "/payments/orders",
+  },
+  CUSTOMERS: {
+    ME: "/customers/me",
+  },
 };
 
 export default ENDPOINTS;

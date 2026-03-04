@@ -3,7 +3,7 @@ import productApi from "../../../core/api/productApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
 
 const initialFilters = {
-  q: "prod",
+  q: "",
   page: 0,
   size: 20,
 };

@@ -95,6 +95,9 @@ public class RazorpayPaymentService {
         paymentTransaction.setOrder(order);
         paymentTransaction.setGateway(PaymentGateway.RAZORPAY);
         paymentTransaction.setGatewayOrderId(razorpayOrderId);
+        paymentTransaction.setProvider("RAZORPAY");
+        paymentTransaction.setUserId(actorUserId);
+        paymentTransaction.setRazorpayOrderId(razorpayOrderId);
         paymentTransaction.setStatus(mapGatewayOrderStatus(textValue(razorpayOrderResponse, "status")));
         paymentTransaction.setAmount(order.getTotalAmount().setScale(2, RoundingMode.HALF_UP));
         paymentTransaction.setCurrency(order.getCurrency());
@@ -151,6 +154,8 @@ public class RazorpayPaymentService {
         Long actorUserId = getCurrentUserId();
         paymentTransaction.setGatewayPaymentId(trimToNull(request.razorpayPaymentId()));
         paymentTransaction.setGatewaySignature(trimToNull(request.razorpaySignature()));
+        paymentTransaction.setRazorpayPaymentId(trimToNull(request.razorpayPaymentId()));
+        paymentTransaction.setRazorpaySignature(trimToNull(request.razorpaySignature()));
         paymentTransaction.setModifiedBy(actorUserId);
 
         boolean signatureValid = verifyCheckoutSignature(
@@ -201,6 +206,7 @@ public class RazorpayPaymentService {
 
         Long actorUserId = getCurrentUserId();
         paymentTransaction.setGatewayPaymentId(trimToNull(request.razorpayPaymentId()));
+        paymentTransaction.setRazorpayPaymentId(trimToNull(request.razorpayPaymentId()));
         paymentTransaction.setErrorCode(trimToNull(request.errorCode()));
         paymentTransaction.setErrorDescription(trimToNull(request.errorDescription()));
         paymentTransaction.setModifiedBy(actorUserId);
@@ -282,6 +288,7 @@ public class RazorpayPaymentService {
         WebhookEventResolution resolution = resolveWebhookEvent(event);
 
         paymentTransaction.setGatewayPaymentId(gatewayPaymentId != null ? gatewayPaymentId : paymentTransaction.getGatewayPaymentId());
+        paymentTransaction.setRazorpayPaymentId(gatewayPaymentId != null ? gatewayPaymentId : paymentTransaction.getRazorpayPaymentId());
         paymentTransaction.setMethod(trimToNull(textValue(paymentEntity, "method")));
         paymentTransaction.setErrorCode(trimToNull(textValue(paymentEntity, "error_code")));
         paymentTransaction.setErrorDescription(trimToNull(textValue(paymentEntity, "error_description")));
@@ -400,10 +407,13 @@ public class RazorpayPaymentService {
             Long actorUserId) {
         PaymentStatusTracking tracking = new PaymentStatusTracking();
         tracking.setPaymentTransaction(paymentTransaction);
-        tracking.setPreviousStatus(previousStatus);
-        tracking.setNewStatus(newStatus);
-        tracking.setEventSource(source);
-        tracking.setEventType(eventType);
+        // Keep audit status fields non-null for compatibility with stricter DB constraints.
+        PaymentTransactionStatus resolvedNewStatus = newStatus != null ? newStatus : paymentTransaction.getStatus();
+        PaymentTransactionStatus resolvedPreviousStatus = previousStatus != null ? previousStatus : resolvedNewStatus;
+        tracking.setPreviousStatus(resolvedPreviousStatus);
+        tracking.setNewStatus(resolvedNewStatus);
+        tracking.setEventSource(source != null ? source : PaymentEventSource.SYSTEM);
+        tracking.setEventType(eventType != null ? eventType : PaymentEventType.WEBHOOK_EVENT);
         tracking.setProviderEventId(trimToNull(providerEventId));
         tracking.setNote(trimToNull(note));
         tracking.setPayload(trimToNull(payload));

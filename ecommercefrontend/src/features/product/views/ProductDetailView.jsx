@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import productApi from "../../../core/api/productApi";
 import { clearAuthSession, getHomePathByRole, hasAnyRole } from "../../../core/auth/session";
 import ENV from "../../../core/config/env";
 import getApiErrorMessage from "../../../core/utils/apiError";
+import ProductCard from "../../client/components/ProductCard";
+import useCart from "../../client/hooks/useCart";
+import AppFooter from "../../../layouts/AppFooter";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("en-IN", {
@@ -35,6 +38,8 @@ const ProductDetailView = () => {
   const [success, setSuccess] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const descriptionRef = useRef(null);
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
@@ -46,6 +51,41 @@ const ProductDetailView = () => {
     mainImageUploadId: "",
     productTag: "",
   });
+  const { addToCart, isMutatingCart, error: cartError, success: cartSuccess } = useCart({
+    enabled: !isAdmin,
+  });
+
+  const applyDescriptionFormat = (type) => {
+    const input = descriptionRef.current;
+    if (!input) {
+      return;
+    }
+
+    const current = editForm.description || "";
+    const start = input.selectionStart ?? current.length;
+    const end = input.selectionEnd ?? current.length;
+    const selected = current.slice(start, end);
+
+    let formatted = selected;
+    if (type === "bold") {
+      formatted = `**${selected || "text"}**`;
+    } else if (type === "italic") {
+      formatted = `*${selected || "text"}*`;
+    } else if (type === "bullet") {
+      formatted = `- ${selected || "item"}`;
+    } else if (type === "number") {
+      formatted = `1. ${selected || "item"}`;
+    }
+
+    const nextValue = `${current.slice(0, start)}${formatted}${current.slice(end)}`;
+    setEditForm((prev) => ({ ...prev, description: nextValue }));
+
+    requestAnimationFrame(() => {
+      input.focus();
+      const caret = start + formatted.length;
+      input.setSelectionRange(caret, caret);
+    });
+  };
 
   const buildImageFileUrl = useCallback(
     (uploadId) => {
@@ -127,6 +167,27 @@ const ProductDetailView = () => {
   useEffect(() => {
     loadProduct({ withLoader: true });
   }, [loadProduct]);
+
+  useEffect(() => {
+    const loadRelatedProducts = async () => {
+      if (!product?.categoryId) {
+        setRelatedProducts([]);
+        return;
+      }
+      try {
+        const response = await productApi.getActiveProductsByCategory(product.categoryId, {
+          page: 0,
+          size: 8,
+        });
+        const items = response?.data?.data?.content || [];
+        setRelatedProducts(items.filter((item) => Number(item?.productId) !== Number(product.productId)).slice(0, 4));
+      } catch {
+        setRelatedProducts([]);
+      }
+    };
+
+    loadRelatedProducts();
+  }, [product?.categoryId, product?.productId]);
 
   const handleLogout = () => {
     clearAuthSession();
@@ -324,6 +385,18 @@ const ProductDetailView = () => {
                 </div>
                 {maxPrice > price && <p className="mt-1 text-sm font-semibold text-emerald-600">Save {savePercentage}%</p>}
                 <p className="mt-1 text-sm text-slate-600">GST {product.gstPercentage}% | Stock {product.stockQuantity}</p>
+                {!isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => addToCart(product?.productId)}
+                    disabled={isMutatingCart}
+                    className="mt-3 h-10 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white disabled:opacity-60"
+                  >
+                    {isMutatingCart ? "Adding..." : "Add To Cart"}
+                  </button>
+                )}
+                {!isAdmin && cartError && <p className="mt-2 text-sm text-red-600">{cartError}</p>}
+                {!isAdmin && cartSuccess && <p className="mt-2 text-sm text-emerald-600">{cartSuccess}</p>}
               </article>
 
               {isAdmin ? (
@@ -343,16 +416,48 @@ const ProductDetailView = () => {
                       />
                     </label>
                     <label className="space-y-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Description</span>
-                      <textarea
-                        name="description"
-                        value={editForm.description}
-                        onChange={handleEditChange}
-                        rows={3}
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                        placeholder="Enter product description"
-                      />
-                    </label>
+                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Description</span>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => applyDescriptionFormat("bold")}
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        Bold
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyDescriptionFormat("italic")}
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        Italic
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyDescriptionFormat("bullet")}
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        Bullet
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyDescriptionFormat("number")}
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        Number
+                      </button>
+                    </div>
+                    <textarea
+                      ref={descriptionRef}
+                      name="description"
+                      value={editForm.description}
+                      onChange={handleEditChange}
+                      rows={3}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      placeholder="Enter product description"
+                    />
+                    <p className="text-xs text-slate-500">Supports basic markdown-style text formatting.</p>
+                  </label>
                     <div className="grid gap-3 md:grid-cols-2">
                       <label className="space-y-1">
                         <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Price</span>
@@ -516,6 +621,27 @@ const ProductDetailView = () => {
           <p className="text-sm text-slate-500">Product not found.</p>
         )}
       </section>
+      {!!relatedProducts.length && (
+        <section className="mt-8">
+          <div className="mb-4 flex items-end justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#7c3aed]">Featured</p>
+              <h2 className="mt-1 text-2xl font-semibold text-slate-900">Items you may like</h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {relatedProducts.map((item) => (
+              <ProductCard
+                key={`related-${item.productId}`}
+                product={item}
+                onAddToCart={addToCart}
+                isAddingToCart={isMutatingCart}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+      <AppFooter />
     </main>
   );
 };

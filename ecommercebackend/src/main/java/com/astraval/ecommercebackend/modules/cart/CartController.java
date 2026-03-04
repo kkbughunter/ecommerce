@@ -13,9 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.astraval.ecommercebackend.common.util.ApiResponse;
 import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
 import com.astraval.ecommercebackend.modules.cart.dto.AddCartItemRequest;
+import com.astraval.ecommercebackend.modules.cart.dto.CartCheckoutResponse;
 import com.astraval.ecommercebackend.modules.cart.dto.CartResponse;
+import com.astraval.ecommercebackend.modules.cart.dto.CheckoutCartRequest;
 import com.astraval.ecommercebackend.modules.cart.dto.UpdateCartItemRequest;
-import com.astraval.ecommercebackend.modules.order.dto.OrderDetailResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -71,9 +72,9 @@ public class CartController {
 
     @PostMapping("/checkout")
     @Operation(summary = "Checkout cart and create order")
-    public ResponseEntity<ApiResponse<OrderDetailResponse>> checkout() {
-        OrderDetailResponse response = cartService.checkout();
+    public ResponseEntity<ApiResponse<CartCheckoutResponse>> checkout(@Valid @RequestBody CheckoutCartRequest request) {
+        CartCheckoutResponse response = cartService.checkout(request);
         return ResponseEntity.status(201)
-                .body(ApiResponseFactory.created(response, "Order placed from cart successfully"));
+                .body(ApiResponseFactory.created(response, "Order placed from selected cart items and payment initiated"));
     }
 }

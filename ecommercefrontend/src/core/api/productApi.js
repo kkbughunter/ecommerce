@@ -16,6 +16,8 @@ const productApi = {
     apiClient.put(`${ENDPOINTS.PRODUCTS.UPDATE}/${productId}`, data),
   getProductDetails: (productId) =>
     apiClient.get(`${ENDPOINTS.PRODUCTS.DETAILS}/${productId}/details`),
+  getActiveProductsByCategory: (categoryId, params) =>
+    apiClient.get(`${ENDPOINTS.PRODUCTS.DETAILS}/category/${categoryId}/active`, { params }),
   uploadProductImages: (productId, files) => {
     const formData = new FormData();
     Array.from(files || []).forEach((file) => formData.append("files", file));

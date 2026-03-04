@@ -16,7 +16,6 @@ const initialCreateForm = {
   maxPrice: "",
   gstPercentage: "",
   stockQuantity: "",
-  mainImageUploadId: "",
   productTag: "",
   categoryId: "",
   isActive: true,
@@ -40,6 +39,7 @@ const useAdminDashboard = () => {
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [updatingMaxPriceProductId, setUpdatingMaxPriceProductId] = useState(null);
   const [updatingTagProductId, setUpdatingTagProductId] = useState(null);
+  const [createFiles, setCreateFiles] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -144,6 +144,14 @@ const useAdminDashboard = () => {
     }));
   };
 
+  const handleCreateFilesChange = (event) => {
+    setCreateFiles(Array.from(event.target.files || []));
+    if (error || success) {
+      setError("");
+      setSuccess("");
+    }
+  };
+
   const createProduct = async (event) => {
     event.preventDefault();
     setError("");
@@ -151,25 +159,65 @@ const useAdminDashboard = () => {
     setIsCreatingProduct(true);
 
     try {
-      const payload = {
+      if (!createFiles.length) {
+        setError("Please upload at least one product image.");
+        setIsCreatingProduct(false);
+        return;
+      }
+
+      const createPayload = {
         name: createForm.name.trim(),
         description: createForm.description.trim() || null,
         price: Number(createForm.price),
         maxPrice: createForm.maxPrice ? Number(createForm.maxPrice) : Number(createForm.price),
         gstPercentage: Number(createForm.gstPercentage),
         stockQuantity: Number(createForm.stockQuantity),
-        mainImageUploadId: createForm.mainImageUploadId.trim() || null,
+        mainImageUploadId: null,
         productTag: createForm.productTag || null,
         categoryId: createForm.categoryId ? Number(createForm.categoryId) : null,
         isActive: Boolean(createForm.isActive),
       };
 
-      await productApi.createProduct(payload);
-      setSuccess("Product created successfully.");
+      const createResponse = await productApi.createProduct(createPayload);
+      const createdProduct = createResponse?.data?.data;
+      const createdProductId = createdProduct?.productId;
+
+      if (!createdProductId) {
+        throw new Error("Create product response missing product id.");
+      }
+
+      let mainImageUploadId = null;
+      if (createFiles.length) {
+        const uploadResponse = await productApi.uploadProductImages(createdProductId, createFiles);
+        const uploadedImages = uploadResponse?.data?.data || [];
+        mainImageUploadId = uploadedImages?.[0]?.uploadId || null;
+      }
+
+      if (mainImageUploadId) {
+        const updatePayload = {
+          name: createdProduct?.name?.trim() || createPayload.name,
+          description: createdProduct?.description ?? createPayload.description,
+          price: Number(createdProduct?.price ?? createPayload.price),
+          maxPrice: Number(createdProduct?.maxPrice ?? createPayload.maxPrice),
+          gstPercentage: Number(createdProduct?.gstPercentage ?? createPayload.gstPercentage),
+          stockQuantity: Number(createdProduct?.stockQuantity ?? createPayload.stockQuantity),
+          mainImageUploadId,
+          productTag: createdProduct?.productTag ?? createPayload.productTag,
+          categoryId: createdProduct?.categoryId ?? createPayload.categoryId,
+        };
+        await productApi.updateProduct(createdProductId, updatePayload);
+      }
+
+      setSuccess(
+        createFiles.length
+          ? "Product created and images uploaded. First image set as main image."
+          : "Product created successfully.",
+      );
       setCreateForm({
         ...initialCreateForm,
         categoryId: createForm.categoryId,
       });
+      setCreateFiles([]);
       refreshProducts();
       fetchCategories();
     } catch (err) {
@@ -303,12 +351,14 @@ const useAdminDashboard = () => {
     isCreatingProduct,
     updatingMaxPriceProductId,
     updatingTagProductId,
+    createFiles,
     error,
     success,
     updateSearch,
     goToPage,
     refreshProducts,
     handleCreateFormChange,
+    handleCreateFilesChange,
     createProduct,
     updateProductMaxPrice,
     updateProductTag,

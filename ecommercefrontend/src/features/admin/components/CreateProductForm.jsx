@@ -1,15 +1,62 @@
+import { useRef } from "react";
+
 const CreateProductForm = ({
   form,
   categories,
   isLoadingCategories,
   isCreatingProduct,
+  createFiles,
+  onFilesChange,
   onChange,
   onSubmit,
 }) => {
+  const descriptionRef = useRef(null);
   const price = Number(form.price || 0);
   const maxPrice = Number(form.maxPrice || form.price || 0);
   const savePercentage =
     maxPrice > price && maxPrice > 0 ? Math.round(((maxPrice - price) / maxPrice) * 100) : 0;
+
+  const updateDescription = (nextValue) => {
+    onChange({
+      target: {
+        name: "description",
+        value: nextValue,
+        type: "text",
+      },
+    });
+  };
+
+  const applyDescriptionFormat = (type) => {
+    const input = descriptionRef.current;
+    if (!input) {
+      return;
+    }
+
+    const current = form.description || "";
+    const start = input.selectionStart ?? current.length;
+    const end = input.selectionEnd ?? current.length;
+    const selected = current.slice(start, end);
+
+    let formatted = selected;
+    if (type === "bold") {
+      formatted = `**${selected || "text"}**`;
+    } else if (type === "italic") {
+      formatted = `*${selected || "text"}*`;
+    } else if (type === "bullet") {
+      formatted = `- ${selected || "item"}`;
+    } else if (type === "number") {
+      formatted = `1. ${selected || "item"}`;
+    }
+
+    const nextValue = `${current.slice(0, start)}${formatted}${current.slice(end)}`;
+    updateDescription(nextValue);
+
+    requestAnimationFrame(() => {
+      input.focus();
+      const caret = start + formatted.length;
+      input.setSelectionRange(caret, caret);
+    });
+  };
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -40,7 +87,38 @@ const CreateProductForm = ({
 
           <label className="space-y-1 md:col-span-2">
             <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Description</span>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => applyDescriptionFormat("bold")}
+                className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+              >
+                Bold
+              </button>
+              <button
+                type="button"
+                onClick={() => applyDescriptionFormat("italic")}
+                className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+              >
+                Italic
+              </button>
+              <button
+                type="button"
+                onClick={() => applyDescriptionFormat("bullet")}
+                className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+              >
+                Bullet
+              </button>
+              <button
+                type="button"
+                onClick={() => applyDescriptionFormat("number")}
+                className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700"
+              >
+                Number
+              </button>
+            </div>
             <textarea
+              ref={descriptionRef}
               name="description"
               value={form.description}
               onChange={onChange}
@@ -48,6 +126,7 @@ const CreateProductForm = ({
               placeholder="Enter product description"
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+            <p className="text-xs text-slate-500">Supports basic markdown-style text formatting.</p>
           </label>
         </section>
 
@@ -137,18 +216,6 @@ const CreateProductForm = ({
           </label>
 
           <label className="space-y-1">
-            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Main Image Upload ID</span>
-            <input
-              type="text"
-              name="mainImageUploadId"
-              value={form.mainImageUploadId}
-              onChange={onChange}
-              placeholder="Optional upload id"
-              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </label>
-
-          <label className="space-y-1">
             <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Product Tag</span>
             <select
               name="productTag"
@@ -160,6 +227,21 @@ const CreateProductForm = ({
               <option value="FLASH_SALES">Flash Sales</option>
               <option value="TRENDING_PRODUCTS">Trending Products</option>
             </select>
+          </label>
+
+          <label className="space-y-1 md:col-span-2">
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Upload Product Images</span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={onFilesChange}
+              className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
+            />
+            <p className="text-xs text-slate-500">
+              On create, images upload automatically and first image becomes main image.
+              {createFiles?.length ? ` Selected: ${createFiles.length} file(s).` : ""}
+            </p>
           </label>
         </section>
 
