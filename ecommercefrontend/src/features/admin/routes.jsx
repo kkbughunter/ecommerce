@@ -1,5 +1,7 @@
+import AdminCategoriesView from "./views/AdminCategoriesView";
 import ProtectedRoute from "../../core/auth/ProtectedRoute";
 import AdminCreateProductView from "./views/AdminCreateProductView";
+import AdminCustomersView from "./views/AdminCustomersView";
 import AdminHomeView from "./views/AdminHomeView";
 import AdminInvoicesView from "./views/AdminInvoicesView";
 import AdminOrdersView from "./views/AdminOrdersView";
@@ -28,6 +30,22 @@ const adminRoutes = [
     element: (
       <ProtectedRoute allowedRoles={["ADMIN"]}>
         <AdminCreateProductView />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/categories",
+    element: (
+      <ProtectedRoute allowedRoles={["ADMIN"]}>
+        <AdminCategoriesView />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/customers",
+    element: (
+      <ProtectedRoute allowedRoles={["ADMIN"]}>
+        <AdminCustomersView />
       </ProtectedRoute>
     ),
   },

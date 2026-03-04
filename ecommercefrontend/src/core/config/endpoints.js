@@ -7,6 +7,7 @@ const ENDPOINTS = {
   },
   CATEGORIES: {
     LIST: "/categories",
+    CREATE: "/categories",
   },
   PRODUCTS: {
     ACTIVE_LIST: "/products/active",
@@ -40,6 +41,10 @@ const ENDPOINTS = {
     ORDER_DETAILS: "/payments/orders",
   },
   CUSTOMERS: {
+    LIST: "/customers",
+    DETAILS: "/customers",
+    ACTIVATE: "/customers",
+    DEACTIVATE: "/customers",
     ME: "/customers/me",
   },
 };

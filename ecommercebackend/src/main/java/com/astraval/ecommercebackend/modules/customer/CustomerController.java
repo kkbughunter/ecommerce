@@ -67,6 +67,7 @@ public class CustomerController {
     }
 
     @PatchMapping("/{customerId}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate customer profile", description = "Marks a customer profile as active.")
     public ResponseEntity<ApiResponse<CustomerResponse>> activateCustomer(@PathVariable Long customerId) {
         CustomerResponse response = customerService.activateCustomer(customerId);
@@ -74,6 +75,7 @@ public class CustomerController {
     }
 
     @PatchMapping("/{customerId}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Deactivate customer profile", description = "Marks a customer profile as inactive.")
     public ResponseEntity<ApiResponse<CustomerResponse>> deactivateCustomer(@PathVariable Long customerId) {
         CustomerResponse response = customerService.deactivateCustomer(customerId);
