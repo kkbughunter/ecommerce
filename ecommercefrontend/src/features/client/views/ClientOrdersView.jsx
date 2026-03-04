@@ -30,6 +30,16 @@ const formatDateTime = (value) => {
   });
 };
 
+const formatPaymentAttemptStatus = (status) => {
+  if (!status) {
+    return "-";
+  }
+  if (status === "SUCCESS") {
+    return "PAID";
+  }
+  return status;
+};
+
 const ClientOrdersView = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -245,7 +255,7 @@ const ClientOrdersView = () => {
                     {(paymentDetails?.attempts || []).map((attempt) => (
                       <div key={attempt.paymentTransactionId} className="rounded-lg border border-slate-200 p-3">
                         <p className="text-sm font-semibold text-slate-900">
-                          Attempt #{attempt.attemptNumber} • {attempt.status}
+                          Attempt #{attempt.attemptNumber} • {formatPaymentAttemptStatus(attempt.status)}
                         </p>
                         <p className="text-xs text-slate-600">
                           {formatMoney(attempt.amount, attempt.currency)} • {attempt.gateway}
