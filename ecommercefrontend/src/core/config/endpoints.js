@@ -25,6 +25,9 @@ const ENDPOINTS = {
     ADMIN_LIST: "/admin/orders",
     ADMIN_UPDATE_STATUS: "/admin/orders",
   },
+  ADMIN_DASHBOARD: {
+    ROOT: "/admin/dashboard",
+  },
   CART: {
     ROOT: "/cart",
     ITEMS: "/cart/items",

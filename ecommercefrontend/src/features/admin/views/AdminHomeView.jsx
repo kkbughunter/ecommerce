@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import orderApi from "../../../core/api/orderApi";
+import adminDashboardApi from "../../../core/api/adminDashboardApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
 import AdminConsoleLayout from "../components/AdminConsoleLayout";
 import AdminStatCard from "../components/AdminStatCard";
-import useAdminDashboard from "../hooks/useAdminDashboard";
 
 const formatMoney = (value, currency = "INR") =>
   new Intl.NumberFormat("en-IN", {
@@ -28,89 +27,121 @@ const formatDateTime = (value) => {
   });
 };
 
+const toSmoothLinePath = (points) => {
+  if (!points.length) {
+    return "";
+  }
+  if (points.length === 1) {
+    return `M ${points[0].x} ${points[0].y}`;
+  }
+  let path = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i += 1) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const controlX = (prev.x + curr.x) / 2;
+    path += ` Q ${controlX} ${prev.y}, ${curr.x} ${curr.y}`;
+  }
+  return path;
+};
+
+const toSmoothAreaPath = (points, baseline = 180) => {
+  if (!points.length) {
+    return "";
+  }
+  return `${toSmoothLinePath(points)} L ${points[points.length - 1].x} ${baseline} L ${points[0].x} ${baseline} Z`;
+};
+
+const mapTrendToPoints = (trend = [], minX = 20, maxX = 730, topY = 28, bottomY = 156) => {
+  if (!Array.isArray(trend) || !trend.length) {
+    return [];
+  }
+  const maxValue = Math.max(...trend.map((item) => Number(item?.value || 0)), 1);
+  const step = trend.length > 1 ? (maxX - minX) / (trend.length - 1) : 0;
+  return trend.map((item, index) => {
+    const rawValue = Number(item?.value || 0);
+    const normalized = maxValue > 0 ? rawValue / maxValue : 0;
+    return {
+      day: item?.dayLabel || "",
+      date: item?.date || "",
+      value: rawValue,
+      x: minX + step * index,
+      y: bottomY - normalized * (bottomY - topY),
+    };
+  });
+};
+
 const AdminHomeView = () => {
   const navigate = useNavigate();
-  const {
-    filters,
-    products,
-    pageMeta,
-    dashboardStats,
-    isLoadingProducts,
-    updatingMaxPriceProductId,
-    updatingTagProductId,
-    error,
-    success,
-    updateSearch,
-    refreshProducts,
-  } = useAdminDashboard();
+  const [dashboardData, setDashboardData] = useState(null);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+  const [dashboardError, setDashboardError] = useState("");
+  const [hoveredGraphPoint, setHoveredGraphPoint] = useState(null);
 
-  const [recentOrders, setRecentOrders] = useState([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const [ordersError, setOrdersError] = useState("");
-
-  const loadRecentOrders = async () => {
-    setIsLoadingOrders(true);
-    setOrdersError("");
+  const loadDashboard = async () => {
+    setIsLoadingDashboard(true);
+    setDashboardError("");
     try {
-      const response = await orderApi.getAdminOrders({ page: 0, size: 8 });
-      const list = Array.isArray(response?.data?.data?.content) ? response.data.data.content : [];
-      setRecentOrders(list);
+      const response = await adminDashboardApi.getDashboard();
+      setDashboardData(response?.data?.data || null);
     } catch (err) {
-      setOrdersError(getApiErrorMessage(err, "Unable to load recent orders."));
-      setRecentOrders([]);
+      setDashboardError(getApiErrorMessage(err, "Unable to load admin dashboard."));
+      setDashboardData(null);
     } finally {
-      setIsLoadingOrders(false);
+      setIsLoadingDashboard(false);
     }
   };
 
   useEffect(() => {
-    loadRecentOrders();
+    loadDashboard();
   }, []);
 
-  const financeMetrics = useMemo(() => {
-    const totalRevenue = recentOrders.reduce((sum, item) => sum + Number(item?.totalAmount || 0), 0);
-    const paidRevenue = recentOrders
-      .filter((item) => item?.paymentStatus === "PAID")
-      .reduce((sum, item) => sum + Number(item?.totalAmount || 0), 0);
-    const paidOrders = recentOrders.filter((item) => item?.paymentStatus === "PAID").length;
-    const pendingPayments = recentOrders.filter((item) => item?.paymentStatus === "PENDING").length;
-    const averageOrderValue = recentOrders.length ? totalRevenue / recentOrders.length : 0;
-    const deliveredCount = recentOrders.filter((item) => item?.status === "DELIVERED").length;
-    const fulfillmentRate = recentOrders.length ? (deliveredCount / recentOrders.length) * 100 : 0;
+  const productSummary = dashboardData?.productSummary || {};
+  const orderSummary = dashboardData?.orderSummary || {};
+  const revenueSummary = dashboardData?.revenueSummary || {};
+  const recentOrders = useMemo(
+    () => (Array.isArray(dashboardData?.recentOrders) ? dashboardData.recentOrders : []),
+    [dashboardData?.recentOrders],
+  );
 
-    return {
-      totalRevenue,
-      paidRevenue,
-      paidOrders,
-      pendingPayments,
-      averageOrderValue,
-      fulfillmentRate,
-    };
-  }, [recentOrders]);
+  const financeMetrics = useMemo(
+    () => ({
+      totalRevenue: Number(revenueSummary?.totalRevenue || 0),
+      paidRevenue: Number(revenueSummary?.paidRevenue || 0),
+      paidOrders: Number(orderSummary?.paidOrders || 0),
+      pendingPayments: Number(orderSummary?.pendingPayments || 0),
+      averageOrderValue: Number(revenueSummary?.averageOrderValue || 0),
+      fulfillmentRate: Number(revenueSummary?.fulfillmentRatePercentage || 0),
+    }),
+    [orderSummary?.paidOrders, orderSummary?.pendingPayments, revenueSummary?.averageOrderValue, revenueSummary?.fulfillmentRatePercentage, revenueSummary?.paidRevenue, revenueSummary?.totalRevenue],
+  );
 
   const paymentMix = useMemo(() => {
-    const total = recentOrders.length || 1;
-    const paid = Math.round((recentOrders.filter((item) => item?.paymentStatus === "PAID").length / total) * 100);
-    const pending = Math.round(
-      (recentOrders.filter((item) => item?.paymentStatus === "PENDING").length / total) * 100,
-    );
+    const total = Number(orderSummary?.totalOrders || 0) || 1;
+    const paid = Math.round((Number(orderSummary?.paidOrders || 0) / total) * 100);
+    const pending = Math.round((Number(orderSummary?.pendingPayments || 0) / total) * 100);
     const failed = Math.max(0, 100 - paid - pending);
     return { paid, pending, failed };
-  }, [recentOrders]);
+  }, [orderSummary?.paidOrders, orderSummary?.pendingPayments, orderSummary?.totalOrders]);
+
+  const darkSeriesPoints = useMemo(
+    () => mapTrendToPoints(dashboardData?.orderTrend),
+    [dashboardData?.orderTrend],
+  );
+  const greenSeriesPoints = useMemo(
+    () => mapTrendToPoints(dashboardData?.revenueTrend),
+    [dashboardData?.revenueTrend],
+  );
 
   return (
     <AdminConsoleLayout
       activeNav="dashboard"
       title="Dashboard"
       subtitle="Orders, products, payments and invoices in one modern admin panel."
-      searchValue={filters.q}
-      onSearchChange={updateSearch}
-      searchPlaceholder="Search products by name or category..."
       topActions={
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={loadRecentOrders}
+            onClick={loadDashboard}
             className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
           >
             Refresh Data
@@ -133,6 +164,10 @@ const AdminHomeView = () => {
       }
     >
       <div className="space-y-4">
+        {dashboardError ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{dashboardError}</div>
+        ) : null}
+
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Ecommerce Revenue</p>
@@ -149,12 +184,12 @@ const AdminHomeView = () => {
             <p className="mt-2 text-2xl font-semibold text-[#0f172a]">
               {formatMoney(financeMetrics.averageOrderValue)}
             </p>
-            <p className="mt-1 text-xs text-[#64748b]">Based on latest {recentOrders.length} orders</p>
+            <p className="mt-1 text-xs text-[#64748b]">Based on current dashboard summary</p>
           </div>
           <div className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Fulfillment Rate</p>
             <p className="mt-2 text-2xl font-semibold text-[#0f172a]">{financeMetrics.fulfillmentRate.toFixed(1)}%</p>
-            <p className="mt-1 text-xs text-[#64748b]">Delivered vs recent orders</p>
+            <p className="mt-1 text-xs text-[#64748b]">Delivered vs all orders</p>
           </div>
         </section>
 
@@ -162,38 +197,83 @@ const AdminHomeView = () => {
           <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-[#111827]">Products Overview</h2>
-              <button
-                type="button"
-                onClick={refreshProducts}
-                className="h-8 rounded-lg border border-[#d8dde6] px-3 text-xs font-semibold text-[#475569]"
-              >
-                Refresh Products
-              </button>
+              {isLoadingDashboard ? <span className="text-xs text-[#94a3b8]">Updating...</span> : null}
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              <AdminStatCard label="Total Products" value={dashboardStats.totalProducts} tone="slate" />
-              <AdminStatCard label="Active" value={dashboardStats.activeCount} tone="blue" />
-              <AdminStatCard label="Inactive" value={dashboardStats.inactiveCount} tone="slate" />
-              <AdminStatCard label="Low Stock" value={dashboardStats.lowStock} tone="amber" />
-              <AdminStatCard label="Out Of Stock" value={dashboardStats.outOfStock} tone="rose" />
+              <AdminStatCard label="Total Products" value={Number(productSummary?.totalProducts || 0)} tone="slate" />
+              <AdminStatCard label="Active" value={Number(productSummary?.activeProducts || 0)} tone="blue" />
+              <AdminStatCard label="Inactive" value={Number(productSummary?.inactiveProducts || 0)} tone="slate" />
+              <AdminStatCard label="Low Stock" value={Number(productSummary?.lowStockProducts || 0)} tone="amber" />
+              <AdminStatCard label="Out Of Stock" value={Number(productSummary?.outOfStockProducts || 0)} tone="rose" />
             </div>
             <div className="mt-5 overflow-hidden rounded-xl border border-[#eef1f5] bg-[#f8fafc] p-3">
-              <svg viewBox="0 0 760 180" className="h-[180px] w-full">
-                <defs>
-                  <linearGradient id="lineA" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0f172a" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#0f172a" stopOpacity="0" />
-                  </linearGradient>
-                  <linearGradient id="lineB" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#22c55e" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <path d="M20 140 C90 40, 150 160, 230 95 C300 40, 370 155, 450 85 C520 25, 610 120, 730 55" fill="none" stroke="#0f172a" strokeWidth="2.8" />
-                <path d="M20 125 C100 180, 180 25, 260 75 C335 128, 430 30, 505 110 C590 175, 665 68, 730 98" fill="none" stroke="#22c55e" strokeWidth="2.8" />
-                <path d="M20 140 C90 40, 150 160, 230 95 C300 40, 370 155, 450 85 C520 25, 610 120, 730 55 L730 180 L20 180 Z" fill="url(#lineA)" />
-                <path d="M20 125 C100 180, 180 25, 260 75 C335 128, 430 30, 505 110 C590 175, 665 68, 730 98 L730 180 L20 180 Z" fill="url(#lineB)" />
-              </svg>
+              <div className="relative">
+                {hoveredGraphPoint ? (
+                  <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-md border border-[#d8dde6] bg-white px-2 py-1 text-[11px] text-[#334155] shadow">
+                    <p className="font-semibold">{hoveredGraphPoint.series}</p>
+                    <p>
+                      {hoveredGraphPoint.day}:{" "}
+                      {hoveredGraphPoint.series === "Revenue Trend"
+                        ? formatMoney(hoveredGraphPoint.value)
+                        : hoveredGraphPoint.value.toFixed(0)}
+                    </p>
+                  </div>
+                ) : null}
+                <svg
+                  viewBox="0 0 760 180"
+                  className="h-[180px] w-full"
+                  onMouseLeave={() => setHoveredGraphPoint(null)}
+                >
+                  <defs>
+                    <linearGradient id="lineA" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0f172a" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#0f172a" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="lineB" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path d={toSmoothAreaPath(darkSeriesPoints)} fill="url(#lineA)" />
+                  <path d={toSmoothAreaPath(greenSeriesPoints)} fill="url(#lineB)" />
+                  <path d={toSmoothLinePath(darkSeriesPoints)} fill="none" stroke="#0f172a" strokeWidth="2.8" />
+                  <path d={toSmoothLinePath(greenSeriesPoints)} fill="none" stroke="#22c55e" strokeWidth="2.8" />
+                  {darkSeriesPoints.map((point, index) => (
+                    <circle
+                      key={`dark-${index}`}
+                      cx={point.x}
+                      cy={point.y}
+                      r="4"
+                      fill="#0f172a"
+                      className="cursor-pointer"
+                      onMouseEnter={() =>
+                        setHoveredGraphPoint({
+                          series: "Orders Trend",
+                          day: point.day,
+                          value: point.value,
+                        })
+                      }
+                    />
+                  ))}
+                  {greenSeriesPoints.map((point, index) => (
+                    <circle
+                      key={`green-${index}`}
+                      cx={point.x}
+                      cy={point.y}
+                      r="4"
+                      fill="#22c55e"
+                      className="cursor-pointer"
+                      onMouseEnter={() =>
+                        setHoveredGraphPoint({
+                          series: "Revenue Trend",
+                          day: point.day,
+                          value: point.value,
+                        })
+                      }
+                    />
+                  ))}
+                </svg>
+              </div>
             </div>
           </article>
 
@@ -240,8 +320,7 @@ const AdminHomeView = () => {
               View All
             </button>
           </div>
-          {ordersError ? <p className="mb-2 text-sm text-red-600">{ordersError}</p> : null}
-          {isLoadingOrders ? (
+          {isLoadingDashboard ? (
             <p className="text-sm text-[#64748b]">Loading recent orders...</p>
           ) : recentOrders.length ? (
             <div className="overflow-x-auto">
@@ -272,16 +351,6 @@ const AdminHomeView = () => {
             <p className="text-sm text-[#64748b]">No orders available.</p>
           )}
         </section>
-
-        {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
-        ) : null}
-        {success ? (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-            {success}
-          </div>
-        ) : null}
-
       </div>
     </AdminConsoleLayout>
   );
