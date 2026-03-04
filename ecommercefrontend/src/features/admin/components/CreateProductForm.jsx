@@ -147,6 +147,20 @@ const CreateProductForm = ({
               className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </label>
+
+          <label className="space-y-1">
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Product Tag</span>
+            <select
+              name="productTag"
+              value={form.productTag}
+              onChange={onChange}
+              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">No tag</option>
+              <option value="FLASH_SALES">Flash Sales</option>
+              <option value="TRENDING_PRODUCTS">Trending Products</option>
+            </select>
+          </label>
         </section>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">

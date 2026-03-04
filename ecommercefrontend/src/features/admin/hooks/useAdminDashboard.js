@@ -17,6 +17,7 @@ const initialCreateForm = {
   gstPercentage: "",
   stockQuantity: "",
   mainImageUploadId: "",
+  productTag: "",
   categoryId: "",
   isActive: true,
 };
@@ -38,6 +39,7 @@ const useAdminDashboard = () => {
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [updatingMaxPriceProductId, setUpdatingMaxPriceProductId] = useState(null);
+  const [updatingTagProductId, setUpdatingTagProductId] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -157,6 +159,7 @@ const useAdminDashboard = () => {
         gstPercentage: Number(createForm.gstPercentage),
         stockQuantity: Number(createForm.stockQuantity),
         mainImageUploadId: createForm.mainImageUploadId.trim() || null,
+        productTag: createForm.productTag || null,
         categoryId: createForm.categoryId ? Number(createForm.categoryId) : null,
         isActive: Boolean(createForm.isActive),
       };
@@ -224,6 +227,7 @@ const useAdminDashboard = () => {
         gstPercentage: parsedGstPercentage,
         stockQuantity: parsedStockQuantity,
         mainImageUploadId: product?.mainImageUploadId?.trim() || null,
+        productTag: product?.productTag || null,
         categoryId: product?.categoryId ? Number(product.categoryId) : null,
       };
       await productApi.updateProduct(product.productId, payload);
@@ -233,6 +237,57 @@ const useAdminDashboard = () => {
       setError(getApiErrorMessage(err, "Unable to update max price."));
     } finally {
       setUpdatingMaxPriceProductId(null);
+    }
+  };
+
+  const updateProductTag = async (product, nextTag) => {
+    if (!product?.productId) {
+      return;
+    }
+
+    const parsedPrice = Number(product?.price);
+    const parsedMaxPrice = Number(product?.maxPrice ?? product?.price);
+    const parsedGstPercentage = Number(product?.gstPercentage);
+    const parsedStockQuantity = Number(product?.stockQuantity);
+    if (!Number.isFinite(parsedPrice) || !Number.isFinite(parsedMaxPrice)) {
+      setError("Current price values are invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isFinite(parsedGstPercentage) || parsedGstPercentage < 0 || parsedGstPercentage > 100) {
+      setError("Current GST % is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isInteger(parsedStockQuantity) || parsedStockQuantity < 0) {
+      setError("Current stock quantity is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setUpdatingTagProductId(product.productId);
+
+    try {
+      const payload = {
+        name: product?.name?.trim() || "",
+        description: product?.description?.trim() || null,
+        price: parsedPrice,
+        maxPrice: parsedMaxPrice,
+        gstPercentage: parsedGstPercentage,
+        stockQuantity: parsedStockQuantity,
+        mainImageUploadId: product?.mainImageUploadId?.trim() || null,
+        productTag: nextTag || null,
+        categoryId: product?.categoryId ? Number(product.categoryId) : null,
+      };
+      await productApi.updateProduct(product.productId, payload);
+      setSuccess(`Tag updated for "${product.name}".`);
+      refreshProducts();
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to update product tag."));
+    } finally {
+      setUpdatingTagProductId(null);
     }
   };
 
@@ -247,6 +302,7 @@ const useAdminDashboard = () => {
     isLoadingCategories,
     isCreatingProduct,
     updatingMaxPriceProductId,
+    updatingTagProductId,
     error,
     success,
     updateSearch,
@@ -255,6 +311,7 @@ const useAdminDashboard = () => {
     handleCreateFormChange,
     createProduct,
     updateProductMaxPrice,
+    updateProductTag,
   };
 };
 

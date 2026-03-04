@@ -12,10 +12,21 @@ const formatMoney = (value) =>
     maximumFractionDigits: 2,
   }).format(Number(value || 0));
 
+const getTagLabel = (tag) => {
+  if (tag === "FLASH_SALES") {
+    return "Flash Sales";
+  }
+  if (tag === "TRENDING_PRODUCTS") {
+    return "Trending Products";
+  }
+  return "No tag";
+};
+
 const ProductDetailView = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
   const isAdmin = hasAnyRole(["ADMIN"]);
+
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -33,12 +44,16 @@ const ProductDetailView = () => {
     stockQuantity: "",
     categoryId: "",
     mainImageUploadId: "",
+    productTag: "",
   });
 
-  const buildImageFileUrl = useCallback((uploadId) => {
-    const base = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
-    return `${base}/products/${productId}/images/${uploadId}/file`;
-  }, [productId]);
+  const buildImageFileUrl = useCallback(
+    (uploadId) => {
+      const base = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
+      return `${base}/products/${productId}/images/${uploadId}/file`;
+    },
+    [productId],
+  );
 
   const galleryImages = useMemo(() => {
     if (!product?.productId) {
@@ -86,25 +101,28 @@ const ProductDetailView = () => {
       stockQuantity: data?.stockQuantity ?? "",
       categoryId: data?.categoryId ?? "",
       mainImageUploadId: data?.mainImageUploadId || "",
+      productTag: data?.productTag || "",
     });
   };
 
-  const loadProduct = useCallback(async ({ withLoader = false } = {}) => {
-    if (withLoader) {
-      setIsLoading(true);
-    }
-    try {
-      const response = await productApi.getProductDetails(productId);
-      const data = response?.data?.data || null;
-      syncProductState(data);
-    } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to load product details."));
-    } finally {
+  const loadProduct = useCallback(
+    async ({ withLoader = false } = {}) => {
       if (withLoader) {
-        setIsLoading(false);
+        setIsLoading(true);
       }
-    }
-  }, [productId]);
+      try {
+        const response = await productApi.getProductDetails(productId);
+        syncProductState(response?.data?.data || null);
+      } catch (err) {
+        setError(getApiErrorMessage(err, "Unable to load product details."));
+      } finally {
+        if (withLoader) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [productId],
+  );
 
   useEffect(() => {
     loadProduct({ withLoader: true });
@@ -144,6 +162,7 @@ const ProductDetailView = () => {
         stockQuantity: Number(editForm.stockQuantity),
         categoryId: editForm.categoryId ? Number(editForm.categoryId) : null,
         mainImageUploadId: editForm.mainImageUploadId.trim() || null,
+        productTag: editForm.productTag || null,
       };
       await productApi.updateProduct(productId, payload);
       setSuccess("Product updated successfully.");
@@ -195,8 +214,8 @@ const ProductDetailView = () => {
   const activeImage = galleryImages[selectedImageIndex] || null;
 
   return (
-    <main className="min-h-screen bg-slate-50 px-2 py-4 md:px-3">
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#eef2ff_0%,#f8fafc_52%,#f5f7fb_100%)] px-2 py-4 md:px-3">
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex gap-2">
             <button
@@ -214,9 +233,7 @@ const ProductDetailView = () => {
               Logout
             </button>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-            Product Details
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Product Details</p>
         </div>
 
         {isLoading ? (
@@ -235,9 +252,7 @@ const ProductDetailView = () => {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-slate-500">
-                      No main image
-                    </div>
+                    <div className="flex h-full items-center justify-center text-sm text-slate-500">No main image</div>
                   )}
 
                   {hasMultipleImages && (
@@ -245,9 +260,7 @@ const ProductDetailView = () => {
                       <button
                         type="button"
                         onClick={() =>
-                          setSelectedImageIndex((prev) =>
-                            prev === 0 ? galleryImages.length - 1 : prev - 1,
-                          )
+                          setSelectedImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))
                         }
                         className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/55 px-2 py-1 text-xs font-semibold text-white"
                       >
@@ -256,9 +269,7 @@ const ProductDetailView = () => {
                       <button
                         type="button"
                         onClick={() =>
-                          setSelectedImageIndex((prev) =>
-                            prev === galleryImages.length - 1 ? 0 : prev + 1,
-                          )
+                          setSelectedImageIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1))
                         }
                         className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/55 px-2 py-1 text-xs font-semibold text-white"
                       >
@@ -279,9 +290,7 @@ const ProductDetailView = () => {
                         type="button"
                         onClick={() => setSelectedImageIndex(index)}
                         className={`overflow-hidden rounded-lg border ${
-                          index === selectedImageIndex
-                            ? "border-blue-500 ring-2 ring-blue-100"
-                            : "border-slate-200"
+                          index === selectedImageIndex ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"
                         }`}
                       >
                         <img
@@ -294,239 +303,213 @@ const ProductDetailView = () => {
                     ))}
                   </div>
                 )}
-              </div>            </article>
+              </div>
+            </article>
 
             <div className="space-y-4">
-              <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <h1 className="text-2xl font-semibold text-slate-900">{product.name}</h1>
-                <p className="mt-1 text-sm text-slate-600">{product.description || "-"}</p>
+              <article className="rounded-2xl border border-[#dbe5ff] bg-[linear-gradient(135deg,#f8fbff,#eef4ff)] p-5 shadow-[0_10px_24px_rgba(59,130,246,0.12)]">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <h1 className="text-2xl font-semibold text-slate-900">{product.name}</h1>
+                  <span className="rounded-full border border-[#bfdbfe] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#1d4ed8]">
+                    {getTagLabel(product?.productTag)}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-600">{product.description || "-"}</p>
                 <p className="mt-2 text-sm text-slate-600">
                   Category: <span className="font-medium">{product.categoryName || "-"}</span>
                 </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <p className="text-lg font-bold text-slate-900">{formatMoney(price)}</p>
-                  {maxPrice > price && (
-                    <p className="text-sm text-slate-500 line-through">{formatMoney(maxPrice)}</p>
-                  )}
+                <div className="mt-3 flex items-baseline gap-2">
+                  <p className="text-xl font-bold text-slate-900">{formatMoney(price)}</p>
+                  {maxPrice > price && <p className="text-sm text-slate-500 line-through">{formatMoney(maxPrice)}</p>}
                 </div>
-                {maxPrice > price && (
-                  <p className="mt-1 text-sm font-semibold text-emerald-600">Save {savePercentage}%</p>
-                )}
-                <p className="mt-1 text-sm text-slate-600">
-                  GST {product.gstPercentage}% &bull; Stock {product.stockQuantity}
-                </p>
+                {maxPrice > price && <p className="mt-1 text-sm font-semibold text-emerald-600">Save {savePercentage}%</p>}
+                <p className="mt-1 text-sm text-slate-600">GST {product.gstPercentage}% | Stock {product.stockQuantity}</p>
               </article>
 
               {isAdmin ? (
-              <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <h2 className="text-base font-semibold text-slate-900">Update Product</h2>
-                <form className="mt-4 grid gap-3" onSubmit={handleUpdate}>
-                  <label className="space-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                      Product Name
-                    </span>
-                    <input
-                      type="text"
-                      name="name"
-                      value={editForm.name}
-                      onChange={handleEditChange}
-                      className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                      placeholder="Enter product name"
-                      required
-                    />
-                  </label>
-                  <label className="space-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                      Description
-                    </span>
-                    <textarea
-                      name="description"
-                      value={editForm.description}
-                      onChange={handleEditChange}
-                      rows={3}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                      placeholder="Enter product description"
-                    />
-                  </label>
-                  <div className="grid gap-3 md:grid-cols-2">
+                <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <h2 className="text-base font-semibold text-slate-900">Update Product</h2>
+                  <form className="mt-4 grid gap-3" onSubmit={handleUpdate}>
                     <label className="space-y-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                        Price
-                      </span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Product Name</span>
                       <input
-                        type="number"
-                        name="price"
-                        value={editForm.price}
+                        type="text"
+                        name="name"
+                        value={editForm.name}
                         onChange={handleEditChange}
-                        min="0"
-                        step="0.01"
                         className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                        placeholder="0.00"
+                        placeholder="Enter product name"
                         required
                       />
                     </label>
                     <label className="space-y-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                        Max Price
-                      </span>
-                      <input
-                        type="number"
-                        name="maxPrice"
-                        value={editForm.maxPrice}
+                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Description</span>
+                      <textarea
+                        name="description"
+                        value={editForm.description}
                         onChange={handleEditChange}
-                        min="0"
-                        step="0.01"
-                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                        placeholder="0.00"
+                        rows={3}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        placeholder="Enter product description"
                       />
                     </label>
-                    <label className="space-y-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                        GST %
-                      </span>
-                      <input
-                        type="number"
-                        name="gstPercentage"
-                        value={editForm.gstPercentage}
-                        onChange={handleEditChange}
-                        min="0"
-                        max="100"
-                        step="0.01"
-                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                        placeholder="0.00"
-                        required
-                      />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                        Stock Quantity
-                      </span>
-                      <input
-                        type="number"
-                        name="stockQuantity"
-                        value={editForm.stockQuantity}
-                        onChange={handleEditChange}
-                        min="0"
-                        step="1"
-                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                        placeholder="0"
-                        required
-                      />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                        Category ID
-                      </span>
-                      <input
-                        type="number"
-                        name="categoryId"
-                        value={editForm.categoryId}
-                        onChange={handleEditChange}
-                        min="1"
-                        step="1"
-                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                        placeholder="Category ID"
-                      />
-                    </label>
-                  </div>
-                  <label className="space-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                      Main Image Upload ID
-                    </span>
-                    <input
-                      type="text"
-                      name="mainImageUploadId"
-                      value={editForm.mainImageUploadId}
-                      onChange={handleEditChange}
-                      className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
-                      placeholder="Paste upload id from product image upload"
-                    />
-                  </label>
-                  {success && <p className="text-sm text-emerald-600">{success}</p>}
-                  {error && <p className="text-sm text-red-600">{error}</p>}
-                  <button
-                    type="submit"
-                    disabled={isUpdating}
-                    className="h-10 rounded-lg bg-slate-900 px-3 text-sm font-semibold text-white disabled:opacity-60"
-                  >
-                    {isUpdating ? "Updating..." : "Update Product"}
-                  </button>
-                </form>
-
-                <hr className="my-4 border-slate-200" />
-                <h3 className="text-sm font-semibold text-slate-900">Upload Product Images</h3>
-                <form className="mt-3 space-y-3" onSubmit={handleUploadImages}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileChange}
-                    className="block w-full text-sm text-slate-700"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isUploading}
-                    className="h-10 rounded-lg bg-blue-700 px-3 text-sm font-semibold text-white disabled:opacity-60"
-                  >
-                    {isUploading ? "Uploading..." : "Upload Images"}
-                  </button>
-                </form>
-
-                <div className="mt-4">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                    Uploaded Images
-                  </p>
-                  <div className="grid gap-2 md:grid-cols-2">
-                    {(product?.images || []).map((image) => (
-                      <button
-                        key={image.uploadId}
-                        type="button"
-                        onClick={() =>
-                          setEditForm((prev) => ({
-                            ...prev,
-                            mainImageUploadId: image.uploadId,
-                          }))
-                        }
-                        className="rounded-lg border border-slate-200 bg-white p-2 text-left hover:border-blue-400"
-                        title="Click to set as main image id in update form"
-                      >
-                        <img
-                          src={buildImageFileUrl(image.uploadId)}
-                          alt={image.filename || "Product image"}
-                          className="aspect-square w-full rounded object-cover"
-                          loading="lazy"
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <label className="space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Price</span>
+                        <input
+                          type="number"
+                          name="price"
+                          value={editForm.price}
+                          onChange={handleEditChange}
+                          min="0"
+                          step="0.01"
+                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                          placeholder="0.00"
+                          required
                         />
-                        <p className="mt-1 truncate text-xs text-slate-600">{image.uploadId}</p>
-                      </button>
-                    ))}
-                    {!product?.images?.length && (
-                      <p className="text-sm text-slate-500">No uploaded images yet.</p>
-                    )}
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Max Price</span>
+                        <input
+                          type="number"
+                          name="maxPrice"
+                          value={editForm.maxPrice}
+                          onChange={handleEditChange}
+                          min="0"
+                          step="0.01"
+                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                          placeholder="0.00"
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">GST %</span>
+                        <input
+                          type="number"
+                          name="gstPercentage"
+                          value={editForm.gstPercentage}
+                          onChange={handleEditChange}
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                          placeholder="0.00"
+                          required
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Stock Quantity</span>
+                        <input
+                          type="number"
+                          name="stockQuantity"
+                          value={editForm.stockQuantity}
+                          onChange={handleEditChange}
+                          min="0"
+                          step="1"
+                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                          placeholder="0"
+                          required
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Category ID</span>
+                        <input
+                          type="number"
+                          name="categoryId"
+                          value={editForm.categoryId}
+                          onChange={handleEditChange}
+                          min="1"
+                          step="1"
+                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                          placeholder="Category ID"
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Product Tag</span>
+                        <select
+                          name="productTag"
+                          value={editForm.productTag}
+                          onChange={handleEditChange}
+                          className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                        >
+                          <option value="">No tag</option>
+                          <option value="FLASH_SALES">Flash Sales</option>
+                          <option value="TRENDING_PRODUCTS">Trending Products</option>
+                        </select>
+                      </label>
+                    </div>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Main Image Upload ID</span>
+                      <input
+                        type="text"
+                        name="mainImageUploadId"
+                        value={editForm.mainImageUploadId}
+                        onChange={handleEditChange}
+                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                        placeholder="Paste upload id from product image upload"
+                      />
+                    </label>
+                    {success && <p className="text-sm text-emerald-600">{success}</p>}
+                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    <button
+                      type="submit"
+                      disabled={isUpdating}
+                      className="h-10 rounded-lg bg-slate-900 px-3 text-sm font-semibold text-white disabled:opacity-60"
+                    >
+                      {isUpdating ? "Updating..." : "Update Product"}
+                    </button>
+                  </form>
+
+                  <hr className="my-4 border-slate-200" />
+                  <h3 className="text-sm font-semibold text-slate-900">Upload Product Images</h3>
+                  <form className="mt-3 space-y-3" onSubmit={handleUploadImages}>
+                    <input type="file" accept="image/*" multiple onChange={handleFileChange} className="block w-full text-sm text-slate-700" />
+                    <button
+                      type="submit"
+                      disabled={isUploading}
+                      className="h-10 rounded-lg bg-blue-700 px-3 text-sm font-semibold text-white disabled:opacity-60"
+                    >
+                      {isUploading ? "Uploading..." : "Upload Images"}
+                    </button>
+                  </form>
+
+                  <div className="mt-4">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Uploaded Images</p>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {(product?.images || []).map((image) => (
+                        <button
+                          key={image.uploadId}
+                          type="button"
+                          onClick={() =>
+                            setEditForm((prev) => ({
+                              ...prev,
+                              mainImageUploadId: image.uploadId,
+                            }))
+                          }
+                          className="rounded-lg border border-slate-200 bg-white p-2 text-left hover:border-blue-400"
+                          title="Click to set as main image id in update form"
+                        >
+                          <img
+                            src={buildImageFileUrl(image.uploadId)}
+                            alt={image.filename || "Product image"}
+                            className="aspect-square w-full rounded object-cover"
+                            loading="lazy"
+                          />
+                          <p className="mt-1 truncate text-xs text-slate-600">{image.uploadId}</p>
+                        </button>
+                      ))}
+                      {!product?.images?.length && <p className="text-sm text-slate-500">No uploaded images yet.</p>}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ) : (
-              <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <h2 className="text-base font-semibold text-slate-900">Product Info</h2>
-                <p className="mt-2 text-sm text-slate-600">
-                  Created: {product.createdDt || "-"}
-                </p>
-                <p className="text-sm text-slate-600">
-                  Last modified: {product.modifiedDt || "-"}
-                </p>
-                <p className="text-sm text-slate-600">
-                  Main Image Upload ID: {product.mainImageUploadId || "-"}
-                </p>
-                <div className="flex items-baseline gap-2 text-sm text-slate-600">
-                  <span>{savePercentage > 0 ? `Save ${savePercentage}%:` : "Save Price:"}</span>
-                  {maxPrice > price ? (
-                    <span className="line-through">{formatMoney(maxPrice)}</span>
-                  ) : (
-                    <span>{formatMoney(price)}</span>
-                  )}
-                </div>
-              </article>
-            )}
+                </article>
+              ) : (
+                <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <h2 className="text-base font-semibold text-slate-900">Product Info</h2>
+                  <p className="mt-2 text-sm text-slate-600">Created: {product.createdDt || "-"}</p>
+                  <p className="text-sm text-slate-600">Last modified: {product.modifiedDt || "-"}</p>
+                  <p className="text-sm text-slate-600">Main Image Upload ID: {product.mainImageUploadId || "-"}</p>
+                  <p className="text-sm text-slate-600">Tag: {getTagLabel(product?.productTag)}</p>
+                </article>
+              )}
             </div>
           </div>
         ) : (
@@ -538,4 +521,3 @@ const ProductDetailView = () => {
 };
 
 export default ProductDetailView;
-

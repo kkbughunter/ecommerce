@@ -18,6 +18,12 @@ const ProductCard = ({ product }) => {
     maxPrice > price && maxPrice > 0
       ? Math.round(((maxPrice - price) / maxPrice) * 100)
       : 0;
+  const productTagLabel =
+    product?.productTag === "FLASH_SALES"
+      ? "Flash Sales"
+      : product?.productTag === "TRENDING_PRODUCTS"
+        ? "Trending"
+        : "";
   const isOutOfStock = Number(product?.stockQuantity || 0) <= 0;
   const imageUrl = useMemo(() => {
     if (!product?.productId || !product?.mainImageUploadId) {
@@ -70,6 +76,11 @@ const ProductCard = ({ product }) => {
           <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-[#cfd6f7] bg-white/70 text-[11px] font-medium text-[#64748b] backdrop-blur">
             Product image placeholder
           </div>
+        )}
+        {productTagLabel && (
+          <span className="absolute bottom-3 left-3 rounded-full bg-[#0f172a]/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+            {productTagLabel}
+          </span>
         )}
       </div>
 

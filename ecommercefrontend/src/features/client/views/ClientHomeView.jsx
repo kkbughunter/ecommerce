@@ -20,18 +20,6 @@ const trustPoints = [
   },
 ];
 
-const fillProducts = (list, count) => {
-  if (!list?.length || count <= 0) {
-    return [];
-  }
-
-  const output = [];
-  for (let index = 0; index < count; index += 1) {
-    output.push(list[index % list.length]);
-  }
-  return output;
-};
-
 const SectionTitle = ({ eyebrow, title, action }) => (
   <div className="mb-5 flex items-end justify-between gap-3">
     <div>
@@ -64,8 +52,14 @@ const ClientHomeView = () => {
     refreshCategories,
   } = useClientCategories();
 
-  const flashProducts = useMemo(() => fillProducts(products, 4), [products]);
-  const trendingProducts = useMemo(() => fillProducts(products, 8), [products]);
+  const flashProducts = useMemo(
+    () => products.filter((product) => product?.productTag === "FLASH_SALES"),
+    [products],
+  );
+  const trendingProducts = useMemo(
+    () => products.filter((product) => product?.productTag === "TRENDING_PRODUCTS"),
+    [products],
+  );
   const categoryTiles = useMemo(() => categories.slice(0, 8), [categories]);
 
   const handleLogout = () => {
@@ -196,10 +190,13 @@ const ClientHomeView = () => {
         />
         {error && <p className="mb-4 text-sm text-[#dc2626]">{error}</p>}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {flashProducts.map((product, index) => (
-            <ProductCard key={`${product.productId}-flash-${index}`} product={product} />
+          {flashProducts.map((product) => (
+            <ProductCard key={`${product.productId}-flash`} product={product} />
           ))}
         </div>
+        {!flashProducts.length && !isLoading && (
+          <p className="mt-4 text-sm text-[#64748b]">No products tagged for Flash Sales yet.</p>
+        )}
       </section>
 
       <section className="mt-14 w-full px-2 md:px-3">
@@ -244,10 +241,13 @@ const ClientHomeView = () => {
           }
         />
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {trendingProducts.map((product, index) => (
-            <ProductCard key={`${product.productId}-trend-${index}`} product={product} />
+          {trendingProducts.map((product) => (
+            <ProductCard key={`${product.productId}-trend`} product={product} />
           ))}
         </div>
+        {!trendingProducts.length && !isLoading && (
+          <p className="mt-4 text-sm text-[#64748b]">No products tagged for Trending Products yet.</p>
+        )}
       </section>
 
       <section className="mt-16 w-full px-2 md:px-3">

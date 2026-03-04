@@ -21,6 +21,7 @@ const AdminHomeView = () => {
     isLoadingCategories,
     isCreatingProduct,
     updatingMaxPriceProductId,
+    updatingTagProductId,
     error,
     success,
     updateSearch,
@@ -29,6 +30,7 @@ const AdminHomeView = () => {
     handleCreateFormChange,
     createProduct,
     updateProductMaxPrice,
+    updateProductTag,
   } = useAdminDashboard();
 
   const handleLogout = () => {
@@ -108,7 +110,9 @@ const AdminHomeView = () => {
           onNewProduct={() => setShowCreateForm(!showCreateForm)}
           showCreateForm={showCreateForm}
           updatingMaxPriceProductId={updatingMaxPriceProductId}
+          updatingTagProductId={updatingTagProductId}
           onUpdateMaxPrice={updateProductMaxPrice}
+          onUpdateTag={updateProductTag}
         />
       </div>
     </FullLayout>

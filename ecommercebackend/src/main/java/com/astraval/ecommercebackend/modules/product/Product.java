@@ -7,6 +7,8 @@ import com.astraval.ecommercebackend.modules.category.Category;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -48,6 +50,10 @@ public class Product {
 
     @Column(name = "main_image_upload_id", length = 36)
     private String mainImageUploadId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_tag", length = 30)
+    private ProductTag productTag;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")

@@ -89,6 +89,7 @@ public class ProductService {
         product.setStockQuantity(request.stockQuantity());
         product.setCategory(resolveCategory(request.categoryId()));
         product.setMainImageUploadId(trimToNull(request.mainImageUploadId()));
+        product.setProductTag(request.productTag());
         product.setIsActive(request.isActive() != null ? request.isActive() : true);
         product.setCreatedBy(actorUserId);
         product.setCreatedDt(LocalDateTime.now());
@@ -111,6 +112,7 @@ public class ProductService {
         product.setStockQuantity(request.stockQuantity());
         product.setCategory(resolveCategory(request.categoryId()));
         product.setMainImageUploadId(trimToNull(request.mainImageUploadId()));
+        product.setProductTag(request.productTag());
         product.setModifiedBy(actorUserId);
         validateMainImageUploadId(product.getMainImageUploadId(), product.getProductId());
 
@@ -232,6 +234,7 @@ public class ProductService {
                 product.getGstPercentage(),
                 product.getStockQuantity(),
                 product.getMainImageUploadId(),
+                product.getProductTag(),
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,
                 product.getIsActive(),
@@ -347,6 +350,7 @@ public class ProductService {
                 product.getGstPercentage(),
                 product.getStockQuantity(),
                 product.getMainImageUploadId(),
+                product.getProductTag(),
                 product.getIsActive(),
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,

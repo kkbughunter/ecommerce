@@ -18,11 +18,14 @@ const ProductTable = ({
   onNewProduct = () => {},
   showCreateForm = false,
   updatingMaxPriceProductId = null,
+  updatingTagProductId = null,
   onUpdateMaxPrice = () => {},
+  onUpdateTag = () => {},
 }) => {
   const navigate = useNavigate();
   const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
   const [maxPriceDrafts, setMaxPriceDrafts] = useState({});
+  const [tagDrafts, setTagDrafts] = useState({});
 
   useEffect(() => {
     const nextDrafts = {};
@@ -33,6 +36,14 @@ const ProductTable = ({
       }
     });
     setMaxPriceDrafts(nextDrafts);
+
+    const nextTagDrafts = {};
+    products.forEach((product) => {
+      if (product?.productId) {
+        nextTagDrafts[product.productId] = product?.productTag || "";
+      }
+    });
+    setTagDrafts(nextTagDrafts);
   }, [products]);
 
   const openProductDetails = (productId) => {
@@ -73,6 +84,7 @@ const ProductTable = ({
               <th className="py-2 pr-3">Category</th>
               <th className="py-2 pr-3">Price</th>
               <th className="py-2 pr-3">Stock</th>
+              <th className="py-2 pr-3">Tag</th>
               <th className="py-2 pr-3">Status</th>
               <th className="py-2 pr-3">Update Max Price</th>
               <th className="py-2 pr-3">Action</th>
@@ -81,7 +93,7 @@ const ProductTable = ({
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={8} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={9} className="py-6 text-center text-sm text-slate-500">
                   Loading products...
                 </td>
               </tr>
@@ -125,6 +137,41 @@ const ProductTable = ({
                     )}
                   </td>
                   <td className="py-3 pr-3">{product.stockQuantity}</td>
+                  <td className="py-3 pr-3">
+                    <div className="space-y-2" onClick={(event) => event.stopPropagation()}>
+                      <p className="text-xs font-medium text-slate-600">
+                        {product?.productTag === "FLASH_SALES"
+                          ? "Flash Sales"
+                          : product?.productTag === "TRENDING_PRODUCTS"
+                            ? "Trending Products"
+                            : "No tag"}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={tagDrafts[product.productId] ?? ""}
+                          onChange={(event) =>
+                            setTagDrafts((prev) => ({
+                              ...prev,
+                              [product.productId]: event.target.value,
+                            }))
+                          }
+                          className="h-8 rounded-md border border-slate-300 px-2 text-xs text-slate-700 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-100"
+                        >
+                          <option value="">No tag</option>
+                          <option value="FLASH_SALES">Flash Sales</option>
+                          <option value="TRENDING_PRODUCTS">Trending Products</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => onUpdateTag(product, tagDrafts[product.productId] ?? "")}
+                          disabled={updatingTagProductId === product.productId}
+                          className="h-8 rounded-md border border-violet-300 px-2 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {updatingTagProductId === product.productId ? "Saving..." : "Save"}
+                        </button>
+                      </div>
+                    </div>
+                  </td>
                   <td className="py-3 pr-3">
                     <span
                       className={`rounded-full px-2 py-1 text-xs font-semibold ${
@@ -181,7 +228,7 @@ const ProductTable = ({
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={9} className="py-6 text-center text-sm text-slate-500">
                   No products found for current search.
                 </td>
               </tr>
