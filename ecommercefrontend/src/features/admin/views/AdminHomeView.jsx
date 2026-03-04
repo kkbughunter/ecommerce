@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { clearAuthSession } from "../../../core/auth/session";
 import FullLayout from "../../../layouts/FullLayout";
@@ -8,6 +9,7 @@ import useAdminDashboard from "../hooks/useAdminDashboard";
 
 const AdminHomeView = () => {
   const navigate = useNavigate();
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const {
     filters,
     products,
@@ -18,6 +20,7 @@ const AdminHomeView = () => {
     isLoadingProducts,
     isLoadingCategories,
     isCreatingProduct,
+    updatingMaxPriceProductId,
     error,
     success,
     updateSearch,
@@ -25,6 +28,7 @@ const AdminHomeView = () => {
     refreshProducts,
     handleCreateFormChange,
     createProduct,
+    updateProductMaxPrice,
   } = useAdminDashboard();
 
   const handleLogout = () => {
@@ -84,14 +88,16 @@ const AdminHomeView = () => {
           </div>
         )}
 
-        <CreateProductForm
-          form={createForm}
-          categories={categories}
-          isLoadingCategories={isLoadingCategories}
-          isCreatingProduct={isCreatingProduct}
-          onChange={handleCreateFormChange}
-          onSubmit={createProduct}
-        />
+        {showCreateForm && (
+          <CreateProductForm
+            form={createForm}
+            categories={categories}
+            isLoadingCategories={isLoadingCategories}
+            isCreatingProduct={isCreatingProduct}
+            onChange={handleCreateFormChange}
+            onSubmit={createProduct}
+          />
+        )}
 
         <ProductTable
           products={products}
@@ -99,6 +105,10 @@ const AdminHomeView = () => {
           pageMeta={pageMeta}
           onPrev={() => goToPage(Math.max(pageMeta.page - 1, 0))}
           onNext={() => goToPage(pageMeta.page + 1)}
+          onNewProduct={() => setShowCreateForm(!showCreateForm)}
+          showCreateForm={showCreateForm}
+          updatingMaxPriceProductId={updatingMaxPriceProductId}
+          onUpdateMaxPrice={updateProductMaxPrice}
         />
       </div>
     </FullLayout>

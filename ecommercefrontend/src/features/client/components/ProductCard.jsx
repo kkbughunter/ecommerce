@@ -41,20 +41,22 @@ const ProductCard = ({ product }) => {
       className="group cursor-pointer overflow-hidden rounded-2xl border border-[#ececf5] bg-white shadow-[0_6px_25px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(15,23,42,0.12)]"
       onClick={openProductDetails}
     >
-      <div className="relative h-44 bg-[linear-gradient(145deg,#f8f9ff,#eef1ff)] p-4">
-        <span
-          className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${
-            isOutOfStock ? "bg-[#0f172a] text-white" : "bg-[#e11d48] text-white"
-          }`}
-        >
-          {isOutOfStock ? "Out of stock" : discountPercentage > 0 ? `${discountPercentage}% off` : "Hot"}
-        </span>
+      <div className="relative aspect-square bg-[linear-gradient(145deg,#f8f9ff,#eef1ff)] p-4">
+        {isOutOfStock ? (
+          <span className="absolute left-3 top-3 rounded-full bg-[#0f172a] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+            Out of stock
+          </span>
+        ) : discountPercentage > 0 ? (
+          <span className="absolute left-3 top-3 rounded-full bg-[#e11d48] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+            {discountPercentage}% off
+          </span>
+        ) : null}
         <button
           type="button"
           onClick={(event) => event.stopPropagation()}
           className="absolute right-3 top-3 h-7 rounded-full border border-[#dce1f5] bg-white px-2 text-[10px] font-medium text-[#4a5578]"
         >
-          Save
+          {discountPercentage > 0 ? `Save ${discountPercentage}%` : "Save"}
         </button>
         {shouldShowImage ? (
           <img

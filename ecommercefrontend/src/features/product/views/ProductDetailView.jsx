@@ -23,6 +23,7 @@ const ProductDetailView = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
@@ -34,13 +35,45 @@ const ProductDetailView = () => {
     mainImageUploadId: "",
   });
 
-  const imageUrl = useMemo(() => {
-    if (!product?.productId || !product?.mainImageUploadId) {
-      return null;
-    }
+  const buildImageFileUrl = useCallback((uploadId) => {
     const base = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
-    return `${base}/products/${product.productId}/images/${product.mainImageUploadId}/file`;
-  }, [product?.mainImageUploadId, product?.productId]);
+    return `${base}/products/${productId}/images/${uploadId}/file`;
+  }, [productId]);
+
+  const galleryImages = useMemo(() => {
+    if (!product?.productId) {
+      return [];
+    }
+
+    const images = Array.isArray(product?.images) ? product.images : [];
+    const existingIds = new Set(images.map((image) => image?.uploadId).filter(Boolean));
+
+    const normalized = images
+      .filter((image) => Boolean(image?.uploadId))
+      .map((image) => ({
+        uploadId: image.uploadId,
+        filename: image?.filename || "Product image",
+        url: buildImageFileUrl(image.uploadId),
+      }));
+
+    if (product?.mainImageUploadId && !existingIds.has(product.mainImageUploadId)) {
+      normalized.unshift({
+        uploadId: product.mainImageUploadId,
+        filename: product?.name || "Product image",
+        url: buildImageFileUrl(product.mainImageUploadId),
+      });
+    }
+
+    return normalized;
+  }, [buildImageFileUrl, product]);
+
+  useEffect(() => {
+    if (!galleryImages.length) {
+      setSelectedImageIndex(0);
+      return;
+    }
+    setSelectedImageIndex((prev) => Math.min(prev, galleryImages.length - 1));
+  }, [galleryImages]);
 
   const syncProductState = (data) => {
     setProduct(data);
@@ -154,10 +187,12 @@ const ProductDetailView = () => {
     }
   };
 
-  const buildImageFileUrl = (uploadId) => {
-    const base = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
-    return `${base}/products/${productId}/images/${uploadId}/file`;
-  };
+  const price = Number(product?.price || 0);
+  const maxPrice = Number(product?.maxPrice || product?.price || 0);
+  const savePercentage =
+    maxPrice > price && maxPrice > 0 ? Math.round(((maxPrice - price) / maxPrice) * 100) : 0;
+  const hasMultipleImages = galleryImages.length > 1;
+  const activeImage = galleryImages[selectedImageIndex] || null;
 
   return (
     <main className="min-h-screen bg-slate-50 px-2 py-4 md:px-3">
@@ -190,45 +225,99 @@ const ProductDetailView = () => {
           <p className="text-sm text-red-600">{error}</p>
         ) : product ? (
           <div className="grid gap-6 lg:grid-cols-2">
-            <article className="space-y-4">
-              <div className="h-72 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt={product.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-slate-500">
-                    No main image
+            <article>
+              <div className="space-y-2">
+                <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                  {activeImage ? (
+                    <img
+                      src={activeImage.url}
+                      alt={activeImage.filename || product.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                      No main image
+                    </div>
+                  )}
+
+                  {hasMultipleImages && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedImageIndex((prev) =>
+                            prev === 0 ? galleryImages.length - 1 : prev - 1,
+                          )
+                        }
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/55 px-2 py-1 text-xs font-semibold text-white"
+                      >
+                        Prev
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedImageIndex((prev) =>
+                            prev === galleryImages.length - 1 ? 0 : prev + 1,
+                          )
+                        }
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/55 px-2 py-1 text-xs font-semibold text-white"
+                      >
+                        Next
+                      </button>
+                      <p className="absolute bottom-2 right-2 rounded bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">
+                        {selectedImageIndex + 1}/{galleryImages.length}
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {hasMultipleImages && (
+                  <div className="grid grid-cols-5 gap-2">
+                    {galleryImages.map((image, index) => (
+                      <button
+                        key={image.uploadId}
+                        type="button"
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`overflow-hidden rounded-lg border ${
+                          index === selectedImageIndex
+                            ? "border-blue-500 ring-2 ring-blue-100"
+                            : "border-slate-200"
+                        }`}
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.filename || `Product image ${index + 1}`}
+                          className="aspect-square w-full object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                    ))}
                   </div>
                 )}
-              </div>
+              </div>            </article>
 
-              <div className="space-y-1">
+            <div className="space-y-4">
+              <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <h1 className="text-2xl font-semibold text-slate-900">{product.name}</h1>
-                <p className="text-sm text-slate-600">{product.description || "-"}</p>
-                <p className="text-sm text-slate-600">
+                <p className="mt-1 text-sm text-slate-600">{product.description || "-"}</p>
+                <p className="mt-2 text-sm text-slate-600">
                   Category: <span className="font-medium">{product.categoryName || "-"}</span>
                 </p>
-                <p className="text-lg font-bold text-slate-900">{formatMoney(product.price)}</p>
-                {Number(product?.maxPrice || 0) > Number(product?.price || 0) && (
-                  <p className="text-sm text-slate-500">
-                    <span className="line-through">{formatMoney(product.maxPrice)}</span>
-                    {" • "}
-                    {Math.round(
-                      ((Number(product.maxPrice) - Number(product.price)) / Number(product.maxPrice)) * 100,
-                    )}
-                    % off
-                  </p>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <p className="text-lg font-bold text-slate-900">{formatMoney(price)}</p>
+                  {maxPrice > price && (
+                    <p className="text-sm text-slate-500 line-through">{formatMoney(maxPrice)}</p>
+                  )}
+                </div>
+                {maxPrice > price && (
+                  <p className="mt-1 text-sm font-semibold text-emerald-600">Save {savePercentage}%</p>
                 )}
-                <p className="text-sm text-slate-600">
-                  GST {product.gstPercentage}% • Stock {product.stockQuantity}
+                <p className="mt-1 text-sm text-slate-600">
+                  GST {product.gstPercentage}% &bull; Stock {product.stockQuantity}
                 </p>
-              </div>
-            </article>
+              </article>
 
-            {isAdmin ? (
+              {isAdmin ? (
               <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <h2 className="text-base font-semibold text-slate-900">Update Product</h2>
                 <form className="mt-4 grid gap-3" onSubmit={handleUpdate}>
@@ -404,7 +493,7 @@ const ProductDetailView = () => {
                         <img
                           src={buildImageFileUrl(image.uploadId)}
                           alt={image.filename || "Product image"}
-                          className="h-24 w-full rounded object-cover"
+                          className="aspect-square w-full rounded object-cover"
                           loading="lazy"
                         />
                         <p className="mt-1 truncate text-xs text-slate-600">{image.uploadId}</p>
@@ -428,11 +517,17 @@ const ProductDetailView = () => {
                 <p className="text-sm text-slate-600">
                   Main Image Upload ID: {product.mainImageUploadId || "-"}
                 </p>
-                <p className="text-sm text-slate-600">
-                  Max Price: {formatMoney(product.maxPrice || product.price)}
-                </p>
+                <div className="flex items-baseline gap-2 text-sm text-slate-600">
+                  <span>{savePercentage > 0 ? `Save ${savePercentage}%:` : "Save Price:"}</span>
+                  {maxPrice > price ? (
+                    <span className="line-through">{formatMoney(maxPrice)}</span>
+                  ) : (
+                    <span>{formatMoney(price)}</span>
+                  )}
+                </div>
               </article>
             )}
+            </div>
           </div>
         ) : (
           <p className="text-sm text-slate-500">Product not found.</p>
@@ -443,3 +538,4 @@ const ProductDetailView = () => {
 };
 
 export default ProductDetailView;
+

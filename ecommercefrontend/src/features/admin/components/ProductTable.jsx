@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ENV from "../../../core/config/env";
 
@@ -14,9 +15,25 @@ const ProductTable = ({
   pageMeta,
   onPrev,
   onNext,
+  onNewProduct = () => {},
+  showCreateForm = false,
+  updatingMaxPriceProductId = null,
+  onUpdateMaxPrice = () => {},
 }) => {
   const navigate = useNavigate();
   const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
+  const [maxPriceDrafts, setMaxPriceDrafts] = useState({});
+
+  useEffect(() => {
+    const nextDrafts = {};
+    products.forEach((product) => {
+      if (product?.productId) {
+        const effectiveMaxPrice = product?.maxPrice ?? product?.price ?? "";
+        nextDrafts[product.productId] = String(effectiveMaxPrice);
+      }
+    });
+    setMaxPriceDrafts(nextDrafts);
+  }, [products]);
 
   const openProductDetails = (productId) => {
     navigate(`/products/${productId}`);
@@ -33,9 +50,18 @@ const ProductTable = ({
     <article className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold text-slate-900">Product List</h2>
-        <p className="text-sm text-slate-600">
-          Page {pageMeta.page + 1} of {Math.max(pageMeta.totalPages, 1)} | Total {pageMeta.totalElements}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-slate-600">
+            Page {pageMeta.page + 1} of {Math.max(pageMeta.totalPages, 1)} | Total {pageMeta.totalElements}
+          </p>
+          <button
+            type="button"
+            onClick={onNewProduct}
+            className="h-9 rounded-lg bg-violet-600 px-3 text-sm font-semibold text-white hover:bg-violet-700"
+          >
+            {showCreateForm ? "− Close" : "+ New"}
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -48,13 +74,14 @@ const ProductTable = ({
               <th className="py-2 pr-3">Price</th>
               <th className="py-2 pr-3">Stock</th>
               <th className="py-2 pr-3">Status</th>
+              <th className="py-2 pr-3">Update Max Price</th>
               <th className="py-2 pr-3">Action</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={8} className="py-6 text-center text-sm text-slate-500">
                   Loading products...
                 </td>
               </tr>
@@ -70,11 +97,11 @@ const ProductTable = ({
                       <img
                         src={buildImageUrl(product)}
                         alt={product?.name || "Product"}
-                        className="h-12 w-12 rounded-md border border-slate-200 object-cover"
+                        className="aspect-square h-12 w-12 rounded-md border border-slate-200 object-cover"
                         loading="lazy"
                       />
                     ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-md border border-dashed border-slate-300 text-[10px] text-slate-400">
+                      <div className="flex aspect-square h-12 w-12 items-center justify-center rounded-md border border-dashed border-slate-300 text-[10px] text-slate-400">
                         N/A
                       </div>
                     )}
@@ -110,6 +137,35 @@ const ProductTable = ({
                     </span>
                   </td>
                   <td className="py-3 pr-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={maxPriceDrafts[product.productId] ?? ""}
+                        onClick={(event) => event.stopPropagation()}
+                        onChange={(event) =>
+                          setMaxPriceDrafts((prev) => ({
+                            ...prev,
+                            [product.productId]: event.target.value,
+                          }))
+                        }
+                        className="h-8 w-24 rounded-md border border-slate-300 px-2 text-xs text-slate-700 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-100"
+                      />
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onUpdateMaxPrice(product, maxPriceDrafts[product.productId]);
+                        }}
+                        disabled={updatingMaxPriceProductId === product.productId}
+                        className="h-8 rounded-md border border-violet-300 px-2 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingMaxPriceProductId === product.productId ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </td>
+                  <td className="py-3 pr-3">
                     <button
                       type="button"
                       onClick={(event) => {
@@ -125,7 +181,7 @@ const ProductTable = ({
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={8} className="py-6 text-center text-sm text-slate-500">
                   No products found for current search.
                 </td>
               </tr>

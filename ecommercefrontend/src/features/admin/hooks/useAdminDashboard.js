@@ -37,6 +37,7 @@ const useAdminDashboard = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
+  const [updatingMaxPriceProductId, setUpdatingMaxPriceProductId] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -175,6 +176,66 @@ const useAdminDashboard = () => {
     }
   };
 
+  const updateProductMaxPrice = async (product, nextMaxPriceRaw) => {
+    if (!product?.productId) {
+      return;
+    }
+
+    const parsedMaxPrice = Number(nextMaxPriceRaw);
+    const parsedPrice = Number(product?.price);
+    const parsedGstPercentage = Number(product?.gstPercentage);
+    const parsedStockQuantity = Number(product?.stockQuantity);
+    if (!Number.isFinite(parsedMaxPrice) || parsedMaxPrice < 0) {
+      setError("Max price must be a non-negative number.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isFinite(parsedPrice)) {
+      setError("Current product price is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (parsedMaxPrice < parsedPrice) {
+      setError("Max price must be greater than or equal to price.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isFinite(parsedGstPercentage) || parsedGstPercentage < 0 || parsedGstPercentage > 100) {
+      setError("Current GST % is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isInteger(parsedStockQuantity) || parsedStockQuantity < 0) {
+      setError("Current stock quantity is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setUpdatingMaxPriceProductId(product.productId);
+
+    try {
+      const payload = {
+        name: product?.name?.trim() || "",
+        description: product?.description?.trim() || null,
+        price: parsedPrice,
+        maxPrice: parsedMaxPrice,
+        gstPercentage: parsedGstPercentage,
+        stockQuantity: parsedStockQuantity,
+        mainImageUploadId: product?.mainImageUploadId?.trim() || null,
+        categoryId: product?.categoryId ? Number(product.categoryId) : null,
+      };
+      await productApi.updateProduct(product.productId, payload);
+      setSuccess(`Max price updated for "${product.name}".`);
+      refreshProducts();
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to update max price."));
+    } finally {
+      setUpdatingMaxPriceProductId(null);
+    }
+  };
+
   return {
     filters,
     products,
@@ -185,6 +246,7 @@ const useAdminDashboard = () => {
     isLoadingProducts,
     isLoadingCategories,
     isCreatingProduct,
+    updatingMaxPriceProductId,
     error,
     success,
     updateSearch,
@@ -192,6 +254,7 @@ const useAdminDashboard = () => {
     refreshProducts,
     handleCreateFormChange,
     createProduct,
+    updateProductMaxPrice,
   };
 };
 
