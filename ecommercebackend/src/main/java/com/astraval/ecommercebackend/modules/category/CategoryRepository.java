@@ -21,7 +21,7 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
                       and p.isActive = true
                   )
               and (
-                    :q is null
+                    coalesce(:q, '') = ''
                     or lower(c.categoryName) like lower(concat('%', :q, '%'))
                     or exists (
                         select 1 from Product p
@@ -39,7 +39,7 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
     @Query("""
             select c from Category c
             where (
-                    :q is null
+                    coalesce(:q, '') = ''
                     or lower(c.categoryName) like lower(concat('%', :q, '%'))
                     or exists (
                         select 1 from Product p

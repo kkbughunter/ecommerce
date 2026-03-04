@@ -19,7 +19,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             select p from Product p
             where p.isActive = true
               and (
-                    :q is null
+                    coalesce(:q, '') = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
@@ -34,7 +34,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             select p from Product p
             where p.category.categoryId = :categoryId
               and (
-                    :q is null
+                    coalesce(:q, '') = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
@@ -50,7 +50,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             where p.isActive = true
               and p.category.categoryId = :categoryId
               and (
-                    :q is null
+                    coalesce(:q, '') = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
@@ -61,7 +61,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("""
             select p from Product p
             where (
-                    :q is null
+                    coalesce(:q, '') = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
