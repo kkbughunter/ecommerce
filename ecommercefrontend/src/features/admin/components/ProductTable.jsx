@@ -84,7 +84,19 @@ const ProductTable = ({
                     <p className="text-xs text-slate-500">ID #{product.productId}</p>
                   </td>
                   <td className="py-3 pr-3">{product.categoryName || "-"}</td>
-                  <td className="py-3 pr-3">{formatMoney(product.price)}</td>
+                  <td className="py-3 pr-3">
+                    <p className="font-medium text-slate-900">{formatMoney(product.price)}</p>
+                    {Number(product?.maxPrice || 0) > Number(product?.price || 0) && (
+                      <p className="text-xs text-slate-500">
+                        <span className="line-through">{formatMoney(product.maxPrice)}</span>
+                        {" • "}
+                        {Math.round(
+                          ((Number(product.maxPrice) - Number(product.price)) / Number(product.maxPrice)) * 100,
+                        )}
+                        % off
+                      </p>
+                    )}
+                  </td>
                   <td className="py-3 pr-3">{product.stockQuantity}</td>
                   <td className="py-3 pr-3">
                     <span

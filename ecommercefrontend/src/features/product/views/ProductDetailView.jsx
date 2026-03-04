@@ -27,6 +27,7 @@ const ProductDetailView = () => {
     name: "",
     description: "",
     price: "",
+    maxPrice: "",
     gstPercentage: "",
     stockQuantity: "",
     categoryId: "",
@@ -47,6 +48,7 @@ const ProductDetailView = () => {
       name: data?.name || "",
       description: data?.description || "",
       price: data?.price ?? "",
+      maxPrice: data?.maxPrice ?? data?.price ?? "",
       gstPercentage: data?.gstPercentage ?? "",
       stockQuantity: data?.stockQuantity ?? "",
       categoryId: data?.categoryId ?? "",
@@ -104,6 +106,7 @@ const ProductDetailView = () => {
         name: editForm.name.trim(),
         description: editForm.description.trim() || null,
         price: Number(editForm.price),
+        maxPrice: editForm.maxPrice ? Number(editForm.maxPrice) : Number(editForm.price),
         gstPercentage: Number(editForm.gstPercentage),
         stockQuantity: Number(editForm.stockQuantity),
         categoryId: editForm.categoryId ? Number(editForm.categoryId) : null,
@@ -209,6 +212,16 @@ const ProductDetailView = () => {
                   Category: <span className="font-medium">{product.categoryName || "-"}</span>
                 </p>
                 <p className="text-lg font-bold text-slate-900">{formatMoney(product.price)}</p>
+                {Number(product?.maxPrice || 0) > Number(product?.price || 0) && (
+                  <p className="text-sm text-slate-500">
+                    <span className="line-through">{formatMoney(product.maxPrice)}</span>
+                    {" • "}
+                    {Math.round(
+                      ((Number(product.maxPrice) - Number(product.price)) / Number(product.maxPrice)) * 100,
+                    )}
+                    % off
+                  </p>
+                )}
                 <p className="text-sm text-slate-600">
                   GST {product.gstPercentage}% • Stock {product.stockQuantity}
                 </p>
@@ -219,77 +232,127 @@ const ProductDetailView = () => {
               <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <h2 className="text-base font-semibold text-slate-900">Update Product</h2>
                 <form className="mt-4 grid gap-3" onSubmit={handleUpdate}>
-                  <input
-                    type="text"
-                    name="name"
-                    value={editForm.name}
-                    onChange={handleEditChange}
-                    className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
-                    placeholder="Name"
-                    required
-                  />
-                  <textarea
-                    name="description"
-                    value={editForm.description}
-                    onChange={handleEditChange}
-                    rows={3}
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    placeholder="Description"
-                  />
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                      Product Name
+                    </span>
+                    <input
+                      type="text"
+                      name="name"
+                      value={editForm.name}
+                      onChange={handleEditChange}
+                      className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                      placeholder="Enter product name"
+                      required
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                      Description
+                    </span>
+                    <textarea
+                      name="description"
+                      value={editForm.description}
+                      onChange={handleEditChange}
+                      rows={3}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      placeholder="Enter product description"
+                    />
+                  </label>
                   <div className="grid gap-3 md:grid-cols-2">
-                    <input
-                      type="number"
-                      name="price"
-                      value={editForm.price}
-                      onChange={handleEditChange}
-                      min="0"
-                      step="0.01"
-                      className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
-                      placeholder="Price"
-                      required
-                    />
-                    <input
-                      type="number"
-                      name="gstPercentage"
-                      value={editForm.gstPercentage}
-                      onChange={handleEditChange}
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
-                      placeholder="GST %"
-                      required
-                    />
-                    <input
-                      type="number"
-                      name="stockQuantity"
-                      value={editForm.stockQuantity}
-                      onChange={handleEditChange}
-                      min="0"
-                      step="1"
-                      className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
-                      placeholder="Stock"
-                      required
-                    />
-                    <input
-                      type="number"
-                      name="categoryId"
-                      value={editForm.categoryId}
-                      onChange={handleEditChange}
-                      min="1"
-                      step="1"
-                      className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
-                      placeholder="Category ID"
-                    />
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                        Price
+                      </span>
+                      <input
+                        type="number"
+                        name="price"
+                        value={editForm.price}
+                        onChange={handleEditChange}
+                        min="0"
+                        step="0.01"
+                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                        placeholder="0.00"
+                        required
+                      />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                        Max Price
+                      </span>
+                      <input
+                        type="number"
+                        name="maxPrice"
+                        value={editForm.maxPrice}
+                        onChange={handleEditChange}
+                        min="0"
+                        step="0.01"
+                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                        placeholder="0.00"
+                      />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                        GST %
+                      </span>
+                      <input
+                        type="number"
+                        name="gstPercentage"
+                        value={editForm.gstPercentage}
+                        onChange={handleEditChange}
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                        placeholder="0.00"
+                        required
+                      />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                        Stock Quantity
+                      </span>
+                      <input
+                        type="number"
+                        name="stockQuantity"
+                        value={editForm.stockQuantity}
+                        onChange={handleEditChange}
+                        min="0"
+                        step="1"
+                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                        placeholder="0"
+                        required
+                      />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                        Category ID
+                      </span>
+                      <input
+                        type="number"
+                        name="categoryId"
+                        value={editForm.categoryId}
+                        onChange={handleEditChange}
+                        min="1"
+                        step="1"
+                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                        placeholder="Category ID"
+                      />
+                    </label>
                   </div>
-                  <input
-                    type="text"
-                    name="mainImageUploadId"
-                    value={editForm.mainImageUploadId}
-                    onChange={handleEditChange}
-                    className="h-10 rounded-lg border border-slate-300 px-3 text-sm"
-                    placeholder="Main Image Upload ID"
-                  />
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                      Main Image Upload ID
+                    </span>
+                    <input
+                      type="text"
+                      name="mainImageUploadId"
+                      value={editForm.mainImageUploadId}
+                      onChange={handleEditChange}
+                      className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                      placeholder="Paste upload id from product image upload"
+                    />
+                  </label>
                   {success && <p className="text-sm text-emerald-600">{success}</p>}
                   {error && <p className="text-sm text-red-600">{error}</p>}
                   <button
@@ -364,6 +427,9 @@ const ProductDetailView = () => {
                 </p>
                 <p className="text-sm text-slate-600">
                   Main Image Upload ID: {product.mainImageUploadId || "-"}
+                </p>
+                <p className="text-sm text-slate-600">
+                  Max Price: {formatMoney(product.maxPrice || product.price)}
                 </p>
               </article>
             )}

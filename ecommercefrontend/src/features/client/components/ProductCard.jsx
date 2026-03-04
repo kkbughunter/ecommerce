@@ -12,7 +12,12 @@ const formatMoney = (value) =>
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
-  const originalPrice = Number(product?.price || 0) * 1.2;
+  const price = Number(product?.price || 0);
+  const maxPrice = Number(product?.maxPrice || product?.price || 0);
+  const discountPercentage =
+    maxPrice > price && maxPrice > 0
+      ? Math.round(((maxPrice - price) / maxPrice) * 100)
+      : 0;
   const isOutOfStock = Number(product?.stockQuantity || 0) <= 0;
   const imageUrl = useMemo(() => {
     if (!product?.productId || !product?.mainImageUploadId) {
@@ -42,7 +47,7 @@ const ProductCard = ({ product }) => {
             isOutOfStock ? "bg-[#0f172a] text-white" : "bg-[#e11d48] text-white"
           }`}
         >
-          {isOutOfStock ? "Out of stock" : "Hot"}
+          {isOutOfStock ? "Out of stock" : discountPercentage > 0 ? `${discountPercentage}% off` : "Hot"}
         </span>
         <button
           type="button"
@@ -79,11 +84,13 @@ const ProductCard = ({ product }) => {
 
         <div className="flex items-center gap-2">
           <span className="text-[14px] font-bold text-[#0f172a]">
-            {formatMoney(product?.price)}
+            {formatMoney(price)}
           </span>
-          <span className="text-[12px] text-[#94a3b8] line-through">
-            {formatMoney(originalPrice)}
-          </span>
+          {maxPrice > price && (
+            <span className="text-[12px] text-[#94a3b8] line-through">
+              {formatMoney(maxPrice)}
+            </span>
+          )}
         </div>
 
         <button

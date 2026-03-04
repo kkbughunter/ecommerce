@@ -114,6 +114,22 @@ const CreateProductForm = ({
 
         <label className="space-y-1">
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-700">
+            Max Price
+          </span>
+          <input
+            type="number"
+            name="maxPrice"
+            value={form.maxPrice}
+            onChange={onChange}
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            className="h-10 w-full rounded-lg border border-violet-100 bg-white px-3 text-sm text-slate-700 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+          />
+        </label>
+
+        <label className="space-y-1">
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-700">
             Category
           </span>
           <select
