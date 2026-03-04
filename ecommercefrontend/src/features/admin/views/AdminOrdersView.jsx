@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import orderApi from "../../../core/api/orderApi";
 import paymentApi from "../../../core/api/paymentApi";
+import OrderTrackingTimeline from "../../../core/components/OrderTrackingTimeline";
 import getApiErrorMessage from "../../../core/utils/apiError";
 import AdminConsoleLayout from "../components/AdminConsoleLayout";
 import AdminRightPanel from "../components/AdminRightPanel";
@@ -500,6 +501,12 @@ const AdminOrdersView = () => {
                 </span>
               </div>
             </section>
+
+            <OrderTrackingTimeline
+              currentStatus={selectedOrder?.status || selectedOrderSummary?.status}
+              trackingEvents={selectedOrder?.tracking || []}
+              trackingId={selectedOrder?.orderNumber || selectedOrderSummary?.orderNumber || ""}
+            />
 
             <section className="grid gap-3">
               <label className="space-y-1">
