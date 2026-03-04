@@ -1,3 +1,6 @@
+import { useMemo, useState } from "react";
+import ENV from "../../../core/config/env";
+
 const formatMoney = (value) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -6,8 +9,18 @@ const formatMoney = (value) =>
   }).format(Number(value || 0));
 
 const ProductCard = ({ product }) => {
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const originalPrice = Number(product?.price || 0) * 1.2;
   const isOutOfStock = Number(product?.stockQuantity || 0) <= 0;
+  const imageUrl = useMemo(() => {
+    if (!product?.productId || !product?.mainImageUploadId) {
+      return null;
+    }
+    const base = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
+    return `${base}/products/${product.productId}/images/${product.mainImageUploadId}/file`;
+  }, [product?.mainImageUploadId, product?.productId]);
+
+  const shouldShowImage = Boolean(imageUrl) && !imageLoadFailed;
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-[#ececf5] bg-white shadow-[0_6px_25px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
@@ -25,9 +38,19 @@ const ProductCard = ({ product }) => {
         >
           Save
         </button>
-        <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-[#cfd6f7] bg-white/70 text-[11px] font-medium text-[#64748b] backdrop-blur">
-          Product image placeholder
-        </div>
+        {shouldShowImage ? (
+          <img
+            src={imageUrl}
+            alt={product?.name || "Product image"}
+            onError={() => setImageLoadFailed(true)}
+            className="h-full w-full rounded-xl object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-[#cfd6f7] bg-white/70 text-[11px] font-medium text-[#64748b] backdrop-blur">
+            Product image placeholder
+          </div>
+        )}
       </div>
 
       <div className="space-y-2 p-4">

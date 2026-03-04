@@ -13,6 +13,7 @@ public record ProductDetailResponse(
         BigDecimal price,
         BigDecimal gstPercentage,
         Integer stockQuantity,
+        String mainImageUploadId,
         Boolean isActive,
         Integer categoryId,
         String categoryName,

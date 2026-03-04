@@ -95,6 +95,23 @@ const CreateProductForm = ({
           />
         </label>
 
+        <label className="space-y-1 md:col-span-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-700">
+            Main Image Upload ID
+          </span>
+          <input
+            type="text"
+            name="mainImageUploadId"
+            value={form.mainImageUploadId}
+            onChange={onChange}
+            placeholder="Paste upload id from product image upload"
+            className="h-10 w-full rounded-lg border border-violet-100 bg-white px-3 text-sm text-slate-700 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+          />
+          <p className="text-xs text-slate-500">
+            This must be an active image upload id for this same product.
+          </p>
+        </label>
+
         <label className="space-y-1">
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-700">
             Category

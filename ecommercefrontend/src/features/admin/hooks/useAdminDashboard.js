@@ -15,6 +15,7 @@ const initialCreateForm = {
   price: "",
   gstPercentage: "",
   stockQuantity: "",
+  mainImageUploadId: "",
   categoryId: "",
   isActive: true,
 };
@@ -152,6 +153,7 @@ const useAdminDashboard = () => {
         price: Number(createForm.price),
         gstPercentage: Number(createForm.gstPercentage),
         stockQuantity: Number(createForm.stockQuantity),
+        mainImageUploadId: createForm.mainImageUploadId.trim() || null,
         categoryId: createForm.categoryId ? Number(createForm.categoryId) : null,
         isActive: Boolean(createForm.isActive),
       };

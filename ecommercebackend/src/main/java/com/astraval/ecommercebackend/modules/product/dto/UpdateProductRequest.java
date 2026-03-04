@@ -15,5 +15,6 @@ public record UpdateProductRequest(
         @NotNull(message = "Price is required") @DecimalMin(value = "0.00", message = "Price must be non-negative") BigDecimal price,
         @NotNull(message = "GST percentage is required") @DecimalMin(value = "0.00", message = "GST percentage must be non-negative") @DecimalMax(value = "100.00", message = "GST percentage cannot exceed 100") BigDecimal gstPercentage,
         @NotNull(message = "Stock quantity is required") @PositiveOrZero(message = "Stock quantity must be non-negative") Integer stockQuantity,
+        @Size(max = 36, message = "Main image upload id must be at most 36 characters") String mainImageUploadId,
         Integer categoryId) {
 }
