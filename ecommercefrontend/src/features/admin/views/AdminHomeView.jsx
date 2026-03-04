@@ -1,10 +1,31 @@
 import { useNavigate } from "react-router-dom";
-import { clearAuthSession, getAuthMeta } from "../../../core/auth/session";
+import { clearAuthSession } from "../../../core/auth/session";
 import FullLayout from "../../../layouts/FullLayout";
+import AdminStatCard from "../components/AdminStatCard";
+import CreateProductForm from "../components/CreateProductForm";
+import ProductTable from "../components/ProductTable";
+import useAdminDashboard from "../hooks/useAdminDashboard";
 
 const AdminHomeView = () => {
   const navigate = useNavigate();
-  const authMeta = getAuthMeta();
+  const {
+    filters,
+    products,
+    categories,
+    pageMeta,
+    createForm,
+    dashboardStats,
+    isLoadingProducts,
+    isLoadingCategories,
+    isCreatingProduct,
+    error,
+    success,
+    updateSearch,
+    goToPage,
+    refreshProducts,
+    handleCreateFormChange,
+    createProduct,
+  } = useAdminDashboard();
 
   const handleLogout = () => {
     clearAuthSession();
@@ -13,33 +34,72 @@ const AdminHomeView = () => {
 
   return (
     <FullLayout
-      title="Welcome, Admin"
-      subtitle="Login routing is complete for admin role. Next step is product and order management UI."
+      title="Admin Dashboard"
+      subtitle="Manage products and inventory from one place."
       onLogout={handleLogout}
     >
-      <div className="grid gap-4 md:grid-cols-2">
-        <article className="rounded-xl border border-violet-100 bg-violet-50/50 p-4">
-          <h2 className="text-sm font-semibold text-violet-800">Session</h2>
-          <p className="mt-2 text-sm text-slate-700">
-            <span className="font-semibold">Email:</span> {authMeta.email || "-"}
-          </p>
-          <p className="mt-1 text-sm text-slate-700">
-            <span className="font-semibold">User ID:</span> {authMeta.userId || "-"}
-          </p>
-          <p className="mt-1 text-sm text-slate-700">
-            <span className="font-semibold">Role:</span>{" "}
-            {(authMeta.roles || []).join(", ") || "-"}
-          </p>
-        </article>
+      <div className="space-y-5">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <AdminStatCard label="Total Products" value={dashboardStats.totalProducts} tone="violet" />
+          <AdminStatCard label="Active" value={dashboardStats.activeCount} tone="blue" />
+          <AdminStatCard label="Inactive" value={dashboardStats.inactiveCount} tone="slate" />
+          <AdminStatCard label="Low Stock" value={dashboardStats.lowStock} tone="amber" />
+          <AdminStatCard label="Out Of Stock" value={dashboardStats.outOfStock} tone="rose" />
+        </section>
 
-        <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <h2 className="text-sm font-semibold text-slate-800">Upcoming Modules</h2>
-          <ul className="mt-2 space-y-1 text-sm text-slate-600">
-            <li>Product CRUD and inventory management</li>
-            <li>Order listing and status updates</li>
-            <li>Order payment tracking overview</li>
-          </ul>
-        </article>
+        <section className="flex flex-wrap items-end justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-slate-900">Product Search</p>
+            <p className="text-xs text-slate-500">
+              Search by product or category name.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={filters.q}
+              onChange={(event) => updateSearch(event.target.value)}
+              placeholder="Search products..."
+              className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+            />
+            <button
+              type="button"
+              onClick={refreshProducts}
+              className="h-10 rounded-lg border border-violet-200 bg-white px-3 text-sm font-semibold text-violet-700 hover:bg-violet-50"
+            >
+              Refresh
+            </button>
+          </div>
+        </section>
+
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            {success}
+          </div>
+        )}
+
+        <CreateProductForm
+          form={createForm}
+          categories={categories}
+          isLoadingCategories={isLoadingCategories}
+          isCreatingProduct={isCreatingProduct}
+          onChange={handleCreateFormChange}
+          onSubmit={createProduct}
+        />
+
+        <ProductTable
+          products={products}
+          isLoading={isLoadingProducts}
+          pageMeta={pageMeta}
+          onPrev={() => goToPage(Math.max(pageMeta.page - 1, 0))}
+          onNext={() => goToPage(pageMeta.page + 1)}
+        />
       </div>
     </FullLayout>
   );

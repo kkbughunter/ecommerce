@@ -1,0 +1,65 @@
+const formatMoney = (value) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(Number(value || 0));
+
+const ProductCard = ({ product }) => {
+  const originalPrice = Number(product?.price || 0) * 1.2;
+  const isOutOfStock = Number(product?.stockQuantity || 0) <= 0;
+
+  return (
+    <article className="group overflow-hidden rounded-2xl border border-[#ececf5] bg-white shadow-[0_6px_25px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
+      <div className="relative h-44 bg-[linear-gradient(145deg,#f8f9ff,#eef1ff)] p-4">
+        <span
+          className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+            isOutOfStock ? "bg-[#0f172a] text-white" : "bg-[#e11d48] text-white"
+          }`}
+        >
+          {isOutOfStock ? "Out of stock" : "Hot"}
+        </span>
+        <button
+          type="button"
+          className="absolute right-3 top-3 h-7 rounded-full border border-[#dce1f5] bg-white px-2 text-[10px] font-medium text-[#4a5578]"
+        >
+          Save
+        </button>
+        <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-[#cfd6f7] bg-white/70 text-[11px] font-medium text-[#64748b] backdrop-blur">
+          Product image placeholder
+        </div>
+      </div>
+
+      <div className="space-y-2 p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#7c3aed]">
+          {product?.categoryName || "Category"}
+        </p>
+        <h3 className="line-clamp-1 text-[15px] font-semibold text-[#0f172a]">
+          {product?.name || "Product"}
+        </h3>
+        <p className="line-clamp-1 text-[12px] text-[#64748b]">
+          GST {product?.gstPercentage}% • Stock {product?.stockQuantity}
+        </p>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[14px] font-bold text-[#0f172a]">
+            {formatMoney(product?.price)}
+          </span>
+          <span className="text-[12px] text-[#94a3b8] line-through">
+            {formatMoney(originalPrice)}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          disabled={isOutOfStock}
+          className="mt-1 h-10 w-full rounded-xl bg-[linear-gradient(90deg,#2563eb,#7c3aed)] text-[12px] font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#cbd5e1]"
+        >
+          {isOutOfStock ? "Unavailable" : "Add To Cart"}
+        </button>
+      </div>
+    </article>
+  );
+};
+
+export default ProductCard;
