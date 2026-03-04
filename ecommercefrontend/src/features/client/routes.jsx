@@ -2,6 +2,7 @@ import ProtectedRoute from "../../core/auth/ProtectedRoute";
 import ClientHomeView from "./views/ClientHomeView";
 import ClientCartView from "./views/ClientCartView";
 import ClientAccountView from "./views/ClientAccountView";
+import ClientOrdersView from "./views/ClientOrdersView";
 
 const clientRoutes = [
   {
@@ -25,6 +26,14 @@ const clientRoutes = [
     element: (
       <ProtectedRoute allowedRoles={["USER"]}>
         <ClientAccountView />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/client/orders",
+    element: (
+      <ProtectedRoute allowedRoles={["USER"]}>
+        <ClientOrdersView />
       </ProtectedRoute>
     ),
   },

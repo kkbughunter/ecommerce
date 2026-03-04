@@ -1,6 +1,7 @@
 import ProtectedRoute from "../../core/auth/ProtectedRoute";
 import AdminCreateProductView from "./views/AdminCreateProductView";
 import AdminHomeView from "./views/AdminHomeView";
+import AdminOrdersView from "./views/AdminOrdersView";
 
 const adminRoutes = [
   {
@@ -16,6 +17,14 @@ const adminRoutes = [
     element: (
       <ProtectedRoute allowedRoles={["ADMIN"]}>
         <AdminCreateProductView />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/orders",
+    element: (
+      <ProtectedRoute allowedRoles={["ADMIN"]}>
+        <AdminOrdersView />
       </ProtectedRoute>
     ),
   },

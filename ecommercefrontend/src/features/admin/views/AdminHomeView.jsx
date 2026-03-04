@@ -52,6 +52,13 @@ const AdminHomeView = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/admin/orders")}
+              className="h-10 rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+            >
+              Manage Orders
+            </button>
             <input
               type="text"
               value={filters.q}

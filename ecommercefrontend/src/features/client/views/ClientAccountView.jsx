@@ -244,6 +244,13 @@ const ClientAccountView = () => {
             </button>
             <button
               type="button"
+              onClick={() => navigate("/client/orders")}
+              className="h-10 rounded-xl border border-[#d8deef] bg-white px-4 text-[12px] font-semibold text-[#334155]"
+            >
+              Orders
+            </button>
+            <button
+              type="button"
               onClick={handleLogout}
               className="h-10 rounded-xl border border-[#e2e8f0] bg-white px-4 text-[12px] font-semibold text-[#334155]"
             >

@@ -18,6 +18,13 @@ const ENDPOINTS = {
     IMAGES: "/products",
     ADMIN_CATEGORIES_WITH_PRODUCTS: "/admin/categories/products",
   },
+  ORDERS: {
+    ROOT: "/orders",
+    DETAILS: "/orders",
+    TRACKING: "/orders",
+    ADMIN_LIST: "/admin/orders",
+    ADMIN_UPDATE_STATUS: "/admin/orders",
+  },
   CART: {
     ROOT: "/cart",
     ITEMS: "/cart/items",
