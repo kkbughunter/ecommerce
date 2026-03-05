@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getHomePathByRole, isAuthenticated } from "../../../core/auth/session";
 import homeSliderApi from "../../../core/api/homeSliderApi";
 import ENV from "../../../core/config/env";
 import getApiErrorMessage from "../../../core/utils/apiError";
@@ -98,8 +99,10 @@ const withBannerBackground = (imageUrl, fallbackBackground) => {
   };
 };
 
-const ClientHomeView = () => {
+const ClientHomeView = ({ publicMode = false }) => {
   const navigate = useNavigate();
+  const authenticated = isAuthenticated();
+  const roleHomePath = getHomePathByRole();
   const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
   const {
     filters,
@@ -122,7 +125,7 @@ const ClientHomeView = () => {
     error: cartError,
     success: cartSuccess,
     addToCart,
-  } = useCart();
+  } = useCart({ enabled: !publicMode });
 
   const [homeSliders, setHomeSliders] = useState([]);
   const [isLoadingSliders, setIsLoadingSliders] = useState(false);
@@ -187,10 +190,29 @@ const ClientHomeView = () => {
   const limitedOffer = limitedOfferSlider.active || LIMITED_OFFER_FALLBACK;
   const categoryHighlight = categoryHighlightSlider.active || CATEGORY_HIGHLIGHT_FALLBACK;
 
+  const handleAddToCart = useCallback(
+    (productId) => {
+      if (publicMode && !authenticated) {
+        navigate("/login");
+        return;
+      }
+      addToCart(productId);
+    },
+    [addToCart, authenticated, navigate, publicMode],
+  );
+
+  const resolvePrimaryEntryPath = () => {
+    if (authenticated && roleHomePath !== "/login") {
+      return roleHomePath;
+    }
+    return "/login";
+  };
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
       <ClientTopNav
-        title="Villpo Store"
+        title={publicMode ? "Villpo Storefront" : "Villpo Store"}
+        eyebrow={publicMode ? "Public Home" : ""}
         quickLinks={[
           { label: "Discover", href: "#discover" },
           { label: "Categories", href: "#categories" },
@@ -198,10 +220,33 @@ const ClientHomeView = () => {
           { label: "Trending", href: "#trending" },
         ]}
         showSearch
+        showNavActions={!publicMode}
         searchValue={filters.q}
         onSearchChange={updateSearch}
         onSearchSubmit={refresh}
         cartCount={cartCount}
+        rightActions={
+          publicMode ? (
+            <div className="flex gap-2">
+              {authenticated && roleHomePath !== "/login" ? (
+                <button
+                  type="button"
+                  onClick={() => navigate(roleHomePath)}
+                  className="h-10 rounded-xl border border-[#d8deef] bg-white px-3 text-[12px] font-semibold text-[#334155]"
+                >
+                  Go To Dashboard
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => navigate(resolvePrimaryEntryPath())}
+                className="h-10 rounded-xl bg-[linear-gradient(90deg,#2563eb,#7c3aed)] px-3 text-[12px] font-semibold text-white"
+              >
+                {authenticated ? "Go To App" : "Login"}
+              </button>
+            </div>
+          ) : null
+        }
       />
 
       <section id="discover" className="mt-6 w-full px-2 md:px-3">
@@ -335,14 +380,19 @@ const ClientHomeView = () => {
           action={<p className="text-[13px] text-[#64748b]">{isLoading ? "Loading..." : `${pageMeta.totalElements} items`}</p>}
         />
         {error && <p className="mb-4 text-sm text-[#dc2626]">{error}</p>}
-        {cartError && <p className="mb-4 text-sm text-[#dc2626]">{cartError}</p>}
-        {cartSuccess && <p className="mb-4 text-sm text-[#059669]">{cartSuccess}</p>}
+        {!publicMode && cartError && <p className="mb-4 text-sm text-[#dc2626]">{cartError}</p>}
+        {!publicMode && cartSuccess && <p className="mb-4 text-sm text-[#059669]">{cartSuccess}</p>}
+        {publicMode ? (
+          <p className="mb-4 text-sm text-[#475569]">
+            Browse products publicly. Login to add items to cart and checkout.
+          </p>
+        ) : null}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {flashProducts.map((product) => (
             <ProductCard
               key={`${product.productId}-flash`}
               product={product}
-              onAddToCart={addToCart}
+              onAddToCart={handleAddToCart}
               isAddingToCart={isMutatingCart}
             />
           ))}
@@ -430,7 +480,7 @@ const ClientHomeView = () => {
             <ProductCard
               key={`${product.productId}-trend`}
               product={product}
-              onAddToCart={addToCart}
+              onAddToCart={handleAddToCart}
               isAddingToCart={isMutatingCart}
             />
           ))}

@@ -48,6 +48,8 @@ const ClientTopNav = ({
   eyebrow = "",
   quickLinks = [],
   showSearch = false,
+  showNavActions = true,
+  rightActions = null,
   searchValue = "",
   onSearchChange = null,
   onSearchSubmit = null,
@@ -116,28 +118,31 @@ const ClientTopNav = ({
               <SearchIcon />
             </button>
           ) : null}
+          {rightActions}
 
-          {actionList.map((action) => (
-            <button
-              key={action.key}
-              type="button"
-              onClick={() => navigate(action.path)}
-              title={action.key === "cart" && safeCartCount > 0 ? `Cart (${safeCartCount})` : action.label}
-              aria-label={action.key === "cart" && safeCartCount > 0 ? `Cart (${safeCartCount})` : action.label}
-              className={`relative flex h-10 w-10 items-center justify-center rounded-xl border text-[#334155] ${
-                action.isActive
-                  ? "border-[#2563eb] bg-[#eff6ff]"
-                  : "border-[#d8deef] bg-white"
-              }`}
-            >
-              <Icon path={action.icon} />
-              {action.key === "cart" && safeCartCount > 0 ? (
-                <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-[#2563eb] px-1 text-center text-[10px] font-semibold text-white">
-                  {safeCartCount > 99 ? "99+" : safeCartCount}
-                </span>
-              ) : null}
-            </button>
-          ))}
+          {showNavActions
+            ? actionList.map((action) => (
+                <button
+                  key={action.key}
+                  type="button"
+                  onClick={() => navigate(action.path)}
+                  title={action.key === "cart" && safeCartCount > 0 ? `Cart (${safeCartCount})` : action.label}
+                  aria-label={action.key === "cart" && safeCartCount > 0 ? `Cart (${safeCartCount})` : action.label}
+                  className={`relative flex h-10 w-10 items-center justify-center rounded-xl border text-[#334155] ${
+                    action.isActive
+                      ? "border-[#2563eb] bg-[#eff6ff]"
+                      : "border-[#d8deef] bg-white"
+                  }`}
+                >
+                  <Icon path={action.icon} />
+                  {action.key === "cart" && safeCartCount > 0 ? (
+                    <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-[#2563eb] px-1 text-center text-[10px] font-semibold text-white">
+                      {safeCartCount > 99 ? "99+" : safeCartCount}
+                    </span>
+                  ) : null}
+                </button>
+              ))
+            : null}
 
           {showLogout ? (
             <button

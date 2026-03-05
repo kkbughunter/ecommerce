@@ -33,6 +33,11 @@ const ENDPOINTS = {
     ACTIVE: "/home-sliders/active",
     ADMIN_ROOT: "/admin/home-sliders",
   },
+  MAIN_BANNERS: {
+    ACTIVE: "/main-banners/active",
+    ACTIVE_LIST: "/main-banners/active-list",
+    ADMIN_ROOT: "/admin/main-banners",
+  },
   CART: {
     ROOT: "/cart",
     ITEMS: "/cart/items",

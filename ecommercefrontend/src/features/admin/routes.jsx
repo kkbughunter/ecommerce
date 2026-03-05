@@ -4,6 +4,7 @@ import AdminCreateProductView from "./views/AdminCreateProductView";
 import AdminCustomersView from "./views/AdminCustomersView";
 import AdminHomeView from "./views/AdminHomeView";
 import AdminInvoicesView from "./views/AdminInvoicesView";
+import AdminMainBannersView from "./views/AdminMainBannersView";
 import AdminOrdersView from "./views/AdminOrdersView";
 import AdminPaymentsView from "./views/AdminPaymentsView";
 import AdminProductsView from "./views/AdminProductsView";
@@ -47,6 +48,14 @@ const adminRoutes = [
     element: (
       <ProtectedRoute allowedRoles={["ADMIN"]}>
         <AdminSlidersView />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/main-banners",
+    element: (
+      <ProtectedRoute allowedRoles={["ADMIN"]}>
+        <AdminMainBannersView />
       </ProtectedRoute>
     ),
   },

@@ -1,22 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import homeSliderApi from "../../../core/api/homeSliderApi";
+import mainBannerApi from "../../../core/api/mainBannerApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
 import AdminConsoleLayout from "../components/AdminConsoleLayout";
 
-const PLACEMENT_OPTIONS = [
-  { value: "LIMITED_OFFER", label: "Limited Offer" },
-  { value: "CATEGORY_HIGHLIGHT", label: "Category Highlight" },
-];
-
 const initialForm = {
-  homeSliderId: null,
-  title: "",
-  subtitle: "",
+  mainBannerId: null,
+  headline: "",
+  subheadline: "",
   description: "",
   imageUrl: "",
-  ctaLabel: "",
-  targetUrl: "",
-  placementTag: "LIMITED_OFFER",
+  primaryCtaLabel: "",
+  primaryCtaUrl: "",
+  secondaryCtaLabel: "",
+  secondaryCtaUrl: "",
+  badgeText: "",
   displayOrder: 0,
   startDt: "",
   endDt: "",
@@ -44,56 +41,60 @@ const orderByDisplayOrder = (a, b) => {
   if (orderA !== orderB) {
     return orderA - orderB;
   }
-  return Number(a?.homeSliderId ?? 0) - Number(b?.homeSliderId ?? 0);
+  return Number(a?.mainBannerId ?? 0) - Number(b?.mainBannerId ?? 0);
 };
 
-const AdminSlidersView = () => {
-  const [sliders, setSliders] = useState([]);
+const AdminMainBannersView = () => {
+  const [banners, setBanners] = useState([]);
   const [form, setForm] = useState(initialForm);
-  const [filterTag, setFilterTag] = useState("");
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [draggingSliderId, setDraggingSliderId] = useState(null);
+  const [draggingBannerId, setDraggingBannerId] = useState(null);
 
-  const loadSliders = async (tag = filterTag) => {
+  const loadBanners = async () => {
     setIsLoading(true);
     try {
-      const params = tag ? { tag } : {};
-      const response = await homeSliderApi.getAdminSliders(params);
+      const response = await mainBannerApi.getAdminMainBanners();
       const payload = Array.isArray(response?.data?.data) ? response.data.data : [];
-      setSliders(payload);
+      setBanners(payload);
     } catch (err) {
-      setSliders([]);
-      setError(getApiErrorMessage(err, "Unable to load sliders."));
+      setBanners([]);
+      setError(getApiErrorMessage(err, "Unable to load main banners."));
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadSliders("");
+    loadBanners();
   }, []);
 
-  const filteredSliders = useMemo(() => {
+  const filteredBanners = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) {
-      return sliders;
+      return banners;
     }
-    return sliders.filter((slider) =>
-      [slider?.title, slider?.subtitle, slider?.targetUrl, slider?.placementTag]
+    return banners.filter((banner) =>
+      [
+        banner?.headline,
+        banner?.subheadline,
+        banner?.primaryCtaUrl,
+        banner?.secondaryCtaUrl,
+        banner?.badgeText,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
         .includes(query),
     );
-  }, [search, sliders]);
+  }, [banners, search]);
 
-  const orderedSliders = useMemo(
-    () => [...filteredSliders].sort(orderByDisplayOrder),
-    [filteredSliders],
+  const orderedBanners = useMemo(
+    () => [...filteredBanners].sort(orderByDisplayOrder),
+    [filteredBanners],
   );
 
   const resetForm = () => {
@@ -120,57 +121,61 @@ const AdminSlidersView = () => {
 
     try {
       const payload = {
-        title: form.title.trim(),
-        subtitle: form.subtitle.trim() || null,
+        headline: form.headline.trim(),
+        subheadline: form.subheadline.trim() || null,
         description: form.description.trim() || null,
-        imageUrl: form.imageUrl.trim(),
-        ctaLabel: form.ctaLabel.trim() || null,
-        targetUrl: form.targetUrl.trim(),
-        placementTag: form.placementTag,
+        imageUrl: form.imageUrl.trim() || null,
+        primaryCtaLabel: form.primaryCtaLabel.trim() || null,
+        primaryCtaUrl: form.primaryCtaUrl.trim() || null,
+        secondaryCtaLabel: form.secondaryCtaLabel.trim() || null,
+        secondaryCtaUrl: form.secondaryCtaUrl.trim() || null,
+        badgeText: form.badgeText.trim() || null,
         displayOrder: Number(form.displayOrder || 0),
         startDt: toApiDateTime(form.startDt),
         endDt: toApiDateTime(form.endDt),
         isActive: Boolean(form.isActive),
       };
 
-      if (form.homeSliderId) {
-        await homeSliderApi.updateSlider(form.homeSliderId, payload);
-        setSuccess("Slider updated successfully.");
+      if (form.mainBannerId) {
+        await mainBannerApi.updateMainBanner(form.mainBannerId, payload);
+        setSuccess("Main banner updated successfully.");
       } else {
-        await homeSliderApi.createSlider(payload);
-        setSuccess("Slider created successfully.");
+        await mainBannerApi.createMainBanner(payload);
+        setSuccess("Main banner created successfully.");
       }
 
       resetForm();
-      await loadSliders(filterTag);
+      await loadBanners();
     } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to save slider."));
+      setError(getApiErrorMessage(err, "Unable to save main banner."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEdit = (slider) => {
+  const handleEdit = (banner) => {
     setForm({
-      homeSliderId: slider.homeSliderId,
-      title: slider.title || "",
-      subtitle: slider.subtitle || "",
-      description: slider.description || "",
-      imageUrl: slider.imageUrl || "",
-      ctaLabel: slider.ctaLabel || "",
-      targetUrl: slider.targetUrl || "",
-      placementTag: slider.placementTag || "LIMITED_OFFER",
-      displayOrder: Number(slider.displayOrder || 0),
-      startDt: toDateTimeInputValue(slider.startDt),
-      endDt: toDateTimeInputValue(slider.endDt),
-      isActive: Boolean(slider.isActive),
+      mainBannerId: banner.mainBannerId,
+      headline: banner.headline || "",
+      subheadline: banner.subheadline || "",
+      description: banner.description || "",
+      imageUrl: banner.imageUrl || "",
+      primaryCtaLabel: banner.primaryCtaLabel || "",
+      primaryCtaUrl: banner.primaryCtaUrl || "",
+      secondaryCtaLabel: banner.secondaryCtaLabel || "",
+      secondaryCtaUrl: banner.secondaryCtaUrl || "",
+      badgeText: banner.badgeText || "",
+      displayOrder: Number(banner.displayOrder || 0),
+      startDt: toDateTimeInputValue(banner.startDt),
+      endDt: toDateTimeInputValue(banner.endDt),
+      isActive: Boolean(banner.isActive),
     });
     setError("");
     setSuccess("");
   };
 
-  const handleToggleStatus = async (slider) => {
-    if (!slider?.homeSliderId) {
+  const handleToggleStatus = async (banner) => {
+    if (!banner?.mainBannerId) {
       return;
     }
     setError("");
@@ -178,40 +183,42 @@ const AdminSlidersView = () => {
     setIsSubmitting(true);
 
     try {
-      if (slider.isActive) {
-        await homeSliderApi.deactivateSlider(slider.homeSliderId);
-        setSuccess(`Slider "${slider.title}" deactivated.`);
+      if (banner.isActive) {
+        await mainBannerApi.deactivateMainBanner(banner.mainBannerId);
+        setSuccess(`Main banner "${banner.headline}" deactivated.`);
       } else {
-        await homeSliderApi.activateSlider(slider.homeSliderId);
-        setSuccess(`Slider "${slider.title}" activated.`);
+        await mainBannerApi.activateMainBanner(banner.mainBannerId);
+        setSuccess(`Main banner "${banner.headline}" activated.`);
       }
-      await loadSliders(filterTag);
+      await loadBanners();
     } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to update slider status."));
+      setError(getApiErrorMessage(err, "Unable to update main banner status."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const buildSliderUpdatePayload = (slider, displayOrder) => ({
-    title: slider?.title?.trim() || "",
-    subtitle: slider?.subtitle?.trim() || null,
-    description: slider?.description?.trim() || null,
-    imageUrl: slider?.imageUrl?.trim() || "",
-    ctaLabel: slider?.ctaLabel?.trim() || null,
-    targetUrl: slider?.targetUrl?.trim() || "",
-    placementTag: slider?.placementTag || "LIMITED_OFFER",
+  const buildMainBannerUpdatePayload = (banner, displayOrder) => ({
+    headline: banner?.headline?.trim() || "",
+    subheadline: banner?.subheadline?.trim() || null,
+    description: banner?.description?.trim() || null,
+    imageUrl: banner?.imageUrl?.trim() || null,
+    primaryCtaLabel: banner?.primaryCtaLabel?.trim() || null,
+    primaryCtaUrl: banner?.primaryCtaUrl?.trim() || null,
+    secondaryCtaLabel: banner?.secondaryCtaLabel?.trim() || null,
+    secondaryCtaUrl: banner?.secondaryCtaUrl?.trim() || null,
+    badgeText: banner?.badgeText?.trim() || null,
     displayOrder: Number(displayOrder || 0),
-    startDt: toApiDateTime(toDateTimeInputValue(slider?.startDt)),
-    endDt: toApiDateTime(toDateTimeInputValue(slider?.endDt)),
-    isActive: Boolean(slider?.isActive),
+    startDt: toApiDateTime(toDateTimeInputValue(banner?.startDt)),
+    endDt: toApiDateTime(toDateTimeInputValue(banner?.endDt)),
+    isActive: Boolean(banner?.isActive),
   });
 
-  const persistSliderOrder = async (orderedItems) => {
+  const persistBannerOrder = async (orderedItems) => {
     const normalized = orderedItems.map((item, index) => ({ ...item, displayOrder: index }));
-    const oldOrderById = new Map(sliders.map((item) => [item.homeSliderId, Number(item.displayOrder ?? 0)]));
+    const oldOrderById = new Map(banners.map((item) => [item.mainBannerId, Number(item.displayOrder ?? 0)]));
     const changed = normalized.filter(
-      (item) => oldOrderById.get(item.homeSliderId) !== Number(item.displayOrder ?? 0),
+      (item) => oldOrderById.get(item.mainBannerId) !== Number(item.displayOrder ?? 0),
     );
 
     if (!changed.length) {
@@ -224,83 +231,65 @@ const AdminSlidersView = () => {
     try {
       await Promise.all(
         changed.map((item) =>
-          homeSliderApi.updateSlider(
-            item.homeSliderId,
-            buildSliderUpdatePayload(item, item.displayOrder),
+          mainBannerApi.updateMainBanner(
+            item.mainBannerId,
+            buildMainBannerUpdatePayload(item, item.displayOrder),
           ),
         ),
       );
-      setSliders(normalized);
-      setSuccess("Slider order updated successfully.");
+      setBanners(normalized);
+      setSuccess("Main banner order updated successfully.");
     } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to reorder sliders."));
-      await loadSliders(filterTag);
+      setError(getApiErrorMessage(err, "Unable to reorder main banners."));
+      await loadBanners();
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSliderDragStart = (event, sliderId) => {
+  const handleBannerDragStart = (event, bannerId) => {
     if (search.trim()) {
       event.preventDefault();
-      setError("Clear search before reordering sliders.");
+      setError("Clear search before reordering main banners.");
       return;
     }
-    setDraggingSliderId(sliderId);
+    setDraggingBannerId(bannerId);
     event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", String(sliderId));
+    event.dataTransfer.setData("text/plain", String(bannerId));
   };
 
-  const handleSliderDrop = async (targetSliderId) => {
-    if (!draggingSliderId || draggingSliderId === targetSliderId) {
+  const handleBannerDrop = async (targetBannerId) => {
+    if (!draggingBannerId || draggingBannerId === targetBannerId) {
       return;
     }
-    const ordered = [...sliders].sort(orderByDisplayOrder);
-    const fromIndex = ordered.findIndex((item) => item.homeSliderId === draggingSliderId);
-    const toIndex = ordered.findIndex((item) => item.homeSliderId === targetSliderId);
+    const ordered = [...banners].sort(orderByDisplayOrder);
+    const fromIndex = ordered.findIndex((item) => item.mainBannerId === draggingBannerId);
+    const toIndex = ordered.findIndex((item) => item.mainBannerId === targetBannerId);
     if (fromIndex < 0 || toIndex < 0) {
       return;
     }
     const moved = [...ordered];
     const [draggedItem] = moved.splice(fromIndex, 1);
     moved.splice(toIndex, 0, draggedItem);
-    await persistSliderOrder(moved);
+    await persistBannerOrder(moved);
   };
 
   return (
     <AdminConsoleLayout
-      activeNav="sliders"
-      title="Homepage Sliders"
-      subtitle="Manage banner/slider posters for Limited Offer and Category Highlight sections."
+      activeNav="mainBanners"
+      title="Main Banner Management"
+      subtitle="Manage landing page hero banners, CTA links, scheduling, and active state."
       searchValue={search}
       onSearchChange={setSearch}
-      searchPlaceholder="Search sliders..."
+      searchPlaceholder="Search main banners..."
       topActions={
-        <div className="flex gap-2">
-          <select
-            value={filterTag}
-            onChange={(event) => {
-              const nextTag = event.target.value;
-              setFilterTag(nextTag);
-              loadSliders(nextTag);
-            }}
-            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
-          >
-            <option value="">All Tags</option>
-            {PLACEMENT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => loadSliders(filterTag)}
-            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
-          >
-            Refresh
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={loadBanners}
+          className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+        >
+          Refresh
+        </button>
       }
     >
       <div className="space-y-4">
@@ -316,34 +305,34 @@ const AdminSlidersView = () => {
         <section className="grid gap-4 xl:grid-cols-[1.1fr_1.6fr]">
           <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
             <h2 className="text-base font-semibold text-[#111827]">
-              {form.homeSliderId ? "Update Slider" : "Create Slider"}
+              {form.mainBannerId ? "Update Main Banner" : "Create Main Banner"}
             </h2>
             <p className="mt-1 text-xs text-[#64748b]">
-              Add poster image URL, details, target URL and placement tag.
+              Configure headline, image, CTA, schedule, and active state for landing page hero.
             </p>
 
             <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
               <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Title</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Headline</span>
                 <input
                   type="text"
-                  name="title"
-                  value={form.title}
+                  name="headline"
+                  value={form.headline}
                   onChange={handleChange}
-                  placeholder="Limited offer title"
+                  placeholder="Hero headline"
                   required
                   className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Subtitle</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Subheadline</span>
                 <input
                   type="text"
-                  name="subtitle"
-                  value={form.subtitle}
+                  name="subheadline"
+                  value={form.subheadline}
                   onChange={handleChange}
-                  placeholder="Short subtitle"
+                  placeholder="Short supporting text"
                   className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
                 />
               </label>
@@ -361,27 +350,76 @@ const AdminSlidersView = () => {
               </label>
 
               <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Poster Image URL</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Image URL</span>
                 <input
                   type="url"
                   name="imageUrl"
                   value={form.imageUrl}
                   onChange={handleChange}
-                  placeholder="https://..."
-                  required
+                  placeholder="https://... (optional)"
                   className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
                 />
               </label>
 
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">CTA Label</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Primary CTA Label</span>
                   <input
                     type="text"
-                    name="ctaLabel"
-                    value={form.ctaLabel}
+                    name="primaryCtaLabel"
+                    value={form.primaryCtaLabel}
                     onChange={handleChange}
                     placeholder="Start Shopping"
+                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Primary CTA URL</span>
+                  <input
+                    type="text"
+                    name="primaryCtaUrl"
+                    value={form.primaryCtaUrl}
+                    onChange={handleChange}
+                    placeholder="/client or https://..."
+                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="space-y-1">
+                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Secondary CTA Label</span>
+                  <input
+                    type="text"
+                    name="secondaryCtaLabel"
+                    value={form.secondaryCtaLabel}
+                    onChange={handleChange}
+                    placeholder="Sign In"
+                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Secondary CTA URL</span>
+                  <input
+                    type="text"
+                    name="secondaryCtaUrl"
+                    value={form.secondaryCtaUrl}
+                    onChange={handleChange}
+                    placeholder="/login or https://..."
+                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="space-y-1">
+                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Badge Text</span>
+                  <input
+                    type="text"
+                    name="badgeText"
+                    value={form.badgeText}
+                    onChange={handleChange}
+                    placeholder="Limited time"
                     className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
                   />
                 </label>
@@ -396,37 +434,6 @@ const AdminSlidersView = () => {
                     className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
                   />
                 </label>
-              </div>
-
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Target URL</span>
-                <input
-                  type="text"
-                  name="targetUrl"
-                  value={form.targetUrl}
-                  onChange={handleChange}
-                  placeholder="/products/1 or https://..."
-                  required
-                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Placement Tag</span>
-                  <select
-                    name="placementTag"
-                    value={form.placementTag}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  >
-                    {PLACEMENT_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
                 <label className="space-y-1">
                   <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Active</span>
                   <div className="flex h-10 items-center rounded-lg border border-[#d8dde6] bg-white px-3">
@@ -437,7 +444,7 @@ const AdminSlidersView = () => {
                       onChange={handleChange}
                       className="h-4 w-4"
                     />
-                    <span className="ml-2 text-sm text-[#334155]">Enable slider</span>
+                    <span className="ml-2 text-sm text-[#334155]">Enable banner</span>
                   </div>
                 </label>
               </div>
@@ -471,9 +478,9 @@ const AdminSlidersView = () => {
                   disabled={isSubmitting}
                   className="h-10 rounded-lg bg-[#111827] px-4 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {isSubmitting ? "Saving..." : form.homeSliderId ? "Update Slider" : "Create Slider"}
+                  {isSubmitting ? "Saving..." : form.mainBannerId ? "Update Banner" : "Create Banner"}
                 </button>
-                {form.homeSliderId ? (
+                {form.mainBannerId ? (
                   <button
                     type="button"
                     onClick={resetForm}
@@ -488,44 +495,43 @@ const AdminSlidersView = () => {
 
           <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-[#111827]">Slider List</h2>
-              <p className="text-xs text-[#94a3b8]">{orderedSliders.length} total</p>
+              <h2 className="text-base font-semibold text-[#111827]">Main Banner List</h2>
+              <p className="text-xs text-[#94a3b8]">{orderedBanners.length} total</p>
             </div>
             <p className="mb-3 text-xs text-[#64748b]">
               Drag using the handle (☰) to reorder. Order updates automatically.
             </p>
 
             {isLoading ? (
-              <p className="text-sm text-[#64748b]">Loading sliders...</p>
-            ) : orderedSliders.length ? (
+              <p className="text-sm text-[#64748b]">Loading main banners...</p>
+            ) : orderedBanners.length ? (
               <div className="overflow-x-auto rounded-xl border border-[#edf0f3]">
                 <table className="min-w-full border-collapse bg-white">
                   <thead>
                     <tr className="border-b border-[#edf0f3] text-left text-xs uppercase tracking-[0.08em] text-[#94a3b8]">
                       <th className="px-3 py-2">Poster</th>
                       <th className="px-3 py-2">Details</th>
-                      <th className="px-3 py-2">Placement</th>
                       <th className="px-3 py-2">Order</th>
                       <th className="px-3 py-2">Status</th>
                       <th className="px-3 py-2">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {orderedSliders.map((slider, index) => (
+                    {orderedBanners.map((banner, index) => (
                       <tr
-                        key={slider.homeSliderId}
+                        key={banner.mainBannerId}
                         className="border-b border-[#f1f5f9] text-sm text-[#334155]"
                         onDragOver={(event) => event.preventDefault()}
                         onDrop={async () => {
-                          await handleSliderDrop(slider.homeSliderId);
-                          setDraggingSliderId(null);
+                          await handleBannerDrop(banner.mainBannerId);
+                          setDraggingBannerId(null);
                         }}
                       >
                         <td className="px-3 py-2">
-                          {slider.imageUrl ? (
+                          {banner.imageUrl ? (
                             <img
-                              src={slider.imageUrl}
-                              alt={slider.title || "Slider poster"}
+                              src={banner.imageUrl}
+                              alt={banner.headline || "Main banner poster"}
                               className="h-14 w-24 rounded-md border border-[#e2e8f0] object-cover"
                               loading="lazy"
                             />
@@ -534,59 +540,58 @@ const AdminSlidersView = () => {
                           )}
                         </td>
                         <td className="px-3 py-2">
-                          <p className="max-w-[280px] truncate font-medium text-[#111827]" title={slider.title}>
-                            {slider.title}
+                          <p className="max-w-[280px] truncate font-medium text-[#111827]" title={banner.headline}>
+                            {banner.headline}
                           </p>
-                          <p className="max-w-[280px] truncate text-xs text-[#64748b]" title={slider.targetUrl}>
-                            {slider.targetUrl}
+                          <p className="max-w-[280px] truncate text-xs text-[#64748b]" title={banner.primaryCtaUrl || "-"}>
+                            Primary CTA: {banner.primaryCtaUrl || "-"}
                           </p>
                         </td>
-                        <td className="px-3 py-2">{slider.placementTag}</td>
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               draggable={!isSubmitting && !search.trim()}
-                              onDragStart={(event) => handleSliderDragStart(event, slider.homeSliderId)}
-                              onDragEnd={() => setDraggingSliderId(null)}
+                              onDragStart={(event) => handleBannerDragStart(event, banner.mainBannerId)}
+                              onDragEnd={() => setDraggingBannerId(null)}
                               disabled={isSubmitting || Boolean(search.trim())}
                               className="h-7 rounded-md border border-[#d8dde6] px-2 text-xs font-semibold text-[#334155] disabled:opacity-40"
                               title="Drag to reorder"
                             >
                               ☰
                             </button>
-                            <span>{Number(slider.displayOrder ?? index) + 1}</span>
+                            <span>{Number(banner.displayOrder ?? index) + 1}</span>
                           </div>
                         </td>
                         <td className="px-3 py-2">
                           <span
                             className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              slider.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"
+                              banner.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"
                             }`}
                           >
-                            {slider.isActive ? "ACTIVE" : "INACTIVE"}
+                            {banner.isActive ? "ACTIVE" : "INACTIVE"}
                           </span>
                         </td>
                         <td className="px-3 py-2">
                           <div className="flex gap-2">
                             <button
                               type="button"
-                              onClick={() => handleEdit(slider)}
+                              onClick={() => handleEdit(banner)}
                               className="h-8 rounded-md border border-[#d8dde6] px-2 text-xs font-semibold text-[#334155]"
                             >
                               Edit
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleToggleStatus(slider)}
+                              onClick={() => handleToggleStatus(banner)}
                               disabled={isSubmitting}
                               className={`h-8 rounded-md px-2 text-xs font-semibold ${
-                                slider.isActive
+                                banner.isActive
                                   ? "border border-rose-300 text-rose-700"
                                   : "border border-emerald-300 text-emerald-700"
                               }`}
                             >
-                              {slider.isActive ? "Deactivate" : "Activate"}
+                              {banner.isActive ? "Deactivate" : "Activate"}
                             </button>
                           </div>
                         </td>
@@ -596,7 +601,7 @@ const AdminSlidersView = () => {
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-[#64748b]">No sliders found.</p>
+              <p className="text-sm text-[#64748b]">No main banners found.</p>
             )}
           </article>
         </section>
@@ -605,4 +610,4 @@ const AdminSlidersView = () => {
   );
 };
 
-export default AdminSlidersView;
+export default AdminMainBannersView;

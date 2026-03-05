@@ -1,14 +1,14 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
-import AppEntryRedirect from "./core/auth/AppEntryRedirect";
 import adminRoutes from "./features/admin/routes";
 import authRoutes from "./features/auth/routes";
 import clientRoutes from "./features/client/routes";
+import LandingPageView from "./features/landing/views/LandingPageView";
 import productRoutes from "./features/product/routes";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <AppEntryRedirect />,
+    element: <LandingPageView />,
   },
   ...authRoutes,
   ...adminRoutes,
