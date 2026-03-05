@@ -41,6 +41,12 @@ const navItems = [
     icon: "M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z",
   },
   {
+    key: "sliders",
+    label: "Sliders",
+    path: "/admin/sliders",
+    icon: "M3 5h18v4H3V5zm0 5h18v4H3v-4zm0 5h18v4H3v-4z",
+  },
+  {
     key: "customers",
     label: "Customers",
     path: "/admin/customers",

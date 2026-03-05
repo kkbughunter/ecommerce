@@ -1,25 +1,33 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import homeSliderApi from "../../../core/api/homeSliderApi";
 import ENV from "../../../core/config/env";
+import getApiErrorMessage from "../../../core/utils/apiError";
 import ClientTopNav from "../components/ClientTopNav";
 import ProductCard from "../components/ProductCard";
 import useClientCategories from "../hooks/useClientCategories";
 import useCart from "../hooks/useCart";
 import useClientProducts from "../hooks/useClientProducts";
 
-const trustPoints = [
-  // {
-  //   title: "Fast Delivery",
-  //   subtitle: "Express shipping across major cities",
-  // },
-  // {
-  //   title: "Secure Payment",
-  //   subtitle: "Card, UPI and wallet friendly checkout",
-  // },
-  // {
-  //   title: "Easy Returns",
-  //   subtitle: "Simple returns within 7 days",
-  // },
-];
+const trustPoints = [];
+
+const LIMITED_OFFER_FALLBACK = {
+  title: "Modern tech, better prices, faster delivery.",
+  subtitle: "Limited offer",
+  description: "Live product catalog powered by your backend APIs.",
+  ctaLabel: "Start Shopping",
+  targetUrl: "/client",
+  imageUrl: "",
+};
+
+const CATEGORY_HIGHLIGHT_FALLBACK = {
+  title: "Enhance your music experience",
+  subtitle: "Category highlight",
+  description: "Premium audio picks and accessories curated for immersive sound.",
+  ctaLabel: "Explore Audio",
+  targetUrl: "/client",
+  imageUrl: "",
+};
 
 const SectionTitle = ({ eyebrow, title, action }) => (
   <div className="mb-5 flex items-end justify-between gap-3">
@@ -35,6 +43,43 @@ const SectionTitle = ({ eyebrow, title, action }) => (
   </div>
 );
 
+const useAutoSlider = (slides, intervalMs = 6000) => {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [slides.length]);
+
+  useEffect(() => {
+    if (slides.length <= 1) {
+      return undefined;
+    }
+    const timerId = window.setInterval(() => {
+      setIndex((prev) => (prev + 1) % slides.length);
+    }, intervalMs);
+    return () => window.clearInterval(timerId);
+  }, [slides.length, intervalMs]);
+
+  return {
+    active: slides[index] || null,
+    index,
+    count: slides.length,
+    hasMultiple: slides.length > 1,
+    next: () => {
+      if (slides.length <= 1) {
+        return;
+      }
+      setIndex((prev) => (prev + 1) % slides.length);
+    },
+    prev: () => {
+      if (slides.length <= 1) {
+        return;
+      }
+      setIndex((prev) => (prev - 1 + slides.length) % slides.length);
+    },
+  };
+};
+
 const getCategoryImageUrl = (apiBase, category) => {
   if (!apiBase || !category?.categoryImageProductId || !category?.categoryImageUploadId) {
     return null;
@@ -42,7 +87,19 @@ const getCategoryImageUrl = (apiBase, category) => {
   return `${apiBase}/products/${category.categoryImageProductId}/images/${category.categoryImageUploadId}/file`;
 };
 
+const withBannerBackground = (imageUrl, fallbackBackground) => {
+  if (!imageUrl) {
+    return { background: fallbackBackground };
+  }
+  return {
+    backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.82), rgba(49,46,129,0.72), rgba(29,78,216,0.72)), url(${imageUrl})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  };
+};
+
 const ClientHomeView = () => {
+  const navigate = useNavigate();
   const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
   const {
     filters,
@@ -67,6 +124,44 @@ const ClientHomeView = () => {
     addToCart,
   } = useCart();
 
+  const [homeSliders, setHomeSliders] = useState([]);
+  const [isLoadingSliders, setIsLoadingSliders] = useState(false);
+  const [sliderError, setSliderError] = useState("");
+
+  const loadHomeSliders = useCallback(async () => {
+    setIsLoadingSliders(true);
+    setSliderError("");
+    try {
+      const response = await homeSliderApi.getActiveSliders();
+      const data = Array.isArray(response?.data?.data) ? response.data.data : [];
+      setHomeSliders(data);
+    } catch (err) {
+      setHomeSliders([]);
+      setSliderError(getApiErrorMessage(err, "Unable to load homepage sliders."));
+    } finally {
+      setIsLoadingSliders(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHomeSliders();
+  }, [loadHomeSliders]);
+
+  const openSliderTarget = useCallback(
+    (targetUrl) => {
+      const normalized = String(targetUrl || "").trim();
+      if (!normalized) {
+        return;
+      }
+      if (/^https?:\/\//i.test(normalized)) {
+        window.location.href = normalized;
+        return;
+      }
+      navigate(normalized);
+    },
+    [navigate],
+  );
+
   const flashProducts = useMemo(
     () => products.filter((product) => product?.productTag === "FLASH_SALES"),
     [products],
@@ -76,6 +171,21 @@ const ClientHomeView = () => {
     [products],
   );
   const categoryTiles = useMemo(() => categories.slice(0, 8), [categories]);
+
+  const limitedOfferSlides = useMemo(
+    () => homeSliders.filter((slider) => slider?.placementTag === "LIMITED_OFFER"),
+    [homeSliders],
+  );
+  const categoryHighlightSlides = useMemo(
+    () => homeSliders.filter((slider) => slider?.placementTag === "CATEGORY_HIGHLIGHT"),
+    [homeSliders],
+  );
+
+  const limitedOfferSlider = useAutoSlider(limitedOfferSlides);
+  const categoryHighlightSlider = useAutoSlider(categoryHighlightSlides);
+
+  const limitedOffer = limitedOfferSlider.active || LIMITED_OFFER_FALLBACK;
+  const categoryHighlight = categoryHighlightSlider.active || CATEGORY_HIGHLIGHT_FALLBACK;
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
@@ -95,27 +205,66 @@ const ClientHomeView = () => {
       />
 
       <section id="discover" className="mt-6 w-full px-2 md:px-3">
+        {sliderError ? (
+          <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {sliderError}
+          </div>
+        ) : null}
         <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-          <article className="rounded-3xl bg-[linear-gradient(135deg,#0f172a,#312e81_45%,#1d4ed8)] p-8 text-white shadow-[0_25px_60px_rgba(30,41,59,0.35)]">
-            <p className="text-[12px] uppercase tracking-[0.12em] text-[#93c5fd]">Limited offer</p>
+          <article
+            className="rounded-3xl p-8 text-white shadow-[0_25px_60px_rgba(30,41,59,0.35)]"
+            style={withBannerBackground(
+              limitedOffer.imageUrl,
+              "linear-gradient(135deg,#0f172a,#312e81_45%,#1d4ed8)",
+            )}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[12px] uppercase tracking-[0.12em] text-[#93c5fd]">
+                {limitedOffer.subtitle || "Limited offer"}
+              </p>
+              {limitedOfferSlider.hasMultiple ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={limitedOfferSlider.prev}
+                    className="rounded-lg border border-white/35 bg-white/10 px-2 py-1 text-[11px] font-semibold text-white"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-[11px] text-[#dbeafe]">
+                    {limitedOfferSlider.index + 1}/{limitedOfferSlider.count}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={limitedOfferSlider.next}
+                    className="rounded-lg border border-white/35 bg-white/10 px-2 py-1 text-[11px] font-semibold text-white"
+                  >
+                    Next
+                  </button>
+                </div>
+              ) : null}
+            </div>
             <h2 className="mt-2 max-w-lg text-[42px] font-semibold leading-[1.1]">
-              Modern tech, better prices, faster delivery.
+              {limitedOffer.title}
             </h2>
             <p className="mt-3 max-w-lg text-[14px] text-[#dbeafe]">
-              Live product catalog powered by your backend APIs. Product images will be plugged in next.
+              {limitedOffer.description || "Discover the latest picks from our catalog."}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
+                onClick={() => openSliderTarget(limitedOffer.targetUrl)}
                 className="rounded-xl bg-white px-4 py-2 text-[13px] font-semibold text-[#1e40af]"
               >
-                Start Shopping
+                {limitedOffer.ctaLabel || "Start Shopping"}
               </button>
               <button
                 type="button"
-                className="rounded-xl border border-white/35 bg-white/10 px-4 py-2 text-[13px] font-semibold text-white backdrop-blur"
+                onClick={loadHomeSliders}
+                disabled={isLoadingSliders}
+                className="rounded-xl border border-white/35 bg-white/10 px-4 py-2 text-[13px] font-semibold text-white backdrop-blur disabled:opacity-60"
               >
-                View Deals
+                {isLoadingSliders ? "Refreshing..." : "Refresh Banners"}
               </button>
             </div>
           </article>
@@ -204,17 +353,49 @@ const ClientHomeView = () => {
       </section>
 
       <section className="mt-14 w-full px-2 md:px-3">
-        <article className="rounded-3xl bg-[linear-gradient(120deg,#0b1120,#1e293b,#1d4ed8)] p-8 text-white shadow-[0_20px_45px_rgba(15,23,42,0.35)]">
-          <p className="text-[11px] uppercase tracking-[0.1em] text-[#93c5fd]">Category highlight</p>
-          <h2 className="mt-2 text-[34px] font-semibold leading-[1.12]">Enhance your music experience</h2>
+        <article
+          className="rounded-3xl p-8 text-white shadow-[0_20px_45px_rgba(15,23,42,0.35)]"
+          style={withBannerBackground(
+            categoryHighlight.imageUrl,
+            "linear-gradient(120deg,#0b1120,#1e293b,#1d4ed8)",
+          )}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] uppercase tracking-[0.1em] text-[#93c5fd]">
+              {categoryHighlight.subtitle || "Category highlight"}
+            </p>
+            {categoryHighlightSlider.hasMultiple ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={categoryHighlightSlider.prev}
+                  className="rounded-lg border border-white/35 bg-white/10 px-2 py-1 text-[11px] font-semibold text-white"
+                >
+                  Prev
+                </button>
+                <span className="text-[11px] text-[#dbeafe]">
+                  {categoryHighlightSlider.index + 1}/{categoryHighlightSlider.count}
+                </span>
+                <button
+                  type="button"
+                  onClick={categoryHighlightSlider.next}
+                  className="rounded-lg border border-white/35 bg-white/10 px-2 py-1 text-[11px] font-semibold text-white"
+                >
+                  Next
+                </button>
+              </div>
+            ) : null}
+          </div>
+          <h2 className="mt-2 text-[34px] font-semibold leading-[1.12]">{categoryHighlight.title}</h2>
           <p className="mt-2 max-w-lg text-[13px] text-[#dbeafe]">
-            Premium audio picks and accessories curated for immersive sound.
+            {categoryHighlight.description || "Discover category-focused picks curated for your needs."}
           </p>
           <button
             type="button"
+            onClick={() => openSliderTarget(categoryHighlight.targetUrl)}
             className="mt-5 rounded-xl bg-[#22c55e] px-4 py-2 text-[13px] font-semibold text-[#052e16]"
           >
-            Explore Audio
+            {categoryHighlight.ctaLabel || "Explore"}
           </button>
         </article>
       </section>

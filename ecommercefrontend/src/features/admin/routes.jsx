@@ -7,6 +7,7 @@ import AdminInvoicesView from "./views/AdminInvoicesView";
 import AdminOrdersView from "./views/AdminOrdersView";
 import AdminPaymentsView from "./views/AdminPaymentsView";
 import AdminProductsView from "./views/AdminProductsView";
+import AdminSlidersView from "./views/AdminSlidersView";
 
 const adminRoutes = [
   {
@@ -38,6 +39,14 @@ const adminRoutes = [
     element: (
       <ProtectedRoute allowedRoles={["ADMIN"]}>
         <AdminCategoriesView />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/sliders",
+    element: (
+      <ProtectedRoute allowedRoles={["ADMIN"]}>
+        <AdminSlidersView />
       </ProtectedRoute>
     ),
   },

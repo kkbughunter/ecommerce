@@ -29,6 +29,10 @@ const ENDPOINTS = {
   ADMIN_DASHBOARD: {
     ROOT: "/admin/dashboard",
   },
+  HOME_SLIDERS: {
+    ACTIVE: "/home-sliders/active",
+    ADMIN_ROOT: "/admin/home-sliders",
+  },
   CART: {
     ROOT: "/cart",
     ITEMS: "/cart/items",
