@@ -10,7 +10,7 @@ import getApiErrorMessage from "../../../core/utils/apiError";
 
 const FALLBACK_CATEGORY_CAMPAIGN = {
   homeSliderId: "fallback-category",
-  title: "Enhance your music experience",
+  title: "Enhance your Online shopping experience",
   subtitle: "Category highlight",
   description: "Featured category campaigns are shown from active slider records.",
   imageUrl: null,

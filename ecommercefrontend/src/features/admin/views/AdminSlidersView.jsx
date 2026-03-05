@@ -270,8 +270,7 @@ const AdminSlidersView = () => {
   return (
     <AdminConsoleLayout
       activeNav="sliders"
-      title="Homepage Sliders"
-      subtitle="Manage banner/slider posters for Limited Offer and Category Highlight sections."
+      title="Sliders"
       searchValue={search}
       onSearchChange={setSearch}
       searchPlaceholder="Search sliders..."
@@ -318,9 +317,6 @@ const AdminSlidersView = () => {
             <h2 className="text-base font-semibold text-[#111827]">
               {form.homeSliderId ? "Update Slider" : "Create Slider"}
             </h2>
-            <p className="mt-1 text-xs text-[#64748b]">
-              Add poster image URL, details, target URL and placement tag.
-            </p>
 
             <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
               <label className="space-y-1">
@@ -491,9 +487,6 @@ const AdminSlidersView = () => {
               <h2 className="text-base font-semibold text-[#111827]">Slider List</h2>
               <p className="text-xs text-[#94a3b8]">{orderedSliders.length} total</p>
             </div>
-            <p className="mb-3 text-xs text-[#64748b]">
-              Drag using the handle (☰) to reorder. Order updates automatically.
-            </p>
 
             {isLoading ? (
               <p className="text-sm text-[#64748b]">Loading sliders...</p>

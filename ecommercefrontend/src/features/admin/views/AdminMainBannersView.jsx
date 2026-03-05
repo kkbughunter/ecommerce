@@ -277,8 +277,8 @@ const AdminMainBannersView = () => {
   return (
     <AdminConsoleLayout
       activeNav="mainBanners"
-      title="Main Banner Management"
-      subtitle="Manage landing page hero banners, CTA links, scheduling, and active state."
+      title="Main Banner"
+      subtitle="Marketing/Main Banner"
       searchValue={search}
       onSearchChange={setSearch}
       searchPlaceholder="Search main banners..."
@@ -307,9 +307,6 @@ const AdminMainBannersView = () => {
             <h2 className="text-base font-semibold text-[#111827]">
               {form.mainBannerId ? "Update Main Banner" : "Create Main Banner"}
             </h2>
-            <p className="mt-1 text-xs text-[#64748b]">
-              Configure headline, image, CTA, schedule, and active state for landing page hero.
-            </p>
 
             <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
               <label className="space-y-1">
@@ -498,9 +495,6 @@ const AdminMainBannersView = () => {
               <h2 className="text-base font-semibold text-[#111827]">Main Banner List</h2>
               <p className="text-xs text-[#94a3b8]">{orderedBanners.length} total</p>
             </div>
-            <p className="mb-3 text-xs text-[#64748b]">
-              Drag using the handle (☰) to reorder. Order updates automatically.
-            </p>
 
             {isLoading ? (
               <p className="text-sm text-[#64748b]">Loading main banners...</p>
