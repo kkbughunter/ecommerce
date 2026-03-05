@@ -87,6 +87,9 @@ public class ProductService {
         product.setMaxPrice(resolveMaxPrice(request.maxPrice(), request.price()));
         product.setGstPercentage(request.gstPercentage());
         product.setStockQuantity(request.stockQuantity());
+        product.setWidthCm(request.widthCm());
+        product.setHeightCm(request.heightCm());
+        product.setWeightKg(request.weightKg());
         product.setCategory(resolveCategory(request.categoryId()));
         product.setMainImageUploadId(trimToNull(request.mainImageUploadId()));
         product.setProductTag(request.productTag());
@@ -110,6 +113,9 @@ public class ProductService {
         product.setMaxPrice(resolveMaxPrice(request.maxPrice(), request.price()));
         product.setGstPercentage(request.gstPercentage());
         product.setStockQuantity(request.stockQuantity());
+        product.setWidthCm(request.widthCm());
+        product.setHeightCm(request.heightCm());
+        product.setWeightKg(request.weightKg());
         product.setCategory(resolveCategory(request.categoryId()));
         product.setMainImageUploadId(trimToNull(request.mainImageUploadId()));
         product.setProductTag(request.productTag());
@@ -233,6 +239,9 @@ public class ProductService {
                 resolveResponseMaxPrice(product),
                 product.getGstPercentage(),
                 product.getStockQuantity(),
+                product.getWidthCm(),
+                product.getHeightCm(),
+                product.getWeightKg(),
                 product.getMainImageUploadId(),
                 product.getProductTag(),
                 category != null ? category.getCategoryId() : null,
@@ -349,6 +358,9 @@ public class ProductService {
                 resolveResponseMaxPrice(product),
                 product.getGstPercentage(),
                 product.getStockQuantity(),
+                product.getWidthCm(),
+                product.getHeightCm(),
+                product.getWeightKg(),
                 product.getMainImageUploadId(),
                 product.getProductTag(),
                 product.getIsActive(),

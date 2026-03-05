@@ -195,6 +195,56 @@ const CreateProductForm = ({
           </div>
         </section>
 
+        <section className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">Shipping Specs</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            <label className="space-y-1">
+              <span className="text-xs font-semibold text-slate-700">Width (cm)</span>
+              <input
+                type="number"
+                name="widthCm"
+                value={form.widthCm}
+                onChange={onChange}
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                required
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold text-slate-700">Height (cm)</span>
+              <input
+                type="number"
+                name="heightCm"
+                value={form.heightCm}
+                onChange={onChange}
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                required
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold text-slate-700">Weight (kg)</span>
+              <input
+                type="number"
+                name="weightKg"
+                value={form.weightKg}
+                onChange={onChange}
+                min="0"
+                step="0.001"
+                placeholder="0.000"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                required
+              />
+            </label>
+          </div>
+        </section>
+
         <section className="grid gap-3 md:grid-cols-2">
           <label className="space-y-1">
             <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Category</span>

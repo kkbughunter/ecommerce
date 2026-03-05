@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
+import com.astraval.ecommercebackend.common.util.DeliveryFeeCalculator;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.cart.dto.AddCartItemRequest;
 import com.astraval.ecommercebackend.modules.cart.dto.CartCheckoutResponse;
@@ -37,7 +38,6 @@ import com.astraval.ecommercebackend.modules.user.UserRepository;
 public class CartService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-    private static final BigDecimal SHIPPING_FEE = new BigDecimal("40.00");
     private static final BigDecimal DISCOUNT_AMOUNT = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
     private final CartRepository cartRepository;
@@ -83,6 +83,10 @@ public class CartService {
         CartItem existingItem = findCartItem(cart, product.getProductId());
         int existingQuantity = existingItem != null && existingItem.getQuantity() != null ? existingItem.getQuantity() : 0;
         int requestedQuantity = existingQuantity + request.quantity();
+        int availableStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+        if (requestedQuantity > availableStock) {
+            throw new BadRequestException("Insufficient stock for product: " + product.getProductId());
+        }
 
         if (existingItem == null) {
             CartItem newItem = new CartItem();
@@ -115,6 +119,10 @@ public class CartService {
         Product product = item.getProduct();
         if (product == null || !Boolean.TRUE.equals(product.getIsActive())) {
             throw new BadRequestException("Inactive product cannot remain in cart: " + productId);
+        }
+        int availableStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+        if (request.quantity() > availableStock) {
+            throw new BadRequestException("Insufficient stock for product: " + product.getProductId());
         }
 
         item.setQuantity(request.quantity());
@@ -234,6 +242,7 @@ public class CartService {
         List<CartItemResponse> itemResponses = new ArrayList<>();
         BigDecimal subtotal = ZERO;
         BigDecimal taxAmount = ZERO;
+        BigDecimal totalWeightKg = BigDecimal.ZERO;
         int totalItems = 0;
 
         for (CartItem item : cart.getItems()) {
@@ -248,12 +257,15 @@ public class CartService {
             BigDecimal gstPercentage = safeMoney(product.getGstPercentage());
             BigDecimal lineTax = lineSubtotal.multiply(gstPercentage).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
             BigDecimal lineTotal = lineSubtotal.add(lineTax).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal unitWeightKg = safeWeightKg(product);
+            BigDecimal lineWeightKg = unitWeightKg.multiply(BigDecimal.valueOf(quantity));
 
             int availableStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
             boolean available = Boolean.TRUE.equals(product.getIsActive()) && availableStock >= quantity;
 
             subtotal = subtotal.add(lineSubtotal).setScale(2, RoundingMode.HALF_UP);
             taxAmount = taxAmount.add(lineTax).setScale(2, RoundingMode.HALF_UP);
+            totalWeightKg = totalWeightKg.add(lineWeightKg);
             totalItems += quantity;
 
             itemResponses.add(new CartItemResponse(
@@ -269,7 +281,7 @@ public class CartService {
                     available));
         }
 
-        BigDecimal shippingFee = itemResponses.isEmpty() ? ZERO : SHIPPING_FEE;
+        BigDecimal shippingFee = DeliveryFeeCalculator.calculateShippingFee(totalWeightKg, totalItems);
         BigDecimal totalAmount = subtotal.add(shippingFee).add(taxAmount).subtract(DISCOUNT_AMOUNT)
                 .setScale(2, RoundingMode.HALF_UP);
 
@@ -312,6 +324,17 @@ public class CartService {
             throw new BadRequestException("Amount values cannot be negative");
         }
         return value.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal safeWeightKg(Product product) {
+        BigDecimal weightKg = product != null ? product.getWeightKg() : null;
+        if (weightKg == null) {
+            return BigDecimal.ZERO;
+        }
+        if (weightKg.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Product weight cannot be negative: " + product.getProductId());
+        }
+        return weightKg.setScale(3, RoundingMode.HALF_UP);
     }
 
     private String normalizeCurrency(String currency) {

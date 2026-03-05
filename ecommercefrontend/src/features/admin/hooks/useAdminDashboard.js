@@ -16,6 +16,9 @@ const initialCreateForm = {
   maxPrice: "",
   gstPercentage: "",
   stockQuantity: "",
+  widthCm: "",
+  heightCm: "",
+  weightKg: "",
   productTag: "",
   categoryId: "",
   isActive: true,
@@ -172,6 +175,9 @@ const useAdminDashboard = () => {
         maxPrice: createForm.maxPrice ? Number(createForm.maxPrice) : Number(createForm.price),
         gstPercentage: Number(createForm.gstPercentage),
         stockQuantity: Number(createForm.stockQuantity),
+        widthCm: Number(createForm.widthCm),
+        heightCm: Number(createForm.heightCm),
+        weightKg: Number(createForm.weightKg),
         mainImageUploadId: null,
         productTag: createForm.productTag || null,
         categoryId: createForm.categoryId ? Number(createForm.categoryId) : null,
@@ -201,6 +207,9 @@ const useAdminDashboard = () => {
           maxPrice: Number(createdProduct?.maxPrice ?? createPayload.maxPrice),
           gstPercentage: Number(createdProduct?.gstPercentage ?? createPayload.gstPercentage),
           stockQuantity: Number(createdProduct?.stockQuantity ?? createPayload.stockQuantity),
+          widthCm: Number(createdProduct?.widthCm ?? createPayload.widthCm),
+          heightCm: Number(createdProduct?.heightCm ?? createPayload.heightCm),
+          weightKg: Number(createdProduct?.weightKg ?? createPayload.weightKg),
           mainImageUploadId,
           productTag: createdProduct?.productTag ?? createPayload.productTag,
           categoryId: createdProduct?.categoryId ?? createPayload.categoryId,
@@ -236,6 +245,9 @@ const useAdminDashboard = () => {
     const parsedPrice = Number(product?.price);
     const parsedGstPercentage = Number(product?.gstPercentage);
     const parsedStockQuantity = Number(product?.stockQuantity);
+    const parsedWidthCm = Number(product?.widthCm);
+    const parsedHeightCm = Number(product?.heightCm);
+    const parsedWeightKg = Number(product?.weightKg);
     if (!Number.isFinite(parsedMaxPrice) || parsedMaxPrice < 0) {
       setError("Max price must be a non-negative number.");
       setSuccess("");
@@ -261,6 +273,21 @@ const useAdminDashboard = () => {
       setSuccess("");
       return;
     }
+    if (!Number.isFinite(parsedWidthCm) || parsedWidthCm < 0) {
+      setError("Current width is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isFinite(parsedHeightCm) || parsedHeightCm < 0) {
+      setError("Current height is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isFinite(parsedWeightKg) || parsedWeightKg < 0) {
+      setError("Current weight is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
 
     setError("");
     setSuccess("");
@@ -274,6 +301,9 @@ const useAdminDashboard = () => {
         maxPrice: parsedMaxPrice,
         gstPercentage: parsedGstPercentage,
         stockQuantity: parsedStockQuantity,
+        widthCm: parsedWidthCm,
+        heightCm: parsedHeightCm,
+        weightKg: parsedWeightKg,
         mainImageUploadId: product?.mainImageUploadId?.trim() || null,
         productTag: product?.productTag || null,
         categoryId: product?.categoryId ? Number(product.categoryId) : null,
@@ -297,6 +327,9 @@ const useAdminDashboard = () => {
     const parsedMaxPrice = Number(product?.maxPrice ?? product?.price);
     const parsedGstPercentage = Number(product?.gstPercentage);
     const parsedStockQuantity = Number(product?.stockQuantity);
+    const parsedWidthCm = Number(product?.widthCm);
+    const parsedHeightCm = Number(product?.heightCm);
+    const parsedWeightKg = Number(product?.weightKg);
     if (!Number.isFinite(parsedPrice) || !Number.isFinite(parsedMaxPrice)) {
       setError("Current price values are invalid. Please refresh and try again.");
       setSuccess("");
@@ -309,6 +342,21 @@ const useAdminDashboard = () => {
     }
     if (!Number.isInteger(parsedStockQuantity) || parsedStockQuantity < 0) {
       setError("Current stock quantity is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isFinite(parsedWidthCm) || parsedWidthCm < 0) {
+      setError("Current width is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isFinite(parsedHeightCm) || parsedHeightCm < 0) {
+      setError("Current height is invalid. Please refresh and try again.");
+      setSuccess("");
+      return;
+    }
+    if (!Number.isFinite(parsedWeightKg) || parsedWeightKg < 0) {
+      setError("Current weight is invalid. Please refresh and try again.");
       setSuccess("");
       return;
     }
@@ -325,6 +373,9 @@ const useAdminDashboard = () => {
         maxPrice: parsedMaxPrice,
         gstPercentage: parsedGstPercentage,
         stockQuantity: parsedStockQuantity,
+        widthCm: parsedWidthCm,
+        heightCm: parsedHeightCm,
+        weightKg: parsedWeightKg,
         mainImageUploadId: product?.mainImageUploadId?.trim() || null,
         productTag: nextTag || null,
         categoryId: product?.categoryId ? Number(product.categoryId) : null,

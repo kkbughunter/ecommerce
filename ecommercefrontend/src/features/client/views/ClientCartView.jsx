@@ -21,6 +21,7 @@ const ClientCartView = () => {
     isMutatingCart,
     error,
     success,
+    itemErrors,
     updateQuantity,
     removeFromCart,
     clearCart,
@@ -30,6 +31,10 @@ const ClientCartView = () => {
   const showAddressSetupError = (error || "")
     .toLowerCase()
     .includes("please set default shipping and billing addresses in your profile");
+  const isInsufficientStockError = (error || "")
+    .toLowerCase()
+    .includes("insufficient stock for product");
+  const showGlobalError = !!error && !showAddressSetupError && !isInsufficientStockError;
 
   useEffect(() => {
     const ids = (cart?.items || []).map((item) => item.productId).filter(Boolean);
@@ -63,9 +68,8 @@ const ClientCartView = () => {
               Go To My Account
             </button>
           </div>
-        ) : (
-          error && <p className="mb-3 text-sm text-red-600">{error}</p>
-        )}
+        ) : null}
+        {showGlobalError && <p className="mb-3 text-sm text-red-600">{error}</p>}
         {success && <p className="mb-3 text-sm text-emerald-600">{success}</p>}
         {isLoadingCart ? (
           <p className="text-sm text-slate-500">Loading cart...</p>
@@ -91,7 +95,11 @@ const ClientCartView = () => {
                   {cart.items.map((item) => (
                     <div
                       key={item.productId}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3"
+                      className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 ${
+                        itemErrors?.[item.productId]
+                          ? "border-rose-300 bg-rose-50"
+                          : "border-slate-200 bg-slate-50"
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <input
@@ -119,13 +127,16 @@ const ClientCartView = () => {
                           </div>
                         )}
                         <div>
-                        <p className="max-w-[320px] truncate font-medium text-slate-900" title={item.productName}>
-                          {item.productName}
-                        </p>
-                        <p className="text-xs text-slate-500">Unit: {formatMoney(item.unitPrice)}</p>
-                        <p className="text-xs text-slate-500">
-                          Stock now: {item.availableStock} {item.available ? "" : "(currently out of stock)"}
-                        </p>
+                          <p className="max-w-[320px] truncate font-medium text-slate-900" title={item.productName}>
+                            {item.productName}
+                          </p>
+                          <p className="text-xs text-slate-500">Unit: {formatMoney(item.unitPrice)}</p>
+                          <p className={`text-xs ${itemErrors?.[item.productId] ? "text-rose-700" : "text-slate-500"}`}>
+                            Stock now: {item.availableStock} {item.available ? "" : "(currently out of stock)"}
+                          </p>
+                          {itemErrors?.[item.productId] ? (
+                            <p className="text-xs font-semibold text-rose-700">{itemErrors[item.productId]}</p>
+                          ) : null}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -141,8 +152,13 @@ const ClientCartView = () => {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          disabled={isMutatingCart}
+                          disabled={isMutatingCart || Number(item.quantity || 0) >= Number(item.availableStock || 0)}
                           className="h-8 w-8 rounded-md border border-slate-300 text-sm"
+                          title={
+                            Number(item.quantity || 0) >= Number(item.availableStock || 0)
+                              ? "Stock limit reached"
+                              : "Increase quantity"
+                          }
                         >
                           +
                         </button>

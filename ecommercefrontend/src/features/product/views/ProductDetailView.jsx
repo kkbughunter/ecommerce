@@ -68,6 +68,9 @@ const ProductDetailView = () => {
     maxPrice: "",
     gstPercentage: "",
     stockQuantity: "",
+    widthCm: "",
+    heightCm: "",
+    weightKg: "",
     categoryId: "",
     mainImageUploadId: "",
     productTag: "",
@@ -160,6 +163,9 @@ const ProductDetailView = () => {
       maxPrice: data?.maxPrice ?? data?.price ?? "",
       gstPercentage: data?.gstPercentage ?? "",
       stockQuantity: data?.stockQuantity ?? "",
+      widthCm: data?.widthCm ?? "",
+      heightCm: data?.heightCm ?? "",
+      weightKg: data?.weightKg ?? "",
       categoryId: data?.categoryId ?? "",
       mainImageUploadId: data?.mainImageUploadId || "",
       productTag: data?.productTag || "",
@@ -269,6 +275,9 @@ const ProductDetailView = () => {
         maxPrice: editForm.maxPrice ? Number(editForm.maxPrice) : Number(editForm.price),
         gstPercentage: Number(editForm.gstPercentage),
         stockQuantity: Number(editForm.stockQuantity),
+        widthCm: Number(editForm.widthCm),
+        heightCm: Number(editForm.heightCm),
+        weightKg: Number(editForm.weightKg),
         categoryId: editForm.categoryId ? Number(editForm.categoryId) : null,
         mainImageUploadId: editForm.mainImageUploadId.trim() || null,
         productTag: editForm.productTag || null,
@@ -438,6 +447,12 @@ const ProductDetailView = () => {
                     GST {product.gstPercentage}%
                   </span>
                   <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                    {Number(product?.weightKg || 0)} kg
+                  </span>
+                  <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                    {Number(product?.widthCm || 0)} x {Number(product?.heightCm || 0)} cm
+                  </span>
+                  <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
                     Stock {product.stockQuantity}
                   </span>
                   <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
@@ -512,6 +527,9 @@ const ProductDetailView = () => {
                         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Inventory</p>
                         <p className="mt-2 text-sm text-slate-700">Stock: <span className="font-semibold">{product?.stockQuantity}</span></p>
                         <p className="text-sm text-slate-700">GST: <span className="font-semibold">{product?.gstPercentage}%</span></p>
+                        <p className="text-sm text-slate-700">Width: <span className="font-semibold">{product?.widthCm} cm</span></p>
+                        <p className="text-sm text-slate-700">Height: <span className="font-semibold">{product?.heightCm} cm</span></p>
+                        <p className="text-sm text-slate-700">Weight: <span className="font-semibold">{product?.weightKg} kg</span></p>
                         <p className="text-sm text-slate-700">Main Image ID: <span className="font-semibold">{product?.mainImageUploadId || "-"}</span></p>
                       </article>
                     </div>
@@ -631,6 +649,48 @@ const ProductDetailView = () => {
                             />
                           </label>
                           <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Width (cm)</span>
+                            <input
+                              type="number"
+                              name="widthCm"
+                              value={editForm.widthCm}
+                              onChange={handleEditChange}
+                              min="0"
+                              step="0.01"
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                              placeholder="0.00"
+                              required
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Height (cm)</span>
+                            <input
+                              type="number"
+                              name="heightCm"
+                              value={editForm.heightCm}
+                              onChange={handleEditChange}
+                              min="0"
+                              step="0.01"
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                              placeholder="0.00"
+                              required
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Weight (kg)</span>
+                            <input
+                              type="number"
+                              name="weightKg"
+                              value={editForm.weightKg}
+                              onChange={handleEditChange}
+                              min="0"
+                              step="0.001"
+                              className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+                              placeholder="0.000"
+                              required
+                            />
+                          </label>
+                          <label className="space-y-1">
                             <span className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">Category</span>
                             <select
                               name="categoryId"
@@ -742,6 +802,9 @@ const ProductDetailView = () => {
                   <h2 className="text-base font-semibold text-slate-900">About This Product</h2>
                   <div className="mt-3 grid gap-2">
                     <p className="text-sm text-slate-700">Category: <span className="font-semibold">{product.categoryName || "-"}</span></p>
+                    <p className="text-sm text-slate-700">Width: <span className="font-semibold">{product?.widthCm} cm</span></p>
+                    <p className="text-sm text-slate-700">Height: <span className="font-semibold">{product?.heightCm} cm</span></p>
+                    <p className="text-sm text-slate-700">Weight: <span className="font-semibold">{product?.weightKg} kg</span></p>
                     <p className="text-sm text-slate-700">Main Image ID: <span className="font-semibold">{product.mainImageUploadId || "-"}</span></p>
                     <p className="text-sm text-slate-700">Tag: <span className="font-semibold">{getTagLabel(product?.productTag)}</span></p>
                     <p className="text-sm text-slate-700">Created: <span className="font-semibold">{formatDateTime(product.createdDt)}</span></p>

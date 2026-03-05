@@ -14,6 +14,18 @@ const emptyCart = {
   items: [],
 };
 
+const parseInsufficientStockProductId = (message) => {
+  if (typeof message !== "string") {
+    return null;
+  }
+  const match = message.match(/insufficient stock for product:\s*(\d+)/i);
+  if (!match) {
+    return null;
+  }
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 const normalizeCart = (payload) => {
   const raw = payload || {};
   return {
@@ -102,15 +114,24 @@ const useCart = ({ enabled = true } = {}) => {
   const [isMutatingCart, setIsMutatingCart] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [itemErrors, setItemErrors] = useState({});
 
   const loadCart = useCallback(async () => {
     setIsLoadingCart(true);
     try {
       const response = await cartApi.getMyCart();
-      setCart(normalizeCart(response?.data?.data));
+      const nextCart = normalizeCart(response?.data?.data);
+      setCart(nextCart);
+      const validProductIds = new Set((nextCart.items || []).map((item) => Number(item?.productId)));
+      setItemErrors((prev) =>
+        Object.fromEntries(
+          Object.entries(prev).filter(([productId]) => validProductIds.has(Number(productId))),
+        ),
+      );
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to load cart."));
       setCart(emptyCart);
+      setItemErrors({});
     } finally {
       setIsLoadingCart(false);
     }
@@ -137,8 +158,25 @@ const useCart = ({ enabled = true } = {}) => {
       const response = await cartApi.addItem({ productId, quantity });
       setCart(normalizeCart(response?.data?.data));
       setSuccess("Added to cart.");
+      setItemErrors((prev) => {
+        if (!Object.prototype.hasOwnProperty.call(prev, productId)) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[productId];
+        return next;
+      });
     } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to add item to cart."));
+      const message = getApiErrorMessage(err, "Unable to add item to cart.");
+      setError(message);
+      const insufficientProductId =
+        parseInsufficientStockProductId(message) || (Number.isFinite(Number(productId)) ? Number(productId) : null);
+      if (message.toLowerCase().includes("insufficient stock for product") && insufficientProductId !== null) {
+        setItemErrors((prev) => ({
+          ...prev,
+          [insufficientProductId]: message,
+        }));
+      }
     } finally {
       setIsMutatingCart(false);
     }
@@ -157,8 +195,28 @@ const useCart = ({ enabled = true } = {}) => {
     try {
       const response = await cartApi.updateItemQuantity(productId, { quantity });
       setCart(normalizeCart(response?.data?.data));
+      setItemErrors((prev) => {
+        if (!Object.prototype.hasOwnProperty.call(prev, productId)) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[productId];
+        return next;
+      });
     } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to update cart item."));
+      const message = getApiErrorMessage(err, "Unable to update cart item.");
+      setError(message);
+      const isInsufficientStockError = message.toLowerCase().includes("insufficient stock for product");
+      if (isInsufficientStockError) {
+        const insufficientProductId =
+          parseInsufficientStockProductId(message) || (Number.isFinite(Number(productId)) ? Number(productId) : null);
+        if (insufficientProductId !== null) {
+          setItemErrors((prev) => ({
+            ...prev,
+            [insufficientProductId]: message,
+          }));
+        }
+      }
     } finally {
       setIsMutatingCart(false);
     }
@@ -177,6 +235,14 @@ const useCart = ({ enabled = true } = {}) => {
     try {
       const response = await cartApi.removeItem(productId);
       setCart(normalizeCart(response?.data?.data));
+      setItemErrors((prev) => {
+        if (!Object.prototype.hasOwnProperty.call(prev, productId)) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[productId];
+        return next;
+      });
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to remove cart item."));
     } finally {
@@ -195,6 +261,7 @@ const useCart = ({ enabled = true } = {}) => {
       const response = await cartApi.clearCart();
       setCart(normalizeCart(response?.data?.data));
       setSuccess("Cart cleared.");
+      setItemErrors({});
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to clear cart."));
     } finally {
@@ -263,6 +330,7 @@ const useCart = ({ enabled = true } = {}) => {
     isMutatingCart,
     error,
     success,
+    itemErrors,
     loadCart,
     addToCart,
     updateQuantity,

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
+import com.astraval.ecommercebackend.common.util.DeliveryFeeCalculator;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.address.Address;
 import com.astraval.ecommercebackend.modules.address.AddressRepository;
@@ -42,7 +43,6 @@ import com.astraval.ecommercebackend.modules.user.UserRepository;
 public class OrderService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-    private static final BigDecimal SHIPPING_FEE = new BigDecimal("40.00");
     private static final BigDecimal DISCOUNT_AMOUNT = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
     private static final int MAX_ADMIN_PAGE_SIZE = 100;
     private static final Map<OrderStatus, Set<OrderStatus>> VALID_STATUS_TRANSITIONS = Map.of(
@@ -134,6 +134,8 @@ public class OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal subtotal = ZERO;
         BigDecimal totalTax = ZERO;
+        BigDecimal totalWeightKg = BigDecimal.ZERO;
+        int totalItems = 0;
         for (PlaceOrderItemRequest itemRequest : itemRequests) {
             if (itemRequest == null || itemRequest.productId() == null || itemRequest.quantity() == null
                     || itemRequest.quantity() < 1) {
@@ -163,6 +165,9 @@ public class OrderService {
             BigDecimal gstPercentage = product.getGstPercentage() != null ? product.getGstPercentage() : ZERO;
             BigDecimal itemTax = lineTotal.multiply(gstPercentage).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
             totalTax = totalTax.add(itemTax).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal itemWeightKg = safeWeightKg(product).multiply(BigDecimal.valueOf(itemRequest.quantity()));
+            totalWeightKg = totalWeightKg.add(itemWeightKg);
+            totalItems += itemRequest.quantity();
 
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
@@ -174,11 +179,12 @@ public class OrderService {
             orderItems.add(orderItem);
         }
 
-        BigDecimal totalAmount = subtotal.add(SHIPPING_FEE).add(totalTax).subtract(DISCOUNT_AMOUNT)
+        BigDecimal shippingFee = DeliveryFeeCalculator.calculateShippingFee(totalWeightKg, totalItems);
+        BigDecimal totalAmount = subtotal.add(shippingFee).add(totalTax).subtract(DISCOUNT_AMOUNT)
                 .setScale(2, RoundingMode.HALF_UP);
 
         order.setSubtotalAmount(subtotal);
-        order.setShippingFee(SHIPPING_FEE);
+        order.setShippingFee(shippingFee);
         order.setTaxAmount(totalTax);
         order.setDiscountAmount(DISCOUNT_AMOUNT);
         order.setTotalAmount(totalAmount);
@@ -373,6 +379,17 @@ public class OrderService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private BigDecimal safeWeightKg(Product product) {
+        BigDecimal weightKg = product != null ? product.getWeightKg() : null;
+        if (weightKg == null) {
+            return BigDecimal.ZERO;
+        }
+        if (weightKg.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Product weight cannot be negative: " + product.getProductId());
+        }
+        return weightKg.setScale(3, RoundingMode.HALF_UP);
     }
 
     // private String normalizeCurrency(String currency) {

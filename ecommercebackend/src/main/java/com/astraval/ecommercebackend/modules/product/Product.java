@@ -48,6 +48,15 @@ public class Product {
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity = 0;
 
+    @Column(name = "width_cm", precision = 10, scale = 2)
+    private BigDecimal widthCm = BigDecimal.ZERO;
+
+    @Column(name = "height_cm", precision = 10, scale = 2)
+    private BigDecimal heightCm = BigDecimal.ZERO;
+
+    @Column(name = "weight_kg", precision = 10, scale = 3)
+    private BigDecimal weightKg = BigDecimal.ZERO;
+
     @Column(name = "main_image_upload_id", length = 36)
     private String mainImageUploadId;
 
@@ -88,6 +97,15 @@ public class Product {
         if (gstPercentage == null) {
             gstPercentage = BigDecimal.ZERO;
         }
+        if (widthCm == null) {
+            widthCm = BigDecimal.ZERO;
+        }
+        if (heightCm == null) {
+            heightCm = BigDecimal.ZERO;
+        }
+        if (weightKg == null) {
+            weightKg = BigDecimal.ZERO;
+        }
         if (maxPrice == null) {
             maxPrice = price;
         }
@@ -104,6 +122,15 @@ public class Product {
         }
         if (gstPercentage == null) {
             gstPercentage = BigDecimal.ZERO;
+        }
+        if (widthCm == null) {
+            widthCm = BigDecimal.ZERO;
+        }
+        if (heightCm == null) {
+            heightCm = BigDecimal.ZERO;
+        }
+        if (weightKg == null) {
+            weightKg = BigDecimal.ZERO;
         }
         if (maxPrice == null) {
             maxPrice = price;
