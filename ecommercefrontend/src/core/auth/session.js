@@ -71,7 +71,7 @@ export const getHomePathByRole = () => {
     return "/admin";
   }
   if (role === "SUPER_ADMIN") {
-    return "/admin/categories";
+    return "/superadmin/customers";
   }
   if (role === "USER") {
     return "/client";

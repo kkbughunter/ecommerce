@@ -36,7 +36,7 @@ const adminRoutes = [
     ),
   },
   {
-    path: "/admin/categories",
+    path: "/superadmin/categories",
     element: (
       <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminCategoriesView />
@@ -44,7 +44,7 @@ const adminRoutes = [
     ),
   },
   {
-    path: "/admin/sliders",
+    path: "/superadmin/sliders",
     element: (
       <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminSlidersView />
@@ -52,7 +52,7 @@ const adminRoutes = [
     ),
   },
   {
-    path: "/admin/main-banners",
+    path: "/superadmin/main-banners",
     element: (
       <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminMainBannersView />
@@ -60,7 +60,7 @@ const adminRoutes = [
     ),
   },
   {
-    path: "/admin/customers",
+    path: "/superadmin/customers",
     element: (
       <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminCustomersView />
