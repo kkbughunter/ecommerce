@@ -308,7 +308,7 @@ const AdminOrdersView = () => {
       onSearchChange={setOrderSearch}
       searchPlaceholder="Search order id, customer, email..."
       topActions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={() => navigate("/admin/invoices")}
@@ -339,7 +339,7 @@ const AdminOrdersView = () => {
             <select
               value={filters.orderStatus}
               onChange={(event) => setFilters((prev) => ({ ...prev, orderStatus: event.target.value }))}
-              className="h-9 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+              className="h-9 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
             >
               {ORDER_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -350,7 +350,7 @@ const AdminOrdersView = () => {
             <select
               value={filters.paymentStatus}
               onChange={(event) => setFilters((prev) => ({ ...prev, paymentStatus: event.target.value }))}
-              className="h-9 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+              className="h-9 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
             >
               {PAYMENT_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -361,7 +361,7 @@ const AdminOrdersView = () => {
             <select
               value={filters.dateRange}
               onChange={(event) => setFilters((prev) => ({ ...prev, dateRange: event.target.value }))}
-              className="h-9 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+              className="h-9 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
             >
               {DATE_RANGE_OPTIONS.map((range) => (
                 <option key={range.value} value={range.value}>
@@ -440,7 +440,7 @@ const AdminOrdersView = () => {
             </table>
           </div>
 
-          <div className="flex items-center justify-end gap-2 border-t border-[#edf0f3] px-4 py-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#edf0f3] px-4 py-3">
             <button
               type="button"
               disabled={ordersPage.first}

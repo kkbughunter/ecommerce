@@ -194,8 +194,8 @@ const AdminCustomersView = () => {
         ) : null}
 
         <section className="grid gap-4 xl:grid-cols-[1fr_1.8fr]">
-          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
+          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-[#111827]">Customer List</h2>
               <p className="text-xs text-[#94a3b8]">{customers.length} total</p>
             </div>
@@ -203,7 +203,7 @@ const AdminCustomersView = () => {
             {isLoadingCustomers ? (
               <p className="text-sm text-[#64748b]">Loading customers...</p>
             ) : filteredCustomers.length ? (
-              <div className="space-y-2">
+              <div className="max-h-[520px] space-y-2 overflow-auto pr-1">
                 {filteredCustomers.map((customer) => (
                   <button
                     key={customer.customerId}
@@ -233,7 +233,7 @@ const AdminCustomersView = () => {
             )}
           </article>
 
-          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             {!selectedCustomerId ? (
               <p className="text-sm text-[#64748b]">Select a customer to view details.</p>
             ) : isLoadingDetails ? (

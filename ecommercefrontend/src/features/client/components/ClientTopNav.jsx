@@ -80,14 +80,14 @@ const ClientTopNav = ({
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#e8ebfb] bg-white/85 backdrop-blur">
-      <div className="flex w-full flex-wrap items-center justify-between gap-3 px-2 py-4 md:px-3">
-        <div className="flex items-center gap-8">
+      <div className="flex w-full flex-wrap items-start justify-between gap-3 px-2 py-3 sm:py-4 md:px-3">
+        <div className="flex min-w-0 items-center gap-4 md:gap-8">
           <div>
             {eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#64748b]">{eyebrow}</p> : null}
-            <h1 className="text-[24px] font-bold tracking-tight text-[#111827]">{title}</h1>
+            <h1 className="text-[19px] font-bold tracking-tight text-[#111827] max-[430px]:text-[17px] sm:text-[24px]">{title}</h1>
           </div>
           {links.length ? (
-            <nav className="hidden items-center gap-5 text-[14px] text-[#475569] md:flex">
+            <nav className="hidden items-center gap-5 text-[14px] text-[#475569] lg:flex">
               {links.map((item) => (
                 <a key={`${item.href}-${item.label}`} href={item.href} className="transition hover:text-[#2563eb]">
                   {item.label}
@@ -97,14 +97,14 @@ const ClientTopNav = ({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
           {showSearch ? (
             <input
               type="text"
               value={searchValue}
               onChange={(event) => onSearchChange?.(event.target.value)}
               placeholder={searchPlaceholder}
-              className="h-10 w-56 rounded-xl border border-[#d7dcf3] bg-[#f8faff] px-3 text-[13px] outline-none focus:border-[#7c3aed]"
+              className="h-10 w-full min-w-0 rounded-xl border border-[#d7dcf3] bg-[#f8faff] px-3 text-[13px] outline-none sm:w-56 focus:border-[#7c3aed]"
             />
           ) : null}
           {showSearch ? (

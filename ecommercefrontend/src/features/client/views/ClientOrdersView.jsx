@@ -181,12 +181,12 @@ const ClientOrdersView = () => {
     <main className="flex min-h-screen flex-col bg-[#f4f6f9] text-[#0f172a]">
       <ClientTopNav title="My Orders" />
 
-      <section className="w-full flex-1 px-2 py-5 md:px-3">
+      <section className="w-full flex-1 px-2 py-4 md:px-3 md:py-5">
         {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
 
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-          <article className="rounded-2xl border border-[#e2e8f0] bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
+          <article className="rounded-2xl border border-[#e2e8f0] bg-white p-3 sm:p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-[#111827]">Order History</h2>
               <button
                 type="button"
@@ -199,7 +199,7 @@ const ClientOrdersView = () => {
             {isLoadingList ? (
               <p className="text-sm text-slate-500">Loading orders...</p>
             ) : orders.length ? (
-              <div className="space-y-2">
+              <div className="max-h-[460px] space-y-2 overflow-auto pr-1">
                 {orders.map((order) => (
                   <button
                     key={order.orderId}
@@ -224,7 +224,7 @@ const ClientOrdersView = () => {
             )}
           </article>
 
-          <article className="rounded-2xl border border-[#e2e8f0] bg-white p-4">
+          <article className="rounded-2xl border border-[#e2e8f0] bg-white p-3 sm:p-4">
             {!selectedOrderId ? (
               <p className="text-sm text-slate-500">Select an order to view details.</p>
             ) : isLoadingDetails ? (
@@ -233,7 +233,7 @@ const ClientOrdersView = () => {
               <div className="space-y-4">
                 <section className="flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <h3 className="text-2xl font-bold text-[#111827]">
+                    <h3 className="text-xl font-bold text-[#111827] sm:text-2xl">
                       {selectedOrder?.orderNumber || selectedOrderSummary?.orderNumber}
                     </h3>
                     <p className="text-xs text-[#64748b]">
