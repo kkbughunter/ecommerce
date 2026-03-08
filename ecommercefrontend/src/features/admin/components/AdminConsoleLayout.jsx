@@ -84,11 +84,37 @@ const NAV_GROUPS = [
   },
 ];
 const FLAT_NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
+const SUPER_ADMIN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers"]);
+const ADMIN_HIDDEN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers"]);
 const DEFAULT_EXPANDED_GROUPS = {
   overview: true,
   catalog: true,
-  marketing: false,
+  marketing: true,
   operations: true,
+};
+
+const filterNavGroupsByRole = (roles) => {
+  const normalizedRoles = Array.isArray(roles) ? roles : [];
+  const isAdminOnly =
+    normalizedRoles.includes("ADMIN") && !normalizedRoles.includes("SUPER_ADMIN");
+  const isSuperAdminOnly =
+    normalizedRoles.includes("SUPER_ADMIN") && !normalizedRoles.includes("ADMIN");
+
+  if (isAdminOnly) {
+    return NAV_GROUPS.map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !ADMIN_HIDDEN_NAV_KEYS.has(item.key)),
+    })).filter((group) => group.items.length > 0);
+  }
+
+  if (!isSuperAdminOnly) {
+    return NAV_GROUPS;
+  }
+
+  return NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => SUPER_ADMIN_NAV_KEYS.has(item.key)),
+  })).filter((group) => group.items.length > 0);
 };
 
 const Icon = ({ path }) => (
@@ -109,24 +135,21 @@ const AdminConsoleLayout = ({
 }) => {
   const navigate = useNavigate();
   const authMeta = getAuthMeta();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("admin_sidebar_collapsed") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [expandedGroups, setExpandedGroups] = useState(DEFAULT_EXPANDED_GROUPS);
+  const navGroups = useMemo(() => filterNavGroupsByRole(authMeta?.roles), [authMeta?.roles]);
+  const flatNavItems = useMemo(() => navGroups.flatMap((group) => group.items), [navGroups]);
 
   const activeItem = useMemo(
-    () => FLAT_NAV_ITEMS.find((item) => item.key === activeNav) || FLAT_NAV_ITEMS[0],
-    [activeNav],
+    () => flatNavItems.find((item) => item.key === activeNav) || flatNavItems[0] || FLAT_NAV_ITEMS[0],
+    [activeNav, flatNavItems],
   );
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("admin_sidebar_collapsed");
-      if (saved === "1") {
-        setIsSidebarCollapsed(true);
-      }
-    } catch {
-      // ignore localStorage issues
-    }
-  }, []);
 
   useEffect(() => {
     try {
@@ -167,7 +190,7 @@ const AdminConsoleLayout = ({
               <nav className="space-y-3">
                 {isSidebarCollapsed ? (
                   <section className="space-y-1.5">
-                    {FLAT_NAV_ITEMS.map((item) => (
+                    {flatNavItems.map((item) => (
                       <button
                         key={item.key}
                         type="button"
@@ -184,7 +207,7 @@ const AdminConsoleLayout = ({
                     ))}
                   </section>
                 ) : (
-                  NAV_GROUPS.map((group) => {
+                  navGroups.map((group) => {
                     const isExpanded = Boolean(expandedGroups[group.key]);
                     return (
                       <section key={group.key} className="space-y-1.5">

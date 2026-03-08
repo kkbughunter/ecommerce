@@ -56,6 +56,9 @@ export const getPrimaryRole = () => {
   if (roles.includes("ADMIN")) {
     return "ADMIN";
   }
+  if (roles.includes("SUPER_ADMIN")) {
+    return "SUPER_ADMIN";
+  }
   if (roles.includes("USER")) {
     return "USER";
   }
@@ -66,6 +69,9 @@ export const getHomePathByRole = () => {
   const role = getPrimaryRole();
   if (role === "ADMIN") {
     return "/admin";
+  }
+  if (role === "SUPER_ADMIN") {
+    return "/admin/categories";
   }
   if (role === "USER") {
     return "/client";

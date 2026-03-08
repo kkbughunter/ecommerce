@@ -38,7 +38,7 @@ const adminRoutes = [
   {
     path: "/admin/categories",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminCategoriesView />
       </ProtectedRoute>
     ),
@@ -46,7 +46,7 @@ const adminRoutes = [
   {
     path: "/admin/sliders",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminSlidersView />
       </ProtectedRoute>
     ),
@@ -54,7 +54,7 @@ const adminRoutes = [
   {
     path: "/admin/main-banners",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminMainBannersView />
       </ProtectedRoute>
     ),
@@ -62,7 +62,7 @@ const adminRoutes = [
   {
     path: "/admin/customers",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminCustomersView />
       </ProtectedRoute>
     ),

@@ -36,7 +36,7 @@ const LoginView = () => {
             </h1>
             <p className="text-sm text-slate-600">
               {mode === "login"
-                ? "Sign in with your account. You will be redirected to the Admin or Client portal based on your role."
+                ? "Sign in with your account. You will be redirected to the Admin, Super Admin, or Client portal based on your role."
                 : mode === "register"
                   ? "Register with your email. We will send an OTP to verify your account."
                   : "Enter your email and OTP sent to your inbox."}
