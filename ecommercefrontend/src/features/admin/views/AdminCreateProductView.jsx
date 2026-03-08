@@ -44,7 +44,7 @@ const AdminCreateProductView = () => {
           </div>
         ) : null}
 
-        <div className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+        <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
           <CreateProductForm
             form={createForm}
             categories={categories}

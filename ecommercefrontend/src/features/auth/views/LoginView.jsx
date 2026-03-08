@@ -24,14 +24,14 @@ const LoginView = () => {
   return (
     <main className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_20%_20%,#ede9fe_0%,#e0e7ff_45%,#f8fafc_100%)] p-4 md:p-6">
       <section className="mx-auto flex w-full max-w-6xl flex-1 overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-xl">
-        <div className="flex w-full items-center bg-[#f8f6ff] p-5 md:p-6 lg:w-[40%]">
+        <div className="flex w-full items-center bg-[#f8f6ff] p-4 md:p-6 lg:w-[40%]">
           <div className="mx-auto flex w-full max-w-sm flex-col gap-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-700">
               {mode === "login" && "Welcome Back"}
               {mode === "register" && "Create Account"}
               {mode === "verify" && "Verify Account"}
             </p>
-            <h1 className="text-3xl font-serif text-slate-900">
+            <h1 className="text-[28px] font-serif text-slate-900 max-[430px]:text-2xl">
               Power Your Storefront
             </h1>
             <p className="text-sm text-slate-600">

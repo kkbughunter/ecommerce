@@ -281,7 +281,7 @@ const ClientAccountView = () => {
 
       <section className="w-full flex-1 px-2 py-6 md:px-3">
         <div className="space-y-4">
-          <article className="rounded-2xl border border-[#dce4ff] bg-[linear-gradient(120deg,#ffffff,#f1f5ff)] p-5 shadow-[0_12px_32px_rgba(30,41,59,0.08)]">
+          <article className="rounded-2xl border border-[#dce4ff] bg-[linear-gradient(120deg,#ffffff,#f1f5ff)] p-4 shadow-[0_12px_32px_rgba(30,41,59,0.08)] sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(140deg,#2563eb,#4f46e5)] text-lg font-semibold text-white">
@@ -294,7 +294,7 @@ const ClientAccountView = () => {
                   <p className="text-sm text-slate-600">{authMeta?.email || "-"}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
                 <button
                   type="button"
                   onClick={loadProfile}
@@ -319,7 +319,7 @@ const ClientAccountView = () => {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
             {isLoading ? (
               <p className="text-sm text-slate-500">Loading profile...</p>
             ) : !isEditing ? (

@@ -31,14 +31,14 @@ const CATEGORY_HIGHLIGHT_FALLBACK = {
 };
 
 const SectionTitle = ({ eyebrow, title, action }) => (
-  <div className="mb-5 flex items-end justify-between gap-3">
+  <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
     <div>
       {eyebrow && (
         <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#7c3aed]">
           {eyebrow}
         </p>
       )}
-      <h2 className="mt-1 text-[26px] font-semibold text-[#0f172a]">{title}</h2>
+      <h2 className="mt-1 text-2xl font-semibold text-[#0f172a] sm:text-[26px]">{title}</h2>
     </div>
     {action}
   </div>
@@ -227,7 +227,7 @@ const ClientHomeView = ({ publicMode = false }) => {
         cartCount={cartCount}
         rightActions={
           publicMode ? (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               {authenticated && roleHomePath !== "/login" ? (
                 <button
                   type="button"
@@ -257,7 +257,7 @@ const ClientHomeView = ({ publicMode = false }) => {
         ) : null}
         <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
           <article
-            className="rounded-3xl p-8 text-white shadow-[0_25px_60px_rgba(30,41,59,0.35)]"
+            className="rounded-3xl p-4 text-white shadow-[0_25px_60px_rgba(30,41,59,0.35)] sm:p-8"
             style={withBannerBackground(
               limitedOffer.imageUrl,
               "linear-gradient(135deg,#0f172a,#312e81_45%,#1d4ed8)",
@@ -289,7 +289,7 @@ const ClientHomeView = ({ publicMode = false }) => {
                 </div>
               ) : null}
             </div>
-            <h2 className="mt-2 max-w-lg text-[42px] font-semibold leading-[1.1]">
+            <h2 className="mt-2 max-w-lg text-[27px] font-semibold leading-[1.1] max-[430px]:text-[24px] sm:text-[42px]">
               {limitedOffer.title}
             </h2>
             <p className="mt-3 max-w-lg text-[14px] text-[#dbeafe]">
@@ -314,7 +314,7 @@ const ClientHomeView = ({ publicMode = false }) => {
             </div>
           </article>
 
-          <article className="rounded-3xl border border-[#e7ebff] bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.07)]">
+          <article className="rounded-3xl border border-[#e7ebff] bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.07)] sm:p-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#7c3aed]">Featured drop</p>
             <h3 className="mt-2 text-[24px] font-semibold text-[#0f172a]">Weekly Picks</h3>
             <p className="mt-2 text-[13px] text-[#64748b]">
@@ -349,7 +349,7 @@ const ClientHomeView = ({ publicMode = false }) => {
             </button>
           }
         />
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           {categoryTiles.map((category) => (
             <button
               key={`${category?.categoryId || "cat"}-${category?.categoryName || "home-kitchen"}`}
@@ -404,7 +404,7 @@ const ClientHomeView = ({ publicMode = false }) => {
 
       <section className="mt-14 w-full px-2 md:px-3">
         <article
-          className="rounded-3xl p-8 text-white shadow-[0_20px_45px_rgba(15,23,42,0.35)]"
+          className="rounded-3xl p-4 text-white shadow-[0_20px_45px_rgba(15,23,42,0.35)] sm:p-8"
           style={withBannerBackground(
             categoryHighlight.imageUrl,
             "linear-gradient(120deg,#0b1120,#1e293b,#1d4ed8)",
@@ -436,7 +436,7 @@ const ClientHomeView = ({ publicMode = false }) => {
               </div>
             ) : null}
           </div>
-          <h2 className="mt-2 text-[34px] font-semibold leading-[1.12]">{categoryHighlight.title}</h2>
+          <h2 className="mt-2 text-[26px] font-semibold leading-[1.12] max-[430px]:text-[22px] sm:text-[34px]">{categoryHighlight.title}</h2>
           <p className="mt-2 max-w-lg text-[13px] text-[#dbeafe]">
             {categoryHighlight.description || "Discover category-focused picks curated for your needs."}
           </p>
@@ -455,7 +455,7 @@ const ClientHomeView = ({ publicMode = false }) => {
           eyebrow="Discover"
           title="Trending Products"
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled={pageMeta.first}
@@ -508,7 +508,7 @@ const ClientHomeView = ({ publicMode = false }) => {
       </section>
 
       <footer className="mt-16 bg-[#0b1020] text-white">
-        <div className="grid w-full gap-8 px-2 py-12 md:grid-cols-4 md:px-3">
+        <div className="grid w-full gap-8 px-2 py-12 sm:grid-cols-2 md:grid-cols-4 md:px-3">
           <div>
             <h4 className="text-[22px] font-semibold">Villpo Store</h4>
             <p className="mt-3 text-[13px] text-[#aab2d5]">Smart products. Better prices. Modern shopping experience.</p>

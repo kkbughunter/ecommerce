@@ -138,7 +138,7 @@ const AdminHomeView = () => {
       title="Dashboard"
       subtitle="Orders, products, payments and invoices in one modern admin panel."
       topActions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={loadDashboard}
@@ -169,24 +169,24 @@ const AdminHomeView = () => {
         ) : null}
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Ecommerce Revenue</p>
             <p className="mt-2 text-2xl font-semibold text-[#0f172a]">{formatMoney(financeMetrics.totalRevenue)}</p>
             <p className="mt-1 text-xs text-[#16a34a]">{formatMoney(financeMetrics.paidRevenue)} paid</p>
           </div>
-          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Paid Orders</p>
             <p className="mt-2 text-2xl font-semibold text-[#0f172a]">{financeMetrics.paidOrders}</p>
             <p className="mt-1 text-xs text-[#64748b]">Pending payments: {financeMetrics.pendingPayments}</p>
           </div>
-          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Average Order Value</p>
             <p className="mt-2 text-2xl font-semibold text-[#0f172a]">
               {formatMoney(financeMetrics.averageOrderValue)}
             </p>
             <p className="mt-1 text-xs text-[#64748b]">Based on current dashboard summary</p>
           </div>
-          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Fulfillment Rate</p>
             <p className="mt-2 text-2xl font-semibold text-[#0f172a]">{financeMetrics.fulfillmentRate.toFixed(1)}%</p>
             <p className="mt-1 text-xs text-[#64748b]">Delivered vs all orders</p>
@@ -194,8 +194,8 @@ const AdminHomeView = () => {
         </section>
 
         <section className="grid gap-3 xl:grid-cols-[2fr_1fr]">
-          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
-            <div className="mb-4 flex items-center justify-between">
+          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold text-[#111827]">Products Overview</h2>
               {isLoadingDashboard ? <span className="text-xs text-[#94a3b8]">Updating...</span> : null}
             </div>
@@ -277,7 +277,7 @@ const AdminHomeView = () => {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <h2 className="text-lg font-semibold text-[#111827]">Payment Mix</h2>
             <div className="mt-4 flex items-center justify-center">
               <div
@@ -309,8 +309,8 @@ const AdminHomeView = () => {
           </article>
         </section>
 
-        <section className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
-          <div className="mb-3 flex items-center justify-between">
+        <section className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-semibold text-[#111827]">Recent Orders</h2>
             <button
               type="button"
@@ -357,3 +357,4 @@ const AdminHomeView = () => {
 };
 
 export default AdminHomeView;
+

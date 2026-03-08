@@ -125,7 +125,7 @@ const SectionHeader = ({ eyebrow, title, rightAction }) => (
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#db4444]">
         {eyebrow}
       </p>
-      <h2 className="mt-1 text-[28px] font-semibold text-[#111827]">{title}</h2>
+      <h2 className="mt-1 text-[24px] font-semibold text-[#111827] sm:text-[28px]">{title}</h2>
     </div>
     {rightAction}
   </div>
@@ -482,20 +482,20 @@ const LandingPageView = () => {
             <h1 className="text-[24px] font-bold tracking-tight text-[#111827]">Villpo Store</h1>
           </div>
 
-          <nav className="hidden items-center gap-6 text-[13px] text-[#374151] md:flex">
+          <nav className="hidden items-center gap-6 text-[13px] text-[#374151] lg:flex">
             <a href="#flash" className="transition hover:text-[#db4444]">Flash Sales</a>
             <a href="#categories" className="transition hover:text-[#db4444]">Categories</a>
             <a href="#explore" className="transition hover:text-[#db4444]">Explore</a>
             <a href="#new-arrival" className="transition hover:text-[#db4444]">New Arrival</a>
           </nav>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="What are you looking for?"
-              className="h-10 w-64 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] px-3 text-[12px] text-[#1f2937] outline-none focus:border-[#db4444]"
+              className="h-10 w-full rounded-lg border border-[#e5e7eb] bg-[#f9fafb] px-3 text-[12px] text-[#1f2937] outline-none sm:w-64 focus:border-[#db4444]"
             />
             <button
               type="button"
@@ -545,11 +545,11 @@ const LandingPageView = () => {
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.84),rgba(0,0,0,0.52),rgba(0,0,0,0.18))]" />
 
-                <div className="relative z-10 flex min-h-[350px] flex-col justify-center p-6 text-white md:p-8">
+                <div className="relative z-10 flex min-h-[290px] flex-col justify-center p-4 text-white md:min-h-[350px] md:p-8">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#fca5a5]">
                     {activeHero?.badgeText || activeHero?.subtitle || getCampaignLabel(activeHero?.placementTag)}
                   </p>
-                  <h2 className="mt-2 max-w-[560px] text-[36px] font-semibold leading-[1.12] md:text-[44px]">
+                  <h2 className="mt-2 max-w-[560px] text-[28px] font-semibold leading-[1.12] max-[430px]:text-[24px] sm:text-[36px] md:text-[44px]">
                     {activeHero?.title || "Main Banner"}
                   </h2>
                   <p className="mt-3 max-w-[560px] text-[14px] text-[#f3f4f6]">
@@ -583,7 +583,7 @@ const LandingPageView = () => {
                     </button>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between gap-3">
+                  <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-1.5">
                       {heroSlides.map((slide, index) => (
                         <button
@@ -624,7 +624,7 @@ const LandingPageView = () => {
               <div className="flex min-h-[350px] items-center justify-center p-6 text-center text-white">
                 <div>
                   <p className="text-[12px] uppercase tracking-[0.12em] text-[#fca5a5]">Main Banner</p>
-                  <h2 className="mt-2 text-[28px] font-semibold">No banner added</h2>
+                  <h2 className="mt-2 text-[24px] font-semibold sm:text-[28px]">No banner added</h2>
                   <p className="mt-2 text-[13px] text-[#e5e7eb]">
                     Admin has not added an active main banner yet.
                   </p>
@@ -639,7 +639,7 @@ const LandingPageView = () => {
             eyebrow="Today's"
             title="Flash Sales"
             rightAction={
-              <div className="flex items-center gap-2 text-[13px] font-semibold text-[#111827]">
+              <div className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-[#111827]">
                 <span>Ends In</span>
                 <span className="rounded-md bg-white px-2 py-1">{countdown.hours}</span>
                 <span>:</span>
@@ -650,7 +650,7 @@ const LandingPageView = () => {
             }
           />
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid gap-3 min-[390px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {flashShowcase.map((product) => (
               <ProductTile
                 key={`flash-${product.productId}`}
@@ -679,7 +679,7 @@ const LandingPageView = () => {
 
         <section id="categories" className="mt-12">
           <SectionHeader eyebrow="Categories" title="Browse By Category" />
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <div className="grid gap-3 min-[390px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
             {categoryHighlights.map((category, index) => (
               <button
                 key={category?.categoryId || `category-${index}`}
@@ -756,7 +756,7 @@ const LandingPageView = () => {
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#86efac]">
                 {activeHighlight?.subtitle || getCampaignLabel(activeHighlight?.placementTag)}
               </p>
-              <h3 className="mt-2 text-[36px] font-semibold leading-[1.12]">
+              <h3 className="mt-2 text-[26px] font-semibold leading-[1.12] max-[430px]:text-[22px] sm:text-[36px]">
                 {activeHighlight?.title || FALLBACK_CATEGORY_CAMPAIGN.title}
               </h3>
               <p className="mt-3 text-[14px] text-[#e5e7eb]">
@@ -795,7 +795,7 @@ const LandingPageView = () => {
 
         <section id="explore" className="mt-12">
           <SectionHeader eyebrow="Our Products" title="Explore Our Products" />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 min-[390px]:grid-cols-2 lg:grid-cols-4">
             {exploreProducts.map((product) => (
               <ProductTile
                 key={`explore-${product.productId}`}
@@ -835,7 +835,7 @@ const LandingPageView = () => {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.2),rgba(0,0,0,0.78))]" />
                 <div className="relative flex min-h-[360px] flex-col justify-end p-5 text-white">
                   <p className="text-[11px] uppercase tracking-[0.12em] text-[#fca5a5]">New Arrival</p>
-                  <h3 className="mt-1 text-[24px] font-semibold">{newestProducts[0]?.name || "Latest Product"}</h3>
+                  <h3 className="mt-1 text-[22px] font-semibold sm:text-[24px]">{newestProducts[0]?.name || "Latest Product"}</h3>
                   <p className="mt-1 line-clamp-2 text-[13px] text-[#d1d5db]">
                     {newestProducts[0]?.description || "Freshly added to our public catalog."}
                   </p>
@@ -884,7 +884,7 @@ const LandingPageView = () => {
       </section>
 
       <footer className="mt-12 bg-black text-white">
-        <div className="mx-auto grid w-full max-w-[1160px] gap-8 px-3 py-12 md:grid-cols-5">
+        <div className="mx-auto grid w-full max-w-[1160px] gap-8 px-3 py-12 sm:grid-cols-2 md:grid-cols-5">
           <div>
             <h3 className="text-[22px] font-semibold">Villpo Store</h3>
             <p className="mt-3 text-[12px] text-[#9ca3af]">Subscribe for offer updates and featured campaign drops.</p>

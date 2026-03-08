@@ -164,6 +164,13 @@ const AdminConsoleLayout = ({
     navigate("/login", { replace: true });
   };
 
+  const handleNavigate = (path) => {
+    if (!path) {
+      return;
+    }
+    navigate(path);
+  };
+
   const toggleGroup = (groupKey) => {
     setExpandedGroups((prev) => ({
       ...prev,
@@ -176,7 +183,7 @@ const AdminConsoleLayout = ({
       <div className="w-full">
         <div className="overflow-hidden border border-[#d5d9df] bg-[#f6f7f9] shadow-[0_30px_80px_rgba(15,23,42,0.18)]">
           <div className={`grid min-h-[calc(100vh-142px)] ${isSidebarCollapsed ? "lg:grid-cols-[78px_1fr]" : "lg:grid-cols-[238px_1fr]"}`}>
-            <aside className={`border-b border-[#e3e6ec] bg-[#f3f4f7] p-4 lg:border-b-0 lg:border-r ${isSidebarCollapsed ? "lg:px-2" : ""}`}>
+            <aside className={`hidden border-b border-[#e3e6ec] bg-[#f3f4f7] p-4 lg:block lg:border-b-0 lg:border-r ${isSidebarCollapsed ? "lg:px-2" : ""}`}>
               <div className={`mb-6 flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-2"}`}>
                 <div className="h-8 w-8 rounded-lg bg-[linear-gradient(140deg,#0f172a,#334155)]" />
                 {!isSidebarCollapsed ? (
@@ -194,7 +201,7 @@ const AdminConsoleLayout = ({
                       <button
                         key={item.key}
                         type="button"
-                        onClick={() => navigate(item.path)}
+                        onClick={() => handleNavigate(item.path)}
                         title={item.label}
                         className={`flex w-full items-center justify-center rounded-xl px-3 py-2 text-left text-sm transition ${
                           activeItem.key === item.key
@@ -225,7 +232,7 @@ const AdminConsoleLayout = ({
                               <button
                                 key={item.key}
                                 type="button"
-                                onClick={() => navigate(item.path)}
+                                onClick={() => handleNavigate(item.path)}
                                 title={`${group.label}: ${item.label}`}
                                 className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition ${
                                   activeItem.key === item.key
@@ -283,15 +290,48 @@ const AdminConsoleLayout = ({
             </aside>
 
             <section className="flex min-h-0 flex-col">
-              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e6ec] bg-[#f9fafb] px-4 py-3">
-                <div className="min-w-[180px]">
-                  <h1 className="text-[22px] font-semibold tracking-tight text-[#111827]">{title}</h1>
+              <div className="border-b border-[#e3e6ec] bg-[#f9fafb] px-3 py-3 lg:hidden">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[#111827]">{title}</p>
+                    <p className="truncate text-[11px] text-[#64748b]">{authMeta?.email || "-"}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="h-8 shrink-0 rounded-lg border border-[#e5e7eb] bg-white px-3 text-xs font-semibold text-[#475569]"
+                  >
+                    Logout
+                  </button>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {flatNavItems.map((item) => (
+                    <button
+                      key={`mobile-${item.key}`}
+                      type="button"
+                      onClick={() => handleNavigate(item.path)}
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                        activeItem.key === item.key
+                          ? "border-[#111827] bg-[#111827] text-white"
+                          : "border-[#d8dde6] bg-white text-[#334155]"
+                      }`}
+                    >
+                      <Icon path={item.icon} />
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e6ec] bg-[#f9fafb] px-3 py-3 sm:px-4">
+                <div className="min-w-0">
+                  <h1 className="text-lg font-semibold tracking-tight text-[#111827] sm:text-[22px]">{title}</h1>
                   {subtitle ? <p className="text-[12px] text-[#6b7280]">{subtitle}</p> : null}
                 </div>
 
-                <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:flex-1 md:justify-end">
                   {onSearchChange ? (
-                    <div className="min-w-[220px] flex-1 max-w-[420px]">
+                    <div className="w-full min-w-0 sm:min-w-[220px] md:flex-1 md:max-w-[420px]">
                       <input
                         type="text"
                         value={searchValue}
@@ -301,11 +341,11 @@ const AdminConsoleLayout = ({
                       />
                     </div>
                   ) : null}
-                  {topActions}
+                  {topActions ? <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">{topActions}</div> : null}
                 </div>
               </header>
 
-              <div className="min-h-0 flex-1 overflow-auto bg-[#f4f6f8] px-4 py-4">{children}</div>
+              <div className="min-h-0 flex-1 overflow-auto bg-[#f4f6f8] px-2 py-3 sm:px-4 sm:py-4">{children}</div>
             </section>
           </div>
         </div>

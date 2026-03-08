@@ -17,7 +17,7 @@ const AdminProductsView = () => {
       onSearchChange={updateSearch}
       searchPlaceholder="Search products..."
       topActions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={refreshProducts}
