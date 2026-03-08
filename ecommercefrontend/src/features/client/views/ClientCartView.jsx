@@ -28,6 +28,7 @@ const ClientCartView = () => {
     checkout,
   } = useCart();
   const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [localQuantities, setLocalQuantities] = useState({});
   const showAddressSetupError = (error || "")
     .toLowerCase()
     .includes("please set default shipping and billing addresses in your profile");
@@ -39,6 +40,11 @@ const ClientCartView = () => {
   useEffect(() => {
     const ids = (cart?.items || []).map((item) => item.productId).filter(Boolean);
     setSelectedProductIds(ids);
+    const quantities = {};
+    (cart?.items || []).forEach((item) => {
+      quantities[item.productId] = item.quantity;
+    });
+    setLocalQuantities(quantities);
   }, [cart?.items]);
 
   const allProductIds = useMemo(
@@ -148,7 +154,21 @@ const ClientCartView = () => {
                         >
                           -
                         </button>
-                        <span className="min-w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={localQuantities[item.productId] ?? item.quantity}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setLocalQuantities((prev) => ({ ...prev, [item.productId]: val }));
+                          }}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value) || 1;
+                            updateQuantity(item.productId, Math.max(1, val));
+                          }}
+                          disabled={isMutatingCart}
+                          className="h-8 w-20 rounded-md border border-slate-300 text-center text-sm font-semibold"
+                        />
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
