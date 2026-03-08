@@ -30,6 +30,12 @@ public class AdminBootstrapService implements ApplicationRunner {
     @Value("${bootstrap.admin.password:Admin@123}")
     private String bootstrapAdminPassword;
 
+    @Value("${bootstrap.super-admin.email:superadmin@yourstore.com}")
+    private String bootstrapSuperAdminEmail;
+
+    @Value("${bootstrap.super-admin.password:SuperAdmin@123}")
+    private String bootstrapSuperAdminPassword;
+
     public AdminBootstrapService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -42,41 +48,53 @@ public class AdminBootstrapService implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        String adminEmail = normalizeEmail(bootstrapAdminEmail);
-        if (adminEmail.isBlank() || bootstrapAdminPassword == null || bootstrapAdminPassword.isBlank()) {
+        roleService.ensureDefaultRolesExist();
+        ensureBootstrapUserWithRole(bootstrapAdminEmail, bootstrapAdminPassword, RoleCode.ADMIN, "admin");
+        ensureBootstrapUserWithRole(
+                bootstrapSuperAdminEmail,
+                bootstrapSuperAdminPassword,
+                RoleCode.SUPER_ADMIN,
+                "super-admin");
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private void ensureBootstrapUserWithRole(
+            String rawEmail,
+            String rawPassword,
+            RoleCode roleCode,
+            String roleLabel) {
+        String email = normalizeEmail(rawEmail);
+        if (email.isBlank() || rawPassword == null || rawPassword.isBlank()) {
             return;
         }
 
-        roleService.ensureDefaultRolesExist();
-
-        User adminUser = userRepository.findByEmailIgnoreCase(adminEmail)
+        User bootstrapUser = userRepository.findByEmailIgnoreCase(email)
                 .orElseGet(() -> {
                     User user = new User();
-                    user.setEmail(adminEmail);
-                    user.setPassword(passwordEncoder.encode(bootstrapAdminPassword));
+                    user.setEmail(email);
+                    user.setPassword(passwordEncoder.encode(rawPassword));
                     user.setVerified(true);
                     user.setIsActive(true);
                     return userRepository.save(user);
                 });
 
         boolean userUpdated = false;
-        if (!Boolean.TRUE.equals(adminUser.getIsActive())) {
-            adminUser.setIsActive(true);
+        if (!Boolean.TRUE.equals(bootstrapUser.getIsActive())) {
+            bootstrapUser.setIsActive(true);
             userUpdated = true;
         }
-        if (!adminUser.isVerified()) {
-            adminUser.setVerified(true);
+        if (!bootstrapUser.isVerified()) {
+            bootstrapUser.setVerified(true);
             userUpdated = true;
         }
         if (userUpdated) {
-            userRepository.save(adminUser);
+            userRepository.save(bootstrapUser);
         }
 
-        roleService.assignRole(adminUser, RoleCode.ADMIN, 0L);
-        log.info("Bootstrap admin role ensured for email {}", adminEmail);
-    }
-
-    private String normalizeEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        roleService.assignRole(bootstrapUser, roleCode, 0L);
+        log.info("Bootstrap {} role ensured for email {}", roleLabel, email);
     }
 }

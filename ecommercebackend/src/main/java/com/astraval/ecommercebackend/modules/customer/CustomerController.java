@@ -35,7 +35,7 @@ public class CustomerController {
 
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "List all customers", description = "Returns a list of all customers for admin view.")
     public ResponseEntity<ApiResponse<List<CustomerListResponse>>> listCustomers() {
         List<CustomerListResponse> response = customerService.listAllCustomers();
@@ -50,7 +50,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{customerId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Get customer profile by ID", description = "Returns a customer profile by ID, with user-level ownership checks.")
     public ResponseEntity<ApiResponse<CustomerResponse>> getCustomer(@PathVariable Long customerId) {
         CustomerResponse response = customerService.getCustomer(customerId);
@@ -67,7 +67,7 @@ public class CustomerController {
     }
 
     @PatchMapping("/{customerId}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Activate customer profile", description = "Marks a customer profile as active.")
     public ResponseEntity<ApiResponse<CustomerResponse>> activateCustomer(@PathVariable Long customerId) {
         CustomerResponse response = customerService.activateCustomer(customerId);
@@ -75,7 +75,7 @@ public class CustomerController {
     }
 
     @PatchMapping("/{customerId}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Deactivate customer profile", description = "Marks a customer profile as inactive.")
     public ResponseEntity<ApiResponse<CustomerResponse>> deactivateCustomer(@PathVariable Long customerId) {
         CustomerResponse response = customerService.deactivateCustomer(customerId);

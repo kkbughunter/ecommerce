@@ -31,6 +31,7 @@ Follow these rules for all new features and refactors.
 - `/login` is a shared login page for all users.
 - Redirect after login by role from JWT:
   - `ADMIN` -> `/admin`
+  - `SUPER_ADMIN` -> `/superadmin/customers`
   - `USER` -> `/client`
 - Protect feature routes using auth guards.
 - Unauthorized role access must redirect to user’s valid home route.
