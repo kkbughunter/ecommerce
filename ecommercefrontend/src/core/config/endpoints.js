@@ -56,6 +56,15 @@ const ENDPOINTS = {
     DEACTIVATE: "/customers",
     ME: "/customers/me",
   },
+  SELLER: {
+    PROFILE: "/seller/profile",
+    ADMIN_PROFILE: (id) => `/seller/admin/profile/${id}`,
+    ADMIN_CREATE: "/seller/admin/profile",
+    ADMIN_LIST: "/seller/admin/profiles",
+    ADMIN_ACTIVATE: (id) => `/seller/admin/profile/${id}/activate`,
+    ADMIN_DEACTIVATE: (id) => `/seller/admin/profile/${id}/deactivate`,
+    ADMIN_RAZORPAY_CONFIG: (id) => `/seller/admin/profile/${id}/razorpay-config`,
+  },
 };
 
 export default ENDPOINTS;

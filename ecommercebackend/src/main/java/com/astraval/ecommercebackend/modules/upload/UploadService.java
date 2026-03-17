@@ -22,8 +22,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
+import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
+import com.astraval.ecommercebackend.modules.product.Product;
 import com.astraval.ecommercebackend.modules.product.ProductRepository;
+import com.astraval.ecommercebackend.modules.seller.SellerProfile;
+import com.astraval.ecommercebackend.modules.seller.SellerProfileRepository;
 import com.astraval.ecommercebackend.modules.upload.dto.UploadFileContent;
 import com.astraval.ecommercebackend.modules.upload.dto.UploadResponse;
 
@@ -32,6 +36,7 @@ public class UploadService {
 
     private final UploadRepository uploadRepository;
     private final ProductRepository productRepository;
+    private final SellerProfileRepository sellerProfileRepository;
     private final SecurityUtil securityUtil;
     private final Path uploadRootPath;
     private final String productImageFolder;
@@ -39,11 +44,13 @@ public class UploadService {
     public UploadService(
             UploadRepository uploadRepository,
             ProductRepository productRepository,
+            SellerProfileRepository sellerProfileRepository,
             SecurityUtil securityUtil,
             @Value("${upload.path:uploads}") String uploadPath,
             @Value("${upload.product-image-folder:products}") String productImageFolder) {
         this.uploadRepository = uploadRepository;
         this.productRepository = productRepository;
+        this.sellerProfileRepository = sellerProfileRepository;
         this.securityUtil = securityUtil;
         this.uploadRootPath = Paths.get(uploadPath).toAbsolutePath().normalize();
         this.productImageFolder = productImageFolder;
@@ -51,13 +58,12 @@ public class UploadService {
 
     @Transactional
     public List<UploadResponse> uploadProductImages(Long productId, List<MultipartFile> files) {
-        ensureProductExists(productId);
+        Product product = loadProduct(productId);
         validateFiles(files);
 
-        String createdBy = securityUtil.getCurrentSub();
-        if (!StringUtils.hasText(createdBy)) {
-            throw new BadRequestException("Invalid authenticated user identifier");
-        }
+        Long actorUserId = getCurrentUserId();
+        ensureSellerOwnsProduct(product, actorUserId);
+        String createdBy = String.valueOf(actorUserId);
 
         return files.stream()
                 .map(file -> storeProductImage(file, productId, createdBy))
@@ -162,6 +168,44 @@ public class UploadService {
     private void ensureProductExists(Long productId) {
         if (!productRepository.existsById(productId)) {
             throw new ResourceNotFoundException("Product not found");
+        }
+    }
+
+    private Product loadProduct(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+    }
+
+    private Long getCurrentUserId() {
+        String sub = securityUtil.getCurrentSub();
+        try {
+            return Long.parseLong(sub);
+        } catch (NumberFormatException ex) {
+            throw new UnauthorizedException("Invalid authenticated user");
+        }
+    }
+
+    private SellerProfile resolveSellerProfile(Long userId) {
+        if (userId == null) {
+            throw new UnauthorizedException("Invalid authenticated user");
+        }
+        return sellerProfileRepository.findByUserUserId(userId)
+                .orElseThrow(() -> new UnauthorizedException("Seller profile not found for this user"));
+    }
+
+    private void ensureSellerOwnsProduct(Product product, Long userId) {
+        SellerProfile sellerProfile = resolveSellerProfile(userId);
+        if (product == null) {
+            throw new ResourceNotFoundException("Product not found");
+        }
+        if (product.getSellerProfile() != null) {
+            if (!product.getSellerProfile().getSellerProfileId().equals(sellerProfile.getSellerProfileId())) {
+                throw new UnauthorizedException("You are not authorized to upload images for this product");
+            }
+            return;
+        }
+        if (product.getCreatedBy() == null || !product.getCreatedBy().equals(userId)) {
+            throw new UnauthorizedException("You are not authorized to upload images for this product");
         }
     }
 

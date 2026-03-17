@@ -27,7 +27,7 @@ const AdminProductsView = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate("/admin/products/new")}
+            onClick={() => navigate("/seller/dashboard/products/new")}
             className="h-10 rounded-xl bg-[#0f172a] px-3 text-xs font-semibold text-white"
           >
             + New Product

@@ -15,7 +15,7 @@ const FALLBACK_CATEGORY_CAMPAIGN = {
   description: "Featured category campaigns are shown from active slider records.",
   imageUrl: null,
   ctaLabel: "Explore",
-  targetUrl: "/client",
+  targetUrl: "/shop",
   placementTag: "CATEGORY_HIGHLIGHT",
 };
 
@@ -26,7 +26,7 @@ const FALLBACK_MAIN_BANNER = {
   description: "Discover curated products, flash sales, and trending picks in one place.",
   imageUrl: loginImage,
   ctaLabel: "Start Shopping",
-  targetUrl: "/client",
+  targetUrl: "/shop",
   secondaryCtaLabel: "Sign In",
   secondaryCtaUrl: "/login",
   placementTag: "MAIN_BANNER",
@@ -336,7 +336,7 @@ const LandingPageView = () => {
         description: banner?.description || "",
         imageUrl: banner?.imageUrl || "",
         ctaLabel: banner?.primaryCtaLabel || "Start Shopping",
-        targetUrl: resolveTargetUrl(banner?.primaryCtaUrl, "/client"),
+        targetUrl: resolveTargetUrl(banner?.primaryCtaUrl, "/shop"),
         secondaryCtaLabel: banner?.secondaryCtaLabel || "Sign In",
         secondaryCtaUrl: resolveTargetUrl(banner?.secondaryCtaUrl, "/login"),
         placementTag: "MAIN_BANNER",
@@ -562,7 +562,7 @@ const LandingPageView = () => {
                       onClick={() =>
                         navigateByTarget(
                           navigate,
-                          resolveTargetUrl(activeHero?.targetUrl, "/client"),
+                          resolveTargetUrl(activeHero?.targetUrl, "/shop"),
                         )
                       }
                       className="rounded-lg bg-[#db4444] px-4 py-2 text-[13px] font-semibold text-white transition hover:brightness-95"
@@ -782,7 +782,7 @@ const LandingPageView = () => {
                 onClick={() =>
                   navigateByTarget(
                     navigate,
-                    resolveTargetUrl(activeHighlight?.targetUrl, "/client"),
+                    resolveTargetUrl(activeHighlight?.targetUrl, "/shop"),
                   )
                 }
                 className="mt-5 rounded-lg bg-[#22c55e] px-5 py-2.5 text-[13px] font-semibold text-[#052e16]"

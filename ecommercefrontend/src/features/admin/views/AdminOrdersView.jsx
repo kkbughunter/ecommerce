@@ -311,7 +311,7 @@ const AdminOrdersView = () => {
         <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
-            onClick={() => navigate("/admin/invoices")}
+            onClick={() => navigate("/seller/dashboard/invoices")}
             title="Open Invoices"
             aria-label="Open Invoices"
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8dde6] bg-white text-[#334155]"
@@ -480,7 +480,7 @@ const AdminOrdersView = () => {
                 </p>
                 <button
                   type="button"
-                  onClick={() => navigate(`/admin/invoices?orderId=${selectedOrderId}`)}
+                  onClick={() => navigate(`/seller/dashboard/invoices?orderId=${selectedOrderId}`)}
                   className="h-8 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
                 >
                   Open Invoice

@@ -4,20 +4,24 @@ import authRoutes from "./features/auth/routes";
 import clientRoutes from "./features/client/routes";
 import LandingPageView from "./features/landing/views/LandingPageView";
 import productRoutes from "./features/product/routes";
+import shopRoutes from "./features/shop/routes";
+import sellerRoutes from "./features/seller/routes";
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <LandingPageView />,
-  },
-  ...authRoutes,
-  ...adminRoutes,
-  ...clientRoutes,
-  ...productRoutes,
-  {
-    path: "*",
-    element: <Navigate to="/" replace />,
-  },
+    {
+        path: "/",
+        element: <LandingPageView />,
+    },
+    ...authRoutes,
+    ...adminRoutes,
+    ...clientRoutes,
+    ...productRoutes,
+    ...shopRoutes,
+    ...sellerRoutes,
+    {
+        path: "*",
+        element: <Navigate to="/" replace />,
+    },
 ]);
 
 export default router;

@@ -37,7 +37,7 @@ public class UploadController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload multiple product images")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<ApiResponse<List<UploadResponse>>> uploadProductImages(
             @PathVariable Long productId,
             @RequestParam("files") List<MultipartFile> files) {

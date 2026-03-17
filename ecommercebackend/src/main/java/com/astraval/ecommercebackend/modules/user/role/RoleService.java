@@ -26,9 +26,14 @@ public class RoleService {
 
     @Transactional
     public void ensureDefaultRolesExist() {
-        upsertRole(RoleCode.ADMIN, "Administrator", "/admin/products");
         upsertRole(RoleCode.SUPER_ADMIN, "Super-Admin", "/admin/categories");
         upsertRole(RoleCode.USER, "Customer", "/shop");
+        upsertRole(RoleCode.SELLER, "Seller", "/seller/dashboard");
+    }
+
+    @Transactional
+    public void ensureSellerRoleExists() {
+        upsertRole(RoleCode.SELLER, "Seller", "/seller/dashboard");
     }
 
     @Transactional

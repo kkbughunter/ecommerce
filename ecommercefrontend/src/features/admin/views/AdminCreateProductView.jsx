@@ -26,7 +26,7 @@ const AdminCreateProductView = () => {
       topActions={
         <button
           type="button"
-          onClick={() => navigate("/admin")}
+          onClick={() => navigate("/seller/dashboard")}
           className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
         >
           Back To Dashboard

@@ -11,7 +11,7 @@ const NAV_GROUPS = [
       {
         key: "dashboard",
         label: "Dashboard",
-        path: "/admin",
+        path: "/seller/dashboard",
         icon: "M3 13h8V3H3v10zm10 8h8V3h-8v18zm-10 0h8v-6H3v6z",
       },
     ],
@@ -23,13 +23,13 @@ const NAV_GROUPS = [
       {
         key: "products",
         label: "Products",
-        path: "/admin/products",
+        path: "/seller/dashboard/products",
         icon: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z",
       },
       {
         key: "categories",
         label: "Categories",
-        path: "/superadmin/categories",
+        path: "/admin/categories",
         icon: "M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z",
       },
     ],
@@ -59,19 +59,19 @@ const NAV_GROUPS = [
       {
         key: "orders",
         label: "Orders",
-        path: "/admin/orders",
+        path: "/seller/dashboard/orders",
         icon: "M4 4h16v3H4V4zm0 6h16v10H4V10zm3 3v2h10v-2H7z",
       },
       {
         key: "payments",
         label: "Payments",
-        path: "/admin/payments",
+        path: "/seller/dashboard/payments",
         icon: "M3 6h18v12H3V6zm2 3v6h14V9H5zm2 1h5v1H7v-1z",
       },
       {
         key: "invoices",
         label: "Invoices",
-        path: "/admin/invoices",
+        path: "/seller/dashboard/invoices",
         icon: "M6 2h12v20l-3-2-3 2-3-2-3 2V2zm2 4v2h8V6H8zm0 4v2h8v-2H8z",
       },
       {
@@ -80,12 +80,18 @@ const NAV_GROUPS = [
         path: "/superadmin/customers",
         icon: "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.96 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z",
       },
+      {
+        key: "sellers",
+        label: "Sellers",
+        path: "/superadmin/sellers",
+        icon: "M12 2a5 5 0 0 1 5 5v1h2a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V10a2 2 0 0 1 2-2h2V7a5 5 0 0 1 5-5zm-3 6h6V7a3 3 0 0 0-6 0v1z",
+      },
     ],
   },
 ];
 const FLAT_NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
-const SUPER_ADMIN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers"]);
-const ADMIN_HIDDEN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers"]);
+const SUPER_ADMIN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers", "sellers"]);
+const SELLER_HIDDEN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers", "sellers"]);
 const DEFAULT_EXPANDED_GROUPS = {
   overview: true,
   catalog: true,
@@ -95,15 +101,15 @@ const DEFAULT_EXPANDED_GROUPS = {
 
 const filterNavGroupsByRole = (roles) => {
   const normalizedRoles = Array.isArray(roles) ? roles : [];
-  const isAdminOnly =
-    normalizedRoles.includes("ADMIN") && !normalizedRoles.includes("SUPER_ADMIN");
+  const isSellerOnly =
+    normalizedRoles.includes("SELLER") && !normalizedRoles.includes("SUPER_ADMIN");
   const isSuperAdminOnly =
-    normalizedRoles.includes("SUPER_ADMIN") && !normalizedRoles.includes("ADMIN");
+    normalizedRoles.includes("SUPER_ADMIN") && !normalizedRoles.includes("SELLER");
 
-  if (isAdminOnly) {
+  if (isSellerOnly) {
     return NAV_GROUPS.map((group) => ({
       ...group,
-      items: group.items.filter((item) => !ADMIN_HIDDEN_NAV_KEYS.has(item.key)),
+      items: group.items.filter((item) => !SELLER_HIDDEN_NAV_KEYS.has(item.key)),
     })).filter((group) => group.items.length > 0);
   }
 

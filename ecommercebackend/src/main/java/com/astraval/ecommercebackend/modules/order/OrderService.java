@@ -36,6 +36,8 @@ import com.astraval.ecommercebackend.modules.order.dto.PlaceOrderRequest;
 import com.astraval.ecommercebackend.modules.order.dto.UpdateOrderStatusRequest;
 import com.astraval.ecommercebackend.modules.product.Product;
 import com.astraval.ecommercebackend.modules.product.ProductRepository;
+import com.astraval.ecommercebackend.modules.seller.SellerProfile;
+import com.astraval.ecommercebackend.modules.seller.SellerProfileRepository;
 import com.astraval.ecommercebackend.modules.user.User;
 import com.astraval.ecommercebackend.modules.user.UserRepository;
 
@@ -62,6 +64,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final AddressRepository addressRepository;
+    private final SellerProfileRepository sellerProfileRepository;
     private final SecurityUtil securityUtil;
 
     public OrderService(
@@ -71,6 +74,7 @@ public class OrderService {
             UserRepository userRepository,
             CustomerRepository customerRepository,
             AddressRepository addressRepository,
+            SellerProfileRepository sellerProfileRepository,
             SecurityUtil securityUtil) {
         this.orderRepository = orderRepository;
         this.orderTrackingEventRepository = orderTrackingEventRepository;
@@ -78,6 +82,7 @@ public class OrderService {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.addressRepository = addressRepository;
+        this.sellerProfileRepository = sellerProfileRepository;
         this.securityUtil = securityUtil;
     }
 
@@ -195,7 +200,7 @@ public class OrderService {
         addTrackingEvent(savedOrder, OrderStatus.PLACED, null, "Order placed", actorUserId);
 
         Order updatedOrder = orderRepository.save(savedOrder);
-        return toOrderDetailResponse(updatedOrder);
+        return toOrderDetailResponse(updatedOrder, null);
     }
 
     @Transactional(readOnly = true)
@@ -209,8 +214,14 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderDetailResponse getOrderDetails(Long orderId) {
         Order order = loadOrderWithDetails(orderId);
-        authorizeOrderAccess(order);
-        return toOrderDetailResponse(order);
+        Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfileIfSeller(actorUserId);
+        if (sellerProfile != null) {
+            ensureSellerOrderAccess(order, sellerProfile, actorUserId);
+            return toOrderDetailResponse(order, filterItemsForSeller(order, sellerProfile, actorUserId));
+        }
+        authorizeCustomerAccess(order, actorUserId);
+        return toOrderDetailResponse(order, null);
     }
 
     @Transactional(readOnly = true)
@@ -242,12 +253,14 @@ public class OrderService {
 
         String note = trimToNull(request != null ? request.note() : null);
         addTrackingEvent(order, OrderStatus.CANCELLED, null, note != null ? note : "Order cancelled", actorUserId);
-        return toOrderDetailResponse(orderRepository.save(order));
+        return toOrderDetailResponse(orderRepository.save(order), null);
     }
 
     @Transactional(readOnly = true)
     public OrderPageResponse getAllOrdersForAdmin(int page, int size) {
         ensureAdmin();
+        Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
         if (page < 0) {
             throw new BadRequestException("Page must be greater than or equal to 0");
         }
@@ -255,7 +268,10 @@ public class OrderService {
             throw new BadRequestException("Size must be between 1 and " + MAX_ADMIN_PAGE_SIZE);
         }
 
-        Page<Order> orderPage = orderRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
+        Page<Order> orderPage = orderRepository.findBySellerProfileIdOrCreatedBy(
+                sellerProfile.getSellerProfileId(),
+                actorUserId,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt")));
         List<OrderSummaryResponse> content = orderPage.getContent().stream()
                 .map(this::toOrderSummaryResponse)
                 .toList();
@@ -273,7 +289,9 @@ public class OrderService {
     public OrderDetailResponse updateOrderStatusForAdmin(Long orderId, UpdateOrderStatusRequest request) {
         ensureAdmin();
         Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
         Order order = loadOrderWithDetails(orderId);
+        ensureSellerOrderAccess(order, sellerProfile, actorUserId);
 
         if (!isValidTransition(order.getStatus(), request.status())) {
             throw new BadRequestException(
@@ -295,7 +313,8 @@ public class OrderService {
             note = "Status updated to " + request.status();
         }
         addTrackingEvent(order, request.status(), trimToNull(request.location()), note, actorUserId);
-        return toOrderDetailResponse(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+        return toOrderDetailResponse(savedOrder, filterItemsForSeller(savedOrder, sellerProfile, actorUserId));
     }
 
     private void restockOrderItems(Order order, Long actorUserId) {
@@ -318,19 +337,72 @@ public class OrderService {
     }
 
     private void authorizeOrderAccess(Order order) {
-        if (securityUtil.hasRole("ADMIN")) {
+        Long currentUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfileIfSeller(currentUserId);
+        if (sellerProfile != null) {
+            ensureSellerOrderAccess(order, sellerProfile, currentUserId);
             return;
         }
-        Long currentUserId = getCurrentUserId();
-        if (!order.getUser().getUserId().equals(currentUserId)) {
+        authorizeCustomerAccess(order, currentUserId);
+    }
+
+    private void ensureAdmin() {
+        if (!securityUtil.hasRole("SELLER")) {
+            throw new UnauthorizedException("Seller role is required");
+        }
+    }
+
+    private SellerProfile resolveSellerProfile(Long userId) {
+        if (userId == null) {
+            throw new UnauthorizedException("Invalid authenticated user");
+        }
+        return sellerProfileRepository.findByUserUserId(userId)
+                .orElseThrow(() -> new UnauthorizedException("Seller profile not found for this user"));
+    }
+
+    private SellerProfile resolveSellerProfileIfSeller(Long userId) {
+        if (!securityUtil.hasRole("SELLER")) {
+            return null;
+        }
+        return resolveSellerProfile(userId);
+    }
+
+    private void authorizeCustomerAccess(Order order, Long userId) {
+        if (!order.getUser().getUserId().equals(userId)) {
             throw new UnauthorizedException("You are not authorized to access this order");
         }
     }
 
-    private void ensureAdmin() {
-        if (!securityUtil.hasRole("ADMIN")) {
-            throw new UnauthorizedException("Admin role is required");
+    private void ensureSellerOrderAccess(Order order, SellerProfile sellerProfile, Long userId) {
+        if (!orderHasSellerItems(order, sellerProfile, userId)) {
+            throw new UnauthorizedException("You are not authorized to access this order");
         }
+    }
+
+    private boolean orderHasSellerItems(Order order, SellerProfile sellerProfile, Long userId) {
+        return !filterItemsForSeller(order, sellerProfile, userId).isEmpty();
+    }
+
+    private List<OrderItem> filterItemsForSeller(Order order, SellerProfile sellerProfile, Long userId) {
+        if (order == null || order.getItems() == null) {
+            return List.of();
+        }
+        Long sellerProfileId = sellerProfile != null ? sellerProfile.getSellerProfileId() : null;
+        return order.getItems().stream()
+                .filter(item -> isItemForSeller(item, sellerProfileId, userId))
+                .toList();
+    }
+
+    private boolean isItemForSeller(OrderItem item, Long sellerProfileId, Long userId) {
+        if (item == null || item.getProduct() == null) {
+            return false;
+        }
+        Product product = item.getProduct();
+        if (product.getSellerProfile() != null && sellerProfileId != null) {
+            return sellerProfileId.equals(product.getSellerProfile().getSellerProfileId());
+        }
+        return product.getSellerProfile() == null && product.getCreatedBy() != null
+                && product.getCreatedBy().equals(userId);
     }
 
     private Order loadOrderWithDetails(Long orderId) {
@@ -414,8 +486,9 @@ public class OrderService {
                 order.getCreatedDt());
     }
 
-    private OrderDetailResponse toOrderDetailResponse(Order order) {
-        List<OrderItemResponse> itemResponses = order.getItems().stream()
+    private OrderDetailResponse toOrderDetailResponse(Order order, List<OrderItem> scopedItems) {
+        List<OrderItem> resolvedItems = scopedItems != null ? scopedItems : order.getItems();
+        List<OrderItemResponse> itemResponses = resolvedItems.stream()
                 .map(this::toOrderItemResponse)
                 .toList();
         List<OrderTrackingResponse> trackingResponses = order.getTrackingEvents().stream()

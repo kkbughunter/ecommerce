@@ -46,7 +46,7 @@ const getTagLabel = (tag) => {
 const ProductDetailView = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
-  const isAdmin = hasAnyRole(["ADMIN"]);
+  const isSeller = hasAnyRole(["SELLER"]);
 
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +76,7 @@ const ProductDetailView = () => {
     productTag: "",
   });
   const { addToCart, isMutatingCart, error: cartError, success: cartSuccess } = useCart({
-    enabled: !isAdmin,
+    enabled: !isSeller,
   });
 
   const applyDescriptionFormat = (type) => {
@@ -196,7 +196,7 @@ const ProductDetailView = () => {
   }, [loadProduct]);
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (!isSeller) {
       return;
     }
 
@@ -220,7 +220,7 @@ const ProductDetailView = () => {
     };
 
     loadCategories();
-  }, [isAdmin]);
+  }, [isSeller]);
 
   useEffect(() => {
     const loadRelatedProducts = async () => {
@@ -354,7 +354,7 @@ const ProductDetailView = () => {
           </div>
           <div className="w-full text-left sm:w-auto sm:text-right">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-              {isAdmin ? "Admin Product Studio" : "Product Details"}
+              {isSeller ? "Seller Product Studio" : "Product Details"}
             </p>
             <p className="text-sm font-semibold text-slate-900">ID #{productId}</p>
           </div>
@@ -471,7 +471,7 @@ const ProductDetailView = () => {
                 <p className="mt-2 text-xs text-slate-500">
                   Created {formatDateTime(product.createdDt)} | Updated {formatDateTime(product.modifiedDt)}
                 </p>
-                {!isAdmin && (
+                {!isSeller && (
                   <button
                     type="button"
                     onClick={() => addToCart(product?.productId)}
@@ -481,14 +481,14 @@ const ProductDetailView = () => {
                     {isMutatingCart ? "Adding..." : "Add To Cart"}
                   </button>
                 )}
-                {!isAdmin && cartError && <p className="mt-2 text-sm text-red-600">{cartError}</p>}
-                {!isAdmin && cartSuccess && <p className="mt-2 text-sm text-emerald-600">{cartSuccess}</p>}
+                {!isSeller && cartError && <p className="mt-2 text-sm text-red-600">{cartError}</p>}
+                {!isSeller && cartSuccess && <p className="mt-2 text-sm text-emerald-600">{cartSuccess}</p>}
               </article>
 
-              {isAdmin ? (
+              {isSeller ? (
                 <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="text-base font-semibold text-slate-900">Admin Controls</h2>
+                    <h2 className="text-base font-semibold text-slate-900">Seller Controls</h2>
                     <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                       <button
                         type="button"

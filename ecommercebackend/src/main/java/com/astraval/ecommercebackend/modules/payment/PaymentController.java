@@ -66,6 +66,17 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Order payment details fetched successfully"));
     }
 
+    @PostMapping("/razorpay/webhook/{sellerProfileId}")
+    @Operation(summary = "Per-seller Razorpay webhook endpoint")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleRazorpayWebhookForSeller(
+            @PathVariable Long sellerProfileId,
+            @RequestHeader(value = "X-Razorpay-Signature", required = false) String signature,
+            @RequestBody String payload) {
+        Map<String, Object> response = razorpayPaymentService.handleWebhookForSeller(signature, payload,
+                sellerProfileId);
+        return ResponseEntity.ok(ApiResponseFactory.ok(response, "Webhook processed"));
+    }
+
     @PostMapping("/razorpay/webhook")
     @Operation(summary = "Razorpay webhook endpoint")
     public ResponseEntity<ApiResponse<Map<String, Object>>> handleRazorpayWebhook(

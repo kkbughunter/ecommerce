@@ -213,7 +213,7 @@ const AdminPaymentsView = () => {
         <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
-            onClick={() => navigate("/admin/orders")}
+            onClick={() => navigate("/seller/dashboard/orders")}
             title="Go To Orders"
             aria-label="Go To Orders"
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8dde6] bg-white text-[#334155]"

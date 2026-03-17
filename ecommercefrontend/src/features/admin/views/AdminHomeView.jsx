@@ -148,14 +148,14 @@ const AdminHomeView = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate("/admin/orders")}
+            onClick={() => navigate("/seller/dashboard/orders")}
             className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
           >
             Manage Orders
           </button>
           <button
             type="button"
-            onClick={() => navigate("/admin/products/new")}
+            onClick={() => navigate("/seller/dashboard/products/new")}
             className="h-10 rounded-xl bg-[#0f172a] px-3 text-xs font-semibold text-white"
           >
             + New Product
@@ -301,7 +301,7 @@ const AdminHomeView = () => {
             </div>
             <button
               type="button"
-              onClick={() => navigate("/admin/payments")}
+              onClick={() => navigate("/seller/dashboard/payments")}
               className="mt-4 h-9 w-full rounded-lg border border-[#d8dde6] text-xs font-semibold text-[#334155]"
             >
               Open Payments
@@ -314,7 +314,7 @@ const AdminHomeView = () => {
             <h2 className="text-lg font-semibold text-[#111827]">Recent Orders</h2>
             <button
               type="button"
-              onClick={() => navigate("/admin/orders")}
+              onClick={() => navigate("/seller/dashboard/orders")}
               className="h-8 rounded-lg border border-[#d8dde6] px-3 text-xs font-semibold text-[#475569]"
             >
               View All

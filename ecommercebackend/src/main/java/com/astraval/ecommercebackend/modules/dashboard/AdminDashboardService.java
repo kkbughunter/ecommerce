@@ -28,6 +28,8 @@ import com.astraval.ecommercebackend.modules.order.OrderStatus;
 import com.astraval.ecommercebackend.modules.order.PaymentStatus;
 import com.astraval.ecommercebackend.modules.product.Product;
 import com.astraval.ecommercebackend.modules.product.ProductRepository;
+import com.astraval.ecommercebackend.modules.seller.SellerProfile;
+import com.astraval.ecommercebackend.modules.seller.SellerProfileRepository;
 
 @Service
 public class AdminDashboardService {
@@ -37,23 +39,32 @@ public class AdminDashboardService {
 
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
+    private final SellerProfileRepository sellerProfileRepository;
     private final SecurityUtil securityUtil;
 
     public AdminDashboardService(
             ProductRepository productRepository,
             OrderRepository orderRepository,
+            SellerProfileRepository sellerProfileRepository,
             SecurityUtil securityUtil) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
+        this.sellerProfileRepository = sellerProfileRepository;
         this.securityUtil = securityUtil;
     }
 
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
         ensureAdmin();
+        Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
 
-        List<Product> products = productRepository.findAll();
-        List<Order> orders = orderRepository.findAll();
+        List<Product> products = productRepository.findBySellerProfileIdOrCreatedBy(
+                sellerProfile.getSellerProfileId(),
+                actorUserId);
+        List<Order> orders = orderRepository.findAllBySellerProfileIdOrCreatedBy(
+                sellerProfile.getSellerProfileId(),
+                actorUserId);
 
         DashboardProductSummary productSummary = buildProductSummary(products);
         DashboardOrderSummary orderSummary = buildOrderSummary(orders);
@@ -191,8 +202,25 @@ public class AdminDashboardService {
     }
 
     private void ensureAdmin() {
-        if (!securityUtil.hasRole("ADMIN")) {
-            throw new UnauthorizedException("Admin role is required");
+        if (!securityUtil.hasRole("SELLER")) {
+            throw new UnauthorizedException("Seller role is required");
         }
+    }
+
+    private Long getCurrentUserId() {
+        String sub = securityUtil.getCurrentSub();
+        try {
+            return Long.parseLong(sub);
+        } catch (NumberFormatException ex) {
+            throw new UnauthorizedException("Invalid authenticated user");
+        }
+    }
+
+    private SellerProfile resolveSellerProfile(Long userId) {
+        if (userId == null) {
+            throw new UnauthorizedException("Invalid authenticated user");
+        }
+        return sellerProfileRepository.findByUserUserId(userId)
+                .orElseThrow(() -> new UnauthorizedException("Seller profile not found for this user"));
     }
 }

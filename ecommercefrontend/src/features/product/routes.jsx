@@ -5,7 +5,7 @@ const productRoutes = [
   {
     path: "/products/:productId",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN", "USER"]}>
+      <ProtectedRoute allowedRoles={["SELLER", "USER"]}>
         <ProductDetailView />
       </ProtectedRoute>
     ),

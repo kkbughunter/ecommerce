@@ -211,7 +211,7 @@ const AdminInvoicesView = () => {
         <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
-            onClick={() => navigate("/admin/orders")}
+            onClick={() => navigate("/seller/dashboard/orders")}
             className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
           >
             Back To Orders

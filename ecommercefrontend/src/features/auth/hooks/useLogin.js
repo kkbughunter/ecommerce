@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import authApi from "../../../core/api/authApi";
 import { getHomePathByRole, isAuthenticated, setAuthSession } from "../../../core/auth/session";
 import getApiErrorMessage from "../../../core/utils/apiError";
@@ -23,6 +23,7 @@ const initialVerifyForm = {
 
 const useLogin = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState("login");
   const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [registerForm, setRegisterForm] = useState(initialRegisterForm);
@@ -31,11 +32,19 @@ const useLogin = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const resolvePostLoginPath = () => {
+    const from = location?.state?.from;
+    if (typeof from === "string" && from.trim() && from !== "/login") {
+      return from;
+    }
+    return getHomePathByRole();
+  };
+
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate(getHomePathByRole(), { replace: true });
+      navigate(resolvePostLoginPath(), { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, location?.state]);
 
   const switchMode = (nextMode) => {
     if (nextMode === "verify" && !verifyForm.email) {
@@ -89,7 +98,7 @@ const useLogin = () => {
       setAuthSession(loginData);
 
       setLoginForm(initialLoginForm);
-      navigate(getHomePathByRole(), { replace: true });
+      navigate(resolvePostLoginPath(), { replace: true });
     } catch (err) {
       setError(getApiErrorMessage(err, "Login failed. Please try again."));
     } finally {

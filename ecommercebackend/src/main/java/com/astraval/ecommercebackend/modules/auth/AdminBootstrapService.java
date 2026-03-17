@@ -24,12 +24,6 @@ public class AdminBootstrapService implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    @Value("${bootstrap.admin.email:admin@yourstore.com}")
-    private String bootstrapAdminEmail;
-
-    @Value("${bootstrap.admin.password:Admin@123}")
-    private String bootstrapAdminPassword;
-
     @Value("${bootstrap.super-admin.email:superadmin@yourstore.com}")
     private String bootstrapSuperAdminEmail;
 
@@ -49,7 +43,6 @@ public class AdminBootstrapService implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         roleService.ensureDefaultRolesExist();
-        ensureBootstrapUserWithRole(bootstrapAdminEmail, bootstrapAdminPassword, RoleCode.ADMIN, "admin");
         ensureBootstrapUserWithRole(
                 bootstrapSuperAdminEmail,
                 bootstrapSuperAdminPassword,

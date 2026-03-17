@@ -70,6 +70,9 @@ springdoc:
     path: /swagger-ui.html
     disable-swagger-default-url: true
 
+app:
+  field-encryption-key: ${FIELD_ENCRYPTION_KEY:}
+
 razorpay:
   key-id: ${RAZORPAY_KEY_ID:}
   key-secret: ${RAZORPAY_KEY_SECRET:}

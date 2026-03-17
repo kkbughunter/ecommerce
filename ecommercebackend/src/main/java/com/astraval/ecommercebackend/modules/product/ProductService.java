@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
+import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.category.Category;
 import com.astraval.ecommercebackend.modules.category.CategoryRepository;
@@ -26,6 +27,8 @@ import com.astraval.ecommercebackend.modules.product.dto.ProductDetailResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductPageResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductResponse;
 import com.astraval.ecommercebackend.modules.product.dto.UpdateProductRequest;
+import com.astraval.ecommercebackend.modules.seller.SellerProfile;
+import com.astraval.ecommercebackend.modules.seller.SellerProfileRepository;
 import com.astraval.ecommercebackend.modules.upload.UploadService;
 import com.astraval.ecommercebackend.modules.upload.UploadRepository;
 import com.astraval.ecommercebackend.modules.upload.UploadType;
@@ -39,6 +42,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final SellerProfileRepository sellerProfileRepository;
     private final SecurityUtil securityUtil;
     private final UploadService uploadService;
     private final UploadRepository uploadRepository;
@@ -46,11 +50,13 @@ public class ProductService {
     public ProductService(
             ProductRepository productRepository,
             CategoryRepository categoryRepository,
+            SellerProfileRepository sellerProfileRepository,
             SecurityUtil securityUtil,
             UploadService uploadService,
             UploadRepository uploadRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.sellerProfileRepository = sellerProfileRepository;
         this.securityUtil = securityUtil;
         this.uploadService = uploadService;
         this.uploadRepository = uploadRepository;
@@ -60,7 +66,11 @@ public class ProductService {
     public ProductPageResponse getAllProducts(int page, int size, String query) {
         validatePageRequest(page, size);
         String normalizedQuery = normalizeSearchQuery(query);
-        Page<Product> productPage = productRepository.searchAllProducts(
+        Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
+        Page<Product> productPage = productRepository.searchProductsForSeller(
+                sellerProfile.getSellerProfileId(),
+                actorUserId,
                 normalizedQuery,
                 PageRequest.of(page, size, PRODUCT_SORT));
         return toProductPageResponse(productPage);
@@ -79,6 +89,7 @@ public class ProductService {
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
         Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
 
         Product product = new Product();
         product.setName(request.name().trim());
@@ -94,6 +105,7 @@ public class ProductService {
         product.setMainImageUploadId(trimToNull(request.mainImageUploadId()));
         product.setProductTag(request.productTag());
         product.setIsActive(request.isActive() != null ? request.isActive() : true);
+        product.setSellerProfile(sellerProfile);
         product.setCreatedBy(actorUserId);
         product.setCreatedDt(LocalDateTime.now());
         Product savedProduct = productRepository.save(product);
@@ -104,8 +116,10 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProduct(Long productId, UpdateProductRequest request) {
         Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        ensureSellerOwnsProduct(product, sellerProfile, actorUserId);
 
         product.setName(request.name().trim());
         product.setDescription(request.description());
@@ -119,6 +133,9 @@ public class ProductService {
         product.setCategory(resolveCategory(request.categoryId()));
         product.setMainImageUploadId(trimToNull(request.mainImageUploadId()));
         product.setProductTag(request.productTag());
+        if (product.getSellerProfile() == null) {
+            product.setSellerProfile(sellerProfile);
+        }
         product.setModifiedBy(actorUserId);
         validateMainImageUploadId(product.getMainImageUploadId(), product.getProductId());
 
@@ -147,8 +164,12 @@ public class ProductService {
         assertCategoryExists(categoryId);
         validatePageRequest(page, size);
         String normalizedQuery = normalizeSearchQuery(query);
-        Page<Product> productPage = productRepository.searchProductsByCategory(
+        Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
+        Page<Product> productPage = productRepository.searchProductsByCategoryForSeller(
                 categoryId,
+                sellerProfile.getSellerProfileId(),
+                actorUserId,
                 normalizedQuery,
                 PageRequest.of(page, size, PRODUCT_SORT));
         return toProductPageResponse(productPage);
@@ -183,15 +204,22 @@ public class ProductService {
         Page<Category> categoryPage = categoryRepository.searchAllCategories(
                 normalizedQuery,
                 PageRequest.of(page, size, CATEGORY_SORT));
-        return toCategoryProductsPageResponse(categoryPage, normalizedQuery, false);
+        Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
+        return toCategoryProductsPageResponse(categoryPage, normalizedQuery, false, sellerProfile.getSellerProfileId(), actorUserId);
     }
 
     private ProductResponse updateProductStatus(Long productId, boolean active) {
         Long actorUserId = getCurrentUserId();
+        SellerProfile sellerProfile = resolveSellerProfile(actorUserId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        ensureSellerOwnsProduct(product, sellerProfile, actorUserId);
 
         product.setIsActive(active);
+        if (product.getSellerProfile() == null) {
+            product.setSellerProfile(sellerProfile);
+        }
         product.setModifiedBy(actorUserId);
 
         return toProductResponse(productRepository.save(product));
@@ -269,6 +297,15 @@ public class ProductService {
             Page<Category> categoryPage,
             String query,
             boolean activeOnly) {
+        return toCategoryProductsPageResponse(categoryPage, query, activeOnly, null, null);
+    }
+
+    private CategoryProductsPageResponse toCategoryProductsPageResponse(
+            Page<Category> categoryPage,
+            String query,
+            boolean activeOnly,
+            Long sellerProfileId,
+            Long actorUserId) {
         List<Category> categories = categoryPage.getContent();
         if (categories.isEmpty()) {
             return new CategoryProductsPageResponse(
@@ -285,6 +322,9 @@ public class ProductService {
         List<Product> products = activeOnly
                 ? productRepository.findByCategoryCategoryIdInAndIsActiveTrue(categoryIds)
                 : productRepository.findByCategoryCategoryIdIn(categoryIds);
+        if (!activeOnly && sellerProfileId != null && actorUserId != null) {
+            products = productRepository.findByCategoryCategoryIdInForSeller(categoryIds, sellerProfileId, actorUserId);
+        }
 
         Map<Integer, List<Product>> allProductsByCategoryId = new HashMap<>();
         Map<Integer, List<Product>> matchedProductsByCategoryId = new HashMap<>();
@@ -334,6 +374,30 @@ public class ProductService {
         }
         String normalized = query.trim();
         return normalized.isEmpty() ? null : normalized;
+    }
+
+    private SellerProfile resolveSellerProfile(Long userId) {
+        if (userId == null) {
+            throw new UnauthorizedException("Invalid authenticated user");
+        }
+        return sellerProfileRepository.findByUserUserId(userId)
+                .orElseThrow(() -> new UnauthorizedException("Seller profile not found for this user"));
+    }
+
+    private void ensureSellerOwnsProduct(Product product, SellerProfile sellerProfile, Long userId) {
+        if (!isSellerOwner(product, sellerProfile, userId)) {
+            throw new UnauthorizedException("You are not authorized to access this product");
+        }
+    }
+
+    private boolean isSellerOwner(Product product, SellerProfile sellerProfile, Long userId) {
+        if (product == null || sellerProfile == null || userId == null) {
+            return false;
+        }
+        if (product.getSellerProfile() != null) {
+            return product.getSellerProfile().getSellerProfileId().equals(sellerProfile.getSellerProfileId());
+        }
+        return product.getCreatedBy() != null && product.getCreatedBy().equals(userId);
     }
 
     private boolean productMatchesQuery(Product product, String query) {

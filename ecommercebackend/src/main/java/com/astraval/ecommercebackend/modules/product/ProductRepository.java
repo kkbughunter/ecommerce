@@ -72,4 +72,68 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryCategoryIdIn(List<Integer> categoryIds);
 
     List<Product> findByCategoryCategoryIdInAndIsActiveTrue(List<Integer> categoryIds);
+
+    @Query("""
+            select p from Product p
+            where (
+                    (p.sellerProfile.sellerProfileId = :sellerProfileId)
+                    or (p.sellerProfile is null and p.createdBy = :userId)
+                  )
+            """)
+    List<Product> findBySellerProfileIdOrCreatedBy(
+            @Param("sellerProfileId") Long sellerProfileId,
+            @Param("userId") Long userId);
+
+    @Query("""
+            select p from Product p
+            where (
+                    (p.sellerProfile.sellerProfileId = :sellerProfileId)
+                    or (p.sellerProfile is null and p.createdBy = :userId)
+                  )
+              and (
+                    coalesce(:q, '') = ''
+                    or lower(p.name) like lower(concat('%', :q, '%'))
+                    or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
+                    or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
+                  )
+            """)
+    Page<Product> searchProductsForSeller(
+            @Param("sellerProfileId") Long sellerProfileId,
+            @Param("userId") Long userId,
+            @Param("q") String q,
+            Pageable pageable);
+
+    @Query("""
+            select p from Product p
+            where p.category.categoryId = :categoryId
+              and (
+                    (p.sellerProfile.sellerProfileId = :sellerProfileId)
+                    or (p.sellerProfile is null and p.createdBy = :userId)
+                  )
+              and (
+                    coalesce(:q, '') = ''
+                    or lower(p.name) like lower(concat('%', :q, '%'))
+                    or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
+                    or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
+                  )
+            """)
+    Page<Product> searchProductsByCategoryForSeller(
+            @Param("categoryId") Integer categoryId,
+            @Param("sellerProfileId") Long sellerProfileId,
+            @Param("userId") Long userId,
+            @Param("q") String q,
+            Pageable pageable);
+
+    @Query("""
+            select p from Product p
+            where p.category.categoryId in :categoryIds
+              and (
+                    (p.sellerProfile.sellerProfileId = :sellerProfileId)
+                    or (p.sellerProfile is null and p.createdBy = :userId)
+                  )
+            """)
+    List<Product> findByCategoryCategoryIdInForSeller(
+            @Param("categoryIds") List<Integer> categoryIds,
+            @Param("sellerProfileId") Long sellerProfileId,
+            @Param("userId") Long userId);
 }

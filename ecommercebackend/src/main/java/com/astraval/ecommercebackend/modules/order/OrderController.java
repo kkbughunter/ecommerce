@@ -58,6 +58,13 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Order details fetched successfully"));
     }
 
+    @GetMapping({"/admin/orders/{orderId}", "/orders/admin/{orderId}"})
+    @Operation(summary = "Admin: view order details")
+    public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderDetailsForAdmin(@PathVariable Long orderId) {
+        OrderDetailResponse response = orderService.getOrderDetails(orderId);
+        return ResponseEntity.ok(ApiResponseFactory.ok(response, "Order details fetched successfully"));
+    }
+
     @GetMapping("/orders/{orderId}/tracking")
     @Operation(summary = "View order tracking timeline")
     public ResponseEntity<ApiResponse<List<OrderTrackingResponse>>> getOrderTracking(@PathVariable Long orderId) {

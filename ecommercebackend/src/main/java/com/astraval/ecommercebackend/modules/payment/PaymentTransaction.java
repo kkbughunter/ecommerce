@@ -104,6 +104,13 @@ public class PaymentTransaction {
     @Column(name = "gateway_payload")
     private String gatewayPayload;
 
+    /**
+     * References the seller whose Razorpay account was used for this transaction.
+     * Nullable = global config.
+     */
+    @Column(name = "seller_profile_id")
+    private Long sellerProfileId;
+
     @Column(name = "created_by")
     private Long createdBy;
 

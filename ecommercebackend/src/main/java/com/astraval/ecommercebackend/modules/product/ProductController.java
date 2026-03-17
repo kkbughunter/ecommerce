@@ -38,7 +38,7 @@ public class ProductController {
 
     @GetMapping("/api/products")
     @Operation(summary = "List all products")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<ApiResponse<ProductPageResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -59,7 +59,7 @@ public class ProductController {
 
     @PostMapping("/api/products")
     @Operation(summary = "Create product")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody CreateProductRequest request) {
         ProductResponse response = productService.createProduct(request);
         return ResponseEntity.status(201).body(ApiResponseFactory.created(response, "Product created successfully"));
@@ -67,7 +67,7 @@ public class ProductController {
 
     @PutMapping("/api/products/{productId}")
     @Operation(summary = "Update product details")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody UpdateProductRequest request) {
@@ -77,7 +77,7 @@ public class ProductController {
 
     @PatchMapping("/api/products/{productId}/activate")
     @Operation(summary = "Activate product")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<ApiResponse<ProductResponse>> activateProduct(@PathVariable Long productId) {
         ProductResponse response = productService.activateProduct(productId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Product activated successfully"));
@@ -85,7 +85,7 @@ public class ProductController {
 
     @PatchMapping("/api/products/{productId}/deactivate")
     @Operation(summary = "Deactivate product")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<ApiResponse<ProductResponse>> deactivateProduct(@PathVariable Long productId) {
         ProductResponse response = productService.deactivateProduct(productId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Product deactivated successfully"));
@@ -100,7 +100,7 @@ public class ProductController {
 
     @GetMapping("/api/products/category/{categoryId}")
     @Operation(summary = "View products by category")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<ApiResponse<ProductPageResponse>> getProductsByCategory(
             @PathVariable Integer categoryId,
             @RequestParam(defaultValue = "0") int page,
@@ -133,7 +133,7 @@ public class ProductController {
 
     @GetMapping("/api/admin/categories/products")
     @Operation(summary = "Admin: search all categories with all products")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<ApiResponse<CategoryProductsPageResponse>> getAllCategoriesWithAllProductsForAdmin(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,

@@ -31,6 +31,10 @@ import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.exception.UnauthorizedException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.emailtemplate.EmailTemplateService;
+import com.astraval.ecommercebackend.modules.seller.SellerProfile;
+import com.astraval.ecommercebackend.modules.seller.SellerProfileRepository;
+import com.astraval.ecommercebackend.modules.seller.SellerService;
+import com.astraval.ecommercebackend.modules.seller.SellerService.ResolvedRazorpayCredentials;
 import com.astraval.ecommercebackend.modules.order.Order;
 import com.astraval.ecommercebackend.modules.order.OrderItem;
 import com.astraval.ecommercebackend.modules.order.OrderRepository;
@@ -65,6 +69,8 @@ public class RazorpayPaymentService {
     private final SecurityUtil securityUtil;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final SellerService sellerService;
+    private final SellerProfileRepository sellerProfileRepository;
 
     public RazorpayPaymentService(
             RazorpayProperties razorpayProperties,
@@ -73,7 +79,9 @@ public class RazorpayPaymentService {
             PaymentStatusTrackingRepository paymentStatusTrackingRepository,
             EmailTemplateService emailTemplateService,
             SecurityUtil securityUtil,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            SellerService sellerService,
+            SellerProfileRepository sellerProfileRepository) {
         this.razorpayProperties = razorpayProperties;
         this.orderRepository = orderRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
@@ -81,21 +89,25 @@ public class RazorpayPaymentService {
         this.emailTemplateService = emailTemplateService;
         this.securityUtil = securityUtil;
         this.objectMapper = objectMapper;
+        this.sellerService = sellerService;
+        this.sellerProfileRepository = sellerProfileRepository;
         this.httpClient = HttpClient.newBuilder().build();
     }
 
     @Transactional
     public RazorpayOrderCreateResponse createRazorpayOrder(CreateRazorpayOrderRequest request) {
-        ensureRazorpayCredentialsConfigured();
         Order order = loadOrder(request.orderId());
         authorizeOrderAccess(order);
         validateOrderForPayment(order);
+
+        ResolvedRazorpayCredentials creds = resolveCredentialsForOrder(order);
 
         int attemptNumber = Math.toIntExact(paymentTransactionRepository.countByOrderOrderId(order.getOrderId()) + 1);
         long amountInSubunits = toSubunits(order.getTotalAmount());
         String receipt = generateReceipt(order, attemptNumber);
 
-        JsonNode razorpayOrderResponse = createGatewayOrder(amountInSubunits, order.getCurrency(), receipt, order);
+        JsonNode razorpayOrderResponse = createGatewayOrder(amountInSubunits, order.getCurrency(), receipt, order,
+                creds);
         String razorpayOrderId = textValue(razorpayOrderResponse, "id");
         if (razorpayOrderId == null) {
             throw new BadRequestException("Razorpay order creation failed: missing order id in response");
@@ -117,6 +129,10 @@ public class RazorpayPaymentService {
         paymentTransaction.setGatewayPayload(razorpayOrderResponse.toString());
         paymentTransaction.setCreatedBy(actorUserId);
         paymentTransaction.setModifiedBy(actorUserId);
+        // Track which seller's Razorpay account was used
+        if (creds.sellerProfileId() != null) {
+            paymentTransaction.setSellerProfileId(creds.sellerProfileId());
+        }
         paymentTransaction = paymentTransactionRepository.save(paymentTransaction);
 
         writeStatusTracking(
@@ -141,7 +157,7 @@ public class RazorpayPaymentService {
                 order.getOrderId(),
                 order.getOrderNumber(),
                 paymentTransaction.getGatewayOrderId(),
-                razorpayProperties.getKeyId(),
+                creds.keyId(),
                 paymentTransaction.getStatus().name(),
                 amountInSubunits,
                 paymentTransaction.getCurrency(),
@@ -151,7 +167,6 @@ public class RazorpayPaymentService {
 
     @Transactional
     public PaymentAttemptResponse verifyPayment(VerifyRazorpayPaymentRequest request) {
-        ensureRazorpayCredentialsConfigured();
         PaymentTransaction paymentTransaction = paymentTransactionRepository
                 .findByGatewayAndGatewayOrderId(PaymentGateway.RAZORPAY, request.razorpayOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Payment transaction not found for Razorpay order id"));
@@ -161,6 +176,8 @@ public class RazorpayPaymentService {
         if (!order.getOrderId().equals(request.orderId())) {
             throw new BadRequestException("Order id does not match payment transaction");
         }
+
+        ResolvedRazorpayCredentials creds = resolveCredentialsForTransaction(paymentTransaction);
 
         Long actorUserId = getCurrentUserId();
         paymentTransaction.setGatewayPaymentId(trimToNull(request.razorpayPaymentId()));
@@ -172,7 +189,8 @@ public class RazorpayPaymentService {
         boolean signatureValid = verifyCheckoutSignature(
                 request.razorpayOrderId(),
                 request.razorpayPaymentId(),
-                request.razorpaySignature());
+                request.razorpaySignature(),
+                creds.keySecret());
 
         if (!signatureValid) {
             paymentTransaction.setErrorCode("SIGNATURE_MISMATCH");
@@ -257,7 +275,30 @@ public class RazorpayPaymentService {
 
     @Transactional
     public Map<String, Object> handleWebhook(String signature, String payload) {
-        String webhookSecret = trimToNull(razorpayProperties.getWebhookSecret());
+        return handleWebhookInternal(signature, payload, null);
+    }
+
+    /**
+     * Per-seller webhook endpoint. Razorpay delivers webhooks to
+     * {@code /api/payments/razorpay/webhook/{sellerProfileId}} when sellers use
+     * their own Razorpay accounts.
+     */
+    @Transactional
+    public Map<String, Object> handleWebhookForSeller(String signature, String payload, Long sellerProfileId) {
+        return handleWebhookInternal(signature, payload, sellerProfileId);
+    }
+
+    private Map<String, Object> handleWebhookInternal(String signature, String payload, Long sellerProfileId) {
+        String webhookSecret;
+        if (sellerProfileId != null) {
+            // Seller-specific webhook: use seller's webhook secret
+            webhookSecret = sellerService.resolveCredentials(sellerProfileId)
+                    .map(ResolvedRazorpayCredentials::webhookSecret)
+                    .filter(s -> s != null && !s.isBlank())
+                    .orElseGet(() -> trimToNull(razorpayProperties.getWebhookSecret()));
+        } else {
+            webhookSecret = trimToNull(razorpayProperties.getWebhookSecret());
+        }
         if (webhookSecret == null) {
             throw new UnauthorizedException("Razorpay webhook secret is not configured");
         }
@@ -336,7 +377,8 @@ public class RazorpayPaymentService {
         }
     }
 
-    private JsonNode createGatewayOrder(long amountInSubunits, String currency, String receipt, Order order) {
+    private JsonNode createGatewayOrder(long amountInSubunits, String currency, String receipt, Order order,
+            ResolvedRazorpayCredentials creds) {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("amount", amountInSubunits);
         requestBody.put("currency", currency);
@@ -350,7 +392,7 @@ public class RazorpayPaymentService {
         String requestJson = toJson(requestBody);
         String endpoint = normalizeBaseUrl(razorpayProperties.getApiBaseUrl()) + "/v1/orders";
         String authValue = Base64.getEncoder()
-                .encodeToString((razorpayProperties.getKeyId() + ":" + razorpayProperties.getKeySecret())
+                .encodeToString((creds.keyId() + ":" + creds.keySecret())
                         .getBytes(StandardCharsets.UTF_8));
 
         HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -513,13 +555,40 @@ public class RazorpayPaymentService {
     }
 
     private void authorizeOrderAccess(Order order) {
-        if (securityUtil.hasRole("ADMIN")) {
+        Long userId = getCurrentUserId();
+        if (securityUtil.hasRole("SELLER")) {
+            SellerProfile sellerProfile = sellerProfileRepository.findByUserUserId(userId)
+                    .orElseThrow(() -> new UnauthorizedException("Seller profile not found for this user"));
+            if (!orderHasSellerItems(order, sellerProfile, userId)) {
+                throw new UnauthorizedException("You are not authorized to access this order payment");
+            }
             return;
         }
-        Long userId = getCurrentUserId();
         if (!order.getUser().getUserId().equals(userId)) {
             throw new UnauthorizedException("You are not authorized to access this order payment");
         }
+    }
+
+    private boolean orderHasSellerItems(Order order, SellerProfile sellerProfile, Long userId) {
+        if (order == null || order.getItems() == null) {
+            return false;
+        }
+        Long sellerProfileId = sellerProfile != null ? sellerProfile.getSellerProfileId() : null;
+        for (OrderItem item : order.getItems()) {
+            if (item == null || item.getProduct() == null) {
+                continue;
+            }
+            var product = item.getProduct();
+            if (product.getSellerProfile() != null && sellerProfileId != null) {
+                if (sellerProfileId.equals(product.getSellerProfile().getSellerProfileId())) {
+                    return true;
+                }
+            } else if (product.getSellerProfile() == null && product.getCreatedBy() != null
+                    && product.getCreatedBy().equals(userId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private long toSubunits(BigDecimal amount) {
@@ -558,9 +627,75 @@ public class RazorpayPaymentService {
         return status;
     }
 
-    private boolean verifyCheckoutSignature(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature) {
+    private boolean verifyCheckoutSignature(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature,
+            String keySecret) {
         String payload = razorpayOrderId + "|" + razorpayPaymentId;
-        return verifyHmacSignature(payload, razorpaySignature, razorpayProperties.getKeySecret());
+        return verifyHmacSignature(payload, razorpaySignature, keySecret);
+    }
+
+    /**
+     * Resolves Razorpay credentials for the given order.
+     * <p>
+     * All items in the order must belong to the same seller (or all be
+     * platform products without a seller). Mixed-seller orders are rejected
+     * because a single Razorpay payment can only be processed through one
+     * account.
+     * Falls back to global configuration when no seller is involved.
+     */
+    private ResolvedRazorpayCredentials resolveCredentialsForOrder(Order order) {
+        Long resolvedSellerProfileId = null;
+
+        if (order.getItems() != null) {
+            for (var item : order.getItems()) {
+                if (item.getProduct() != null && item.getProduct().getSellerProfile() != null) {
+                    Long itemSellerId = item.getProduct().getSellerProfile().getSellerProfileId();
+                    if (resolvedSellerProfileId == null) {
+                        resolvedSellerProfileId = itemSellerId;
+                    } else if (!resolvedSellerProfileId.equals(itemSellerId)) {
+                        throw new BadRequestException(
+                                "Order contains products from multiple sellers. " +
+                                        "Please place separate orders per seller.");
+                    }
+                }
+            }
+        }
+
+        if (resolvedSellerProfileId != null) {
+            var sellerCreds = sellerService.resolveCredentials(resolvedSellerProfileId);
+            if (sellerCreds.isPresent()) {
+                return sellerCreds.get();
+            }
+        }
+        // Fall back to global Razorpay config
+        return resolveGlobalCredentials();
+    }
+
+    /**
+     * Resolves credentials used when this payment transaction was created.
+     * If a sellerProfileId is stored on the transaction, use that seller's
+     * credentials.
+     */
+    private ResolvedRazorpayCredentials resolveCredentialsForTransaction(PaymentTransaction paymentTransaction) {
+        if (paymentTransaction.getSellerProfileId() != null) {
+            var sellerCreds = sellerService.resolveCredentials(paymentTransaction.getSellerProfileId());
+            if (sellerCreds.isPresent()) {
+                return sellerCreds.get();
+            }
+        }
+        return resolveGlobalCredentials();
+    }
+
+    private ResolvedRazorpayCredentials resolveGlobalCredentials() {
+        String keyId = trimToNull(razorpayProperties.getKeyId());
+        String keySecret = trimToNull(razorpayProperties.getKeySecret());
+        if (keyId == null || keySecret == null) {
+            throw new BadRequestException("Razorpay credentials are not configured");
+        }
+        return new ResolvedRazorpayCredentials(
+                null,
+                keyId,
+                keySecret,
+                trimToNull(razorpayProperties.getWebhookSecret()));
     }
 
     private boolean verifyHmacSignature(String payload, String signature, String secret) {
@@ -587,11 +722,6 @@ public class RazorpayPaymentService {
         }
     }
 
-    private void ensureRazorpayCredentialsConfigured() {
-        if (trimToNull(razorpayProperties.getKeyId()) == null || trimToNull(razorpayProperties.getKeySecret()) == null) {
-            throw new BadRequestException("Razorpay credentials are not configured");
-        }
-    }
 
     private String toJson(Object value) {
         try {

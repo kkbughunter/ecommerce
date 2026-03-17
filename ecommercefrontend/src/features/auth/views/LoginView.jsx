@@ -21,6 +21,7 @@ const LoginView = () => {
     handleResendOtp,
   } = useLogin();
 
+
   return (
     <main className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_20%_20%,#ede9fe_0%,#e0e7ff_45%,#f8fafc_100%)] p-4 md:p-6">
       <section className="mx-auto flex w-full max-w-6xl flex-1 overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-xl">
@@ -36,7 +37,7 @@ const LoginView = () => {
             </h1>
             <p className="text-sm text-slate-600">
               {mode === "login"
-                ? "Sign in with your account. You will be redirected to the Admin, Super Admin, or Client portal based on your role."
+                ? "Sign in with your account. You will be redirected to the Seller, Super Admin, or Customer portal based on your role."
                 : mode === "register"
                   ? "Register with your email. We will send an OTP to verify your account."
                   : "Enter your email and OTP sent to your inbox."}

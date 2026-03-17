@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.astraval.ecommercebackend.modules.category.Category;
+import com.astraval.ecommercebackend.modules.seller.SellerProfile;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -67,6 +68,13 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    /**
+     * The seller who owns/listed this product. Nullable for backward compatibility.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_profile_id")
+    private SellerProfile sellerProfile;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;

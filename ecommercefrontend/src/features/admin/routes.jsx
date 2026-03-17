@@ -2,6 +2,7 @@ import AdminCategoriesView from "./views/AdminCategoriesView";
 import ProtectedRoute from "../../core/auth/ProtectedRoute";
 import AdminCreateProductView from "./views/AdminCreateProductView";
 import AdminCustomersView from "./views/AdminCustomersView";
+import AdminSellersView from "./views/AdminSellersView";
 import AdminHomeView from "./views/AdminHomeView";
 import AdminInvoicesView from "./views/AdminInvoicesView";
 import AdminMainBannersView from "./views/AdminMainBannersView";
@@ -12,31 +13,39 @@ import AdminSlidersView from "./views/AdminSlidersView";
 
 const adminRoutes = [
   {
-    path: "/admin",
+    path: "/seller/dashboard",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SELLER"]}>
         <AdminHomeView />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/admin/products",
+    path: "/seller/dashboard/products",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SELLER"]}>
         <AdminProductsView />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/admin/products/new",
+    path: "/seller/dashboard/products/new",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SELLER"]}>
         <AdminCreateProductView />
       </ProtectedRoute>
     ),
   },
   {
     path: "/superadmin/categories",
+    element: (
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+        <AdminCategoriesView />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/categories",
     element: (
       <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminCategoriesView />
@@ -68,25 +77,33 @@ const adminRoutes = [
     ),
   },
   {
-    path: "/admin/orders",
+    path: "/superadmin/sellers",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+        <AdminSellersView />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/seller/dashboard/orders",
+    element: (
+      <ProtectedRoute allowedRoles={["SELLER"]}>
         <AdminOrdersView />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/admin/payments",
+    path: "/seller/dashboard/payments",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SELLER"]}>
         <AdminPaymentsView />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/admin/invoices",
+    path: "/seller/dashboard/invoices",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SELLER"]}>
         <AdminInvoicesView />
       </ProtectedRoute>
     ),
