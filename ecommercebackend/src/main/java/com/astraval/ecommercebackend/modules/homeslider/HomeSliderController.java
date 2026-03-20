@@ -44,7 +44,7 @@ public class HomeSliderController {
     }
 
     @GetMapping("/admin/home-sliders")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: list all home sliders")
     public ResponseEntity<ApiResponse<List<HomeSliderResponse>>> getAllSlidersForAdmin(
             @RequestParam(required = false) HomeSliderPlacementTag tag) {
@@ -53,7 +53,7 @@ public class HomeSliderController {
     }
 
     @PostMapping("/admin/home-sliders")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: create home slider")
     public ResponseEntity<ApiResponse<HomeSliderResponse>> createSlider(
             @Valid @RequestBody CreateHomeSliderRequest request) {
@@ -62,7 +62,7 @@ public class HomeSliderController {
     }
 
     @PutMapping("/admin/home-sliders/{homeSliderId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: update home slider")
     public ResponseEntity<ApiResponse<HomeSliderResponse>> updateSlider(
             @PathVariable Long homeSliderId,
@@ -72,7 +72,7 @@ public class HomeSliderController {
     }
 
     @PatchMapping("/admin/home-sliders/{homeSliderId}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: activate home slider")
     public ResponseEntity<ApiResponse<HomeSliderResponse>> activateSlider(@PathVariable Long homeSliderId) {
         HomeSliderResponse response = homeSliderService.activateSlider(homeSliderId);
@@ -80,7 +80,7 @@ public class HomeSliderController {
     }
 
     @PatchMapping("/admin/home-sliders/{homeSliderId}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: deactivate home slider")
     public ResponseEntity<ApiResponse<HomeSliderResponse>> deactivateSlider(@PathVariable Long homeSliderId) {
         HomeSliderResponse response = homeSliderService.deactivateSlider(homeSliderId);

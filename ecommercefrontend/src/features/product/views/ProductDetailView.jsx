@@ -319,8 +319,7 @@ const ProductDetailView = () => {
     <div className="min-h-screen bg-slate-50">
       {/* ── TOP NAV ── */}
       {isAdmin ? (
-        /* Admin header */
-        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
+        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
           <div className="flex h-14 items-center justify-between px-4 md:px-6">
             <div className="flex items-center gap-2">
               <button
@@ -350,8 +349,7 @@ const ProductDetailView = () => {
           </div>
         </header>
       ) : (
-        /* Customer header */
-        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
+        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
           <div className="flex h-14 items-center justify-between px-4 md:px-6">
             <button
               type="button"
@@ -386,7 +384,6 @@ const ProductDetailView = () => {
 
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         {isLoading ? (
-          /* Loading skeleton */
           <div className="animate-pulse">
             <div className="grid gap-8 lg:grid-cols-2">
               <div className="aspect-square rounded-3xl bg-slate-200" />
@@ -435,7 +432,6 @@ const ProductDetailView = () => {
                     </div>
                   )}
 
-                  {/* Tag badge on image */}
                   {tagLabel && (
                     <span
                       className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
@@ -448,7 +444,6 @@ const ProductDetailView = () => {
                     </span>
                   )}
 
-                  {/* Stock badge */}
                   <span
                     className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold ${
                       isInStock
@@ -459,7 +454,6 @@ const ProductDetailView = () => {
                     {isInStock ? "In Stock" : "Out of Stock"}
                   </span>
 
-                  {/* Arrow nav for multiple images */}
                   {hasMultipleImages && (
                     <>
                       <button
@@ -493,7 +487,6 @@ const ProductDetailView = () => {
                   )}
                 </div>
 
-                {/* Thumbnails */}
                 {hasMultipleImages && (
                   <div className="grid grid-cols-5 gap-2">
                     {galleryImages.map((img, idx) => (
@@ -521,7 +514,7 @@ const ProductDetailView = () => {
 
               {/* RIGHT: Product Info */}
               <div className="flex flex-col gap-5">
-                {/* Breadcrumb / category */}
+                {/* Breadcrumb */}
                 <div className="flex items-center gap-2 text-sm text-slate-400">
                   <button
                     type="button"
@@ -572,8 +565,6 @@ const ProductDetailView = () => {
                   <p className="mt-1.5 text-xs text-slate-400">
                     Inclusive of all taxes (GST {product.gstPercentage}%)
                   </p>
-
-                  {/* Stock status */}
                   <div className="mt-3 flex items-center gap-2">
                     <span
                       className={`h-2 w-2 rounded-full ${isInStock ? "bg-emerald-500" : "bg-slate-400"}`}
@@ -619,7 +610,6 @@ const ProductDetailView = () => {
                     )}
                   </div>
                 ) : (
-                  /* Admin mode toggle */
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="mb-4 flex items-center justify-between gap-2">
                       <h2 className="font-semibold text-slate-900">Admin Controls</h2>
@@ -863,7 +853,7 @@ const ProductDetailView = () => {
                   </div>
                 )}
 
-                {/* Customer-only: product details section */}
+                {/* Customer-only: product details */}
                 {!isAdmin && (
                   <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <h2 className="mb-4 text-base font-bold text-slate-900">Product Details</h2>
@@ -879,7 +869,6 @@ const ProductDetailView = () => {
                   </div>
                 )}
 
-                {/* Admin: dates */}
                 {isAdmin && (
                   <p className="text-xs text-slate-400">
                     Created {formatDateTime(product.createdDt)} &middot; Updated {formatDateTime(product.modifiedDt)}
@@ -924,7 +913,6 @@ const ProductDetailView = () => {
         )}
       </div>
 
-      {/* Footer */}
       <footer className="mt-16 border-t border-slate-200 bg-white">
         <div className="px-4 py-5 text-center text-xs text-slate-400 md:px-6">
           &copy; {new Date().getFullYear()} Villpo Store. All rights reserved.

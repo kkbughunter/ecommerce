@@ -85,11 +85,11 @@ const ProductTable = ({
   };
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4">
+    <article className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold text-slate-900">Product List</h2>
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-slate-600">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <p className="text-xs text-slate-600 sm:text-sm">
             Page {pageMeta.page + 1} of {Math.max(pageMeta.totalPages, 1)} | Total {pageMeta.totalElements}
           </p>
           {!readOnly ? (
@@ -293,7 +293,7 @@ const ProductTable = ({
         </table>
       </div>
 
-      <div className="mt-4 flex justify-end gap-2">
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
         <button
           type="button"
           onClick={onPrev}

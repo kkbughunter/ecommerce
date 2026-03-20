@@ -88,7 +88,7 @@ const ProductCard = ({ product, onAddToCart = () => {}, isAddingToCart = false }
           {product?.description || "-"}
         </p>
         <p className="line-clamp-1 text-[12px] text-[#64748b]">
-          GST {product?.gstPercentage}% • Stock {product?.stockQuantity}
+          GST {product?.gstPercentage}% | Stock {product?.stockQuantity}
         </p>
 
         <div className="flex items-center gap-2">

@@ -149,7 +149,7 @@ const Shop = () => {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_15%_15%,#ede9fe_0%,#e2e8f0_45%,#f8fafc_100%)] p-4 md:p-6">
       <section className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-2xl border border-violet-100 bg-white/90 p-5 shadow-lg backdrop-blur">
+        <header className="rounded-2xl border border-violet-100 bg-white/90 p-4 shadow-lg backdrop-blur sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-700">
@@ -163,7 +163,7 @@ const Shop = () => {
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
               <button
                 type="button"
                 onClick={fetchProducts}
@@ -194,7 +194,7 @@ const Shop = () => {
         )}
 
         <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <section className="space-y-4 rounded-2xl border border-violet-100 bg-white p-5 shadow-lg">
+          <section className="space-y-4 rounded-2xl border border-violet-100 bg-white p-4 shadow-lg sm:p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">Active Products</h2>
               {isProductsLoading && <span className="text-xs text-slate-500">Refreshing...</span>}
@@ -243,7 +243,7 @@ const Shop = () => {
           </section>
 
           <aside className="space-y-6">
-            <section className="space-y-4 rounded-2xl border border-violet-100 bg-white p-5 shadow-lg">
+            <section className="space-y-4 rounded-2xl border border-violet-100 bg-white p-4 shadow-lg sm:p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">Profile Setup</h2>
@@ -320,7 +320,7 @@ const Shop = () => {
               )}
             </section>
 
-            <section className="space-y-4 rounded-2xl border border-violet-100 bg-white p-5 shadow-lg">
+            <section className="space-y-4 rounded-2xl border border-violet-100 bg-white p-4 shadow-lg sm:p-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Cart</h2>
                 {!!cart?.items?.length && (
@@ -429,7 +429,7 @@ const Shop = () => {
               )}
             </section>
 
-            <section className="space-y-4 rounded-2xl border border-violet-100 bg-white p-5 shadow-lg">
+            <section className="space-y-4 rounded-2xl border border-violet-100 bg-white p-4 shadow-lg sm:p-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Order Payment Status</h2>
                 {latestOrder?.orderId && (

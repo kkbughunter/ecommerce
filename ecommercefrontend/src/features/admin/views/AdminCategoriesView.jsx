@@ -103,7 +103,7 @@ const AdminCategoriesView = () => {
         ) : null}
 
         <section className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
-          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
+          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <h2 className="text-base font-semibold text-[#111827]">Create Category</h2>
             <p className="mt-1 text-xs text-[#64748b]">Add a new category for products.</p>
 
@@ -157,8 +157,8 @@ const AdminCategoriesView = () => {
             </form>
           </article>
 
-          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
+          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-[#111827]">Category List</h2>
               <p className="text-xs text-[#94a3b8]">{categories.length} total</p>
             </div>

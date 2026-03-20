@@ -210,7 +210,7 @@ const AdminPaymentsView = () => {
       onSearchChange={setSearch}
       searchPlaceholder="Search order number or customer..."
       topActions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={() => navigate("/admin/orders")}
@@ -240,7 +240,7 @@ const AdminPaymentsView = () => {
             <select
               value={filters.paymentStatus}
               onChange={(event) => setFilters((prev) => ({ ...prev, paymentStatus: event.target.value }))}
-              className="h-9 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+              className="h-9 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
             >
               {PAYMENT_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -251,7 +251,7 @@ const AdminPaymentsView = () => {
             <select
               value={filters.orderStatus}
               onChange={(event) => setFilters((prev) => ({ ...prev, orderStatus: event.target.value }))}
-              className="h-9 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+              className="h-9 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
             >
               {ORDER_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -330,7 +330,7 @@ const AdminPaymentsView = () => {
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-end gap-2 border-t border-[#edf0f3] px-4 py-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#edf0f3] px-4 py-3">
             <button
               type="button"
               disabled={ordersPage.first}
@@ -363,7 +363,7 @@ const AdminPaymentsView = () => {
           <p className="text-sm text-[#64748b]">Loading payment details...</p>
         ) : (
           <div className="space-y-4">
-            <section className="grid gap-3 grid-cols-2">
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <article className="rounded-xl border border-[#e8ecf2] bg-[#f8fafc] p-3">
                 <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Order Amount</p>
                 <p className="mt-1 text-base font-semibold text-emerald-700">

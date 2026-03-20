@@ -110,7 +110,37 @@ const OrderTrackingTimeline = ({
         {trackingId ? <p className="text-xs text-[#64748b]">Tracking ID {trackingId}</p> : null}
       </div>
 
-      <div className="overflow-x-auto pb-2">
+      <div className="space-y-3 md:hidden">
+        {TRACKING_STEPS.map((step, index) => {
+          const reached = index <= activeIndex;
+          const isCurrent = index === activeIndex;
+          const isLast = index === TRACKING_STEPS.length - 1;
+          return (
+            <div key={`mobile-${step.key}`} className="flex gap-3">
+              <div className="flex w-12 flex-col items-center">
+                <div
+                  className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border ${
+                    reached
+                      ? "border-blue-300 bg-[linear-gradient(160deg,#2563eb,#0284c7)] text-white"
+                      : "border-slate-200 bg-slate-100 text-slate-400"
+                  } ${isCurrent ? "ring-2 ring-blue-200 ring-offset-2" : ""}`}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-current">
+                    <path d={step.iconPath} />
+                  </svg>
+                </div>
+                {!isLast ? <div className={`mt-1 h-8 w-[2px] ${reached ? "bg-blue-300" : "bg-slate-200"}`} /> : null}
+              </div>
+              <div className="flex-1 pb-1">
+                <p className="text-xs font-semibold text-[#111827]">{step.label}</p>
+                <p className="mt-0.5 text-[11px] text-[#64748b]">{formatStepDate(getStepDate(trackingEvents, step))}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden overflow-x-auto pb-2 md:block">
         <div className="relative min-w-[760px] px-2 pt-2">
           <div className="absolute left-8 right-8 top-[47px] h-[4px] rounded-full bg-[#dbeafe]" />
           <div

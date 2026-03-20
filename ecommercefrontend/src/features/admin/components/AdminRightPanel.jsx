@@ -4,7 +4,7 @@ const AdminRightPanel = ({
   subtitle = "",
   onClose,
   children,
-  widthClass = "max-w-[560px]",
+  widthClass = "sm:max-w-[560px]",
 }) => {
   return (
     <>
@@ -22,20 +22,20 @@ const AdminRightPanel = ({
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <header className="flex items-start justify-between gap-3 border-b border-[#e2e6ee] px-5 py-4">
+        <header className="flex items-start justify-between gap-3 border-b border-[#e2e6ee] px-4 py-4 sm:px-5">
           <div>
-            <h2 className="text-lg font-semibold text-[#111827]">{title}</h2>
+            <h2 className="text-base font-semibold text-[#111827] sm:text-lg">{title}</h2>
             {subtitle ? <p className="mt-1 text-xs text-[#64748b]">{subtitle}</p> : null}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#d8dde6] bg-white text-sm font-semibold text-[#334155]"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#d8dde6] bg-white text-sm font-semibold text-[#334155]"
           >
             x
           </button>
         </header>
-        <div className="h-[calc(100vh-78px)] overflow-y-auto px-5 py-4">{children}</div>
+        <div className="h-[calc(100vh-78px)] overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
       </aside>
     </>
   );

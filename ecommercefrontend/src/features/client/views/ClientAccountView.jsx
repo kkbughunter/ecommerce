@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import customerApi from "../../../core/api/customerApi";
 import { getAuthMeta } from "../../../core/auth/session";
 import getApiErrorMessage from "../../../core/utils/apiError";
@@ -44,6 +44,139 @@ const formatAddressLine = (address) => {
   return parts.length ? parts.join(", ") : "-";
 };
 
+const ProfileField = ({ label, children, className = "" }) => (
+  <label className={`space-y-1 ${className}`}>
+    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">{label}</span>
+    {children}
+  </label>
+);
+
+const AddressForm = ({ title, value, onChange }) => (
+  <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+    <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">{title}</h3>
+    <div className="grid gap-3 md:grid-cols-2">
+      <ProfileField label="Full Name">
+        <input
+          type="text"
+          name="fullName"
+          value={value.fullName}
+          onChange={onChange}
+          placeholder="Full Name"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+      <ProfileField label="Phone Number">
+        <input
+          type="text"
+          name="phoneNumber"
+          value={value.phoneNumber}
+          onChange={onChange}
+          placeholder="Phone Number"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+      <ProfileField label="Address Line 1" className="md:col-span-2">
+        <input
+          type="text"
+          name="line1"
+          value={value.line1}
+          onChange={onChange}
+          placeholder="Address Line 1"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+      <ProfileField label="Address Line 2" className="md:col-span-2">
+        <input
+          type="text"
+          name="line2"
+          value={value.line2}
+          onChange={onChange}
+          placeholder="Address Line 2"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        />
+      </ProfileField>
+      <ProfileField label="Landmark">
+        <input
+          type="text"
+          name="landmark"
+          value={value.landmark}
+          onChange={onChange}
+          placeholder="Landmark"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+      <ProfileField label="City">
+        <input
+          type="text"
+          name="city"
+          value={value.city}
+          onChange={onChange}
+          placeholder="City"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+      <ProfileField label="District">
+        <input
+          type="text"
+          name="district"
+          value={value.district}
+          onChange={onChange}
+          placeholder="District"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+      <ProfileField label="State">
+        <input
+          type="text"
+          name="state"
+          value={value.state}
+          onChange={onChange}
+          placeholder="State"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+      <ProfileField label="Country">
+        <input
+          type="text"
+          name="country"
+          value={value.country}
+          onChange={onChange}
+          placeholder="Country"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+      <ProfileField label="Postal Code">
+        <input
+          type="text"
+          name="postalCode"
+          value={value.postalCode}
+          onChange={onChange}
+          placeholder="Postal Code"
+          className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          required
+        />
+      </ProfileField>
+    </div>
+  </article>
+);
+
+const AddressSummaryCard = ({ title, value }) => (
+  <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+    <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">{title}</h3>
+    <p className="mt-2 text-sm font-semibold text-slate-900">{value?.fullName || "-"}</p>
+    <p className="text-xs text-slate-600">Phone: {value?.phoneNumber || "-"}</p>
+    <p className="mt-1 text-xs text-slate-600">{formatAddressLine(value)}</p>
+  </article>
+);
+
 const ClientAccountView = () => {
   const authMeta = getAuthMeta();
   const [profile, setProfile] = useState(initialProfile);
@@ -85,14 +218,14 @@ const ClientAccountView = () => {
     loadProfile();
   }, [loadProfile]);
 
-  const handleFieldChange = (event) => {
+  const handleFieldChange = useCallback((event) => {
     const { name, value } = event.target;
     setError("");
     setSuccess("");
     setProfile((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleAddressChange = (type, event) => {
+  const handleAddressChange = useCallback((type) => (event) => {
     const { name, value } = event.target;
     setError("");
     setSuccess("");
@@ -103,7 +236,10 @@ const ClientAccountView = () => {
         [name]: value,
       },
     }));
-  };
+  }, []);
+
+  const handleBillingChange = useMemo(() => handleAddressChange('billingAddress'), [handleAddressChange]);
+  const handleShippingChange = useMemo(() => handleAddressChange('shippingAddress'), [handleAddressChange]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -137,139 +273,6 @@ const ClientAccountView = () => {
     }
   };
 
-  const ProfileField = ({ label, children, className = "" }) => (
-    <label className={`space-y-1 ${className}`}>
-      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">{label}</span>
-      {children}
-    </label>
-  );
-
-  const AddressForm = ({ title, value, type }) => (
-    <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">{title}</h3>
-      <div className="grid gap-3 md:grid-cols-2">
-        <ProfileField label="Full Name">
-          <input
-            type="text"
-            name="fullName"
-            value={value.fullName}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="Full Name"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-        <ProfileField label="Phone Number">
-          <input
-            type="text"
-            name="phoneNumber"
-            value={value.phoneNumber}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="Phone Number"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-        <ProfileField label="Address Line 1" className="md:col-span-2">
-          <input
-            type="text"
-            name="line1"
-            value={value.line1}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="Address Line 1"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-        <ProfileField label="Address Line 2" className="md:col-span-2">
-          <input
-            type="text"
-            name="line2"
-            value={value.line2}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="Address Line 2"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </ProfileField>
-        <ProfileField label="Landmark">
-          <input
-            type="text"
-            name="landmark"
-            value={value.landmark}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="Landmark"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-        <ProfileField label="City">
-          <input
-            type="text"
-            name="city"
-            value={value.city}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="City"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-        <ProfileField label="District">
-          <input
-            type="text"
-            name="district"
-            value={value.district}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="District"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-        <ProfileField label="State">
-          <input
-            type="text"
-            name="state"
-            value={value.state}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="State"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-        <ProfileField label="Country">
-          <input
-            type="text"
-            name="country"
-            value={value.country}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="Country"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-        <ProfileField label="Postal Code">
-          <input
-            type="text"
-            name="postalCode"
-            value={value.postalCode}
-            onChange={(event) => handleAddressChange(type, event)}
-            placeholder="Postal Code"
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            required
-          />
-        </ProfileField>
-      </div>
-    </article>
-  );
-
-  const AddressSummaryCard = ({ title, value }) => (
-    <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-      <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">{title}</h3>
-      <p className="mt-2 text-sm font-semibold text-slate-900">{value?.fullName || "-"}</p>
-      <p className="text-xs text-slate-600">Phone: {value?.phoneNumber || "-"}</p>
-      <p className="mt-1 text-xs text-slate-600">{formatAddressLine(value)}</p>
-    </article>
-  );
-
   const accountInitials = `${(profile?.firstName || authMeta?.email || "U").charAt(0)}${(profile?.lastName || "").charAt(0)}`.toUpperCase();
 
   return (
@@ -278,7 +281,7 @@ const ClientAccountView = () => {
 
       <section className="w-full flex-1 px-2 py-6 md:px-3">
         <div className="space-y-4">
-          <article className="rounded-2xl border border-[#dce4ff] bg-[linear-gradient(120deg,#ffffff,#f1f5ff)] p-5 shadow-[0_12px_32px_rgba(30,41,59,0.08)]">
+          <article className="rounded-2xl border border-[#dce4ff] bg-[linear-gradient(120deg,#ffffff,#f1f5ff)] p-4 shadow-[0_12px_32px_rgba(30,41,59,0.08)] sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(140deg,#2563eb,#4f46e5)] text-lg font-semibold text-white">
@@ -291,7 +294,7 @@ const ClientAccountView = () => {
                   <p className="text-sm text-slate-600">{authMeta?.email || "-"}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
                 <button
                   type="button"
                   onClick={loadProfile}
@@ -316,7 +319,7 @@ const ClientAccountView = () => {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
             {isLoading ? (
               <p className="text-sm text-slate-500">Loading profile...</p>
             ) : !isEditing ? (
@@ -417,8 +420,8 @@ const ClientAccountView = () => {
                 </section>
 
                 <div className="grid gap-4 xl:grid-cols-2">
-                  <AddressForm title="Billing Address" value={profile.billingAddress} type="billingAddress" />
-                  <AddressForm title="Shipping Address" value={profile.shippingAddress} type="shippingAddress" />
+                  <AddressForm title="Billing Address" value={profile.billingAddress} onChange={handleBillingChange} />
+                  <AddressForm title="Shipping Address" value={profile.shippingAddress} onChange={handleShippingChange} />
                 </div>
 
                 {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}

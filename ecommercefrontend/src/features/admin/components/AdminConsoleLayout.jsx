@@ -29,7 +29,7 @@ const NAV_GROUPS = [
       {
         key: "categories",
         label: "Categories",
-        path: "/admin/categories",
+        path: "/superadmin/categories",
         icon: "M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z",
       },
     ],
@@ -41,13 +41,13 @@ const NAV_GROUPS = [
       {
         key: "sliders",
         label: "Sliders",
-        path: "/admin/sliders",
+        path: "/superadmin/sliders",
         icon: "M3 5h18v4H3V5zm0 5h18v4H3v-4zm0 5h18v4H3v-4z",
       },
       {
         key: "mainBanners",
         label: "Main Banners",
-        path: "/admin/main-banners",
+        path: "/superadmin/main-banners",
         icon: "M3 5h18v14H3V5zm2 2v10h14V7H5zm2 2h5v2H7V9zm0 3h8v2H7v-2z",
       },
     ],
@@ -77,18 +77,44 @@ const NAV_GROUPS = [
       {
         key: "customers",
         label: "Customers",
-        path: "/admin/customers",
+        path: "/superadmin/customers",
         icon: "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.96 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z",
       },
     ],
   },
 ];
 const FLAT_NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
+const SUPER_ADMIN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers"]);
+const ADMIN_HIDDEN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers"]);
 const DEFAULT_EXPANDED_GROUPS = {
   overview: true,
   catalog: true,
-  marketing: false,
+  marketing: true,
   operations: true,
+};
+
+const filterNavGroupsByRole = (roles) => {
+  const normalizedRoles = Array.isArray(roles) ? roles : [];
+  const isAdminOnly =
+    normalizedRoles.includes("ADMIN") && !normalizedRoles.includes("SUPER_ADMIN");
+  const isSuperAdminOnly =
+    normalizedRoles.includes("SUPER_ADMIN") && !normalizedRoles.includes("ADMIN");
+
+  if (isAdminOnly) {
+    return NAV_GROUPS.map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !ADMIN_HIDDEN_NAV_KEYS.has(item.key)),
+    })).filter((group) => group.items.length > 0);
+  }
+
+  if (!isSuperAdminOnly) {
+    return NAV_GROUPS;
+  }
+
+  return NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => SUPER_ADMIN_NAV_KEYS.has(item.key)),
+  })).filter((group) => group.items.length > 0);
 };
 
 const Icon = ({ path }) => (
@@ -109,24 +135,21 @@ const AdminConsoleLayout = ({
 }) => {
   const navigate = useNavigate();
   const authMeta = getAuthMeta();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("admin_sidebar_collapsed") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [expandedGroups, setExpandedGroups] = useState(DEFAULT_EXPANDED_GROUPS);
+  const navGroups = useMemo(() => filterNavGroupsByRole(authMeta?.roles), [authMeta?.roles]);
+  const flatNavItems = useMemo(() => navGroups.flatMap((group) => group.items), [navGroups]);
 
   const activeItem = useMemo(
-    () => FLAT_NAV_ITEMS.find((item) => item.key === activeNav) || FLAT_NAV_ITEMS[0],
-    [activeNav],
+    () => flatNavItems.find((item) => item.key === activeNav) || flatNavItems[0] || FLAT_NAV_ITEMS[0],
+    [activeNav, flatNavItems],
   );
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("admin_sidebar_collapsed");
-      if (saved === "1") {
-        setIsSidebarCollapsed(true);
-      }
-    } catch {
-      // ignore localStorage issues
-    }
-  }, []);
 
   useEffect(() => {
     try {
@@ -141,6 +164,13 @@ const AdminConsoleLayout = ({
     navigate("/login", { replace: true });
   };
 
+  const handleNavigate = (path) => {
+    if (!path) {
+      return;
+    }
+    navigate(path);
+  };
+
   const toggleGroup = (groupKey) => {
     setExpandedGroups((prev) => ({
       ...prev,
@@ -153,7 +183,7 @@ const AdminConsoleLayout = ({
       <div className="w-full">
         <div className="overflow-hidden border border-[#d5d9df] bg-[#f6f7f9] shadow-[0_30px_80px_rgba(15,23,42,0.18)]">
           <div className={`grid min-h-[calc(100vh-142px)] ${isSidebarCollapsed ? "lg:grid-cols-[78px_1fr]" : "lg:grid-cols-[238px_1fr]"}`}>
-            <aside className={`border-b border-[#e3e6ec] bg-[#f3f4f7] p-4 lg:border-b-0 lg:border-r ${isSidebarCollapsed ? "lg:px-2" : ""}`}>
+            <aside className={`hidden border-b border-[#e3e6ec] bg-[#f3f4f7] p-4 lg:block lg:border-b-0 lg:border-r ${isSidebarCollapsed ? "lg:px-2" : ""}`}>
               <div className={`mb-6 flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-2"}`}>
                 <div className="h-8 w-8 rounded-lg bg-[linear-gradient(140deg,#0f172a,#334155)]" />
                 {!isSidebarCollapsed ? (
@@ -167,11 +197,11 @@ const AdminConsoleLayout = ({
               <nav className="space-y-3">
                 {isSidebarCollapsed ? (
                   <section className="space-y-1.5">
-                    {FLAT_NAV_ITEMS.map((item) => (
+                    {flatNavItems.map((item) => (
                       <button
                         key={item.key}
                         type="button"
-                        onClick={() => navigate(item.path)}
+                        onClick={() => handleNavigate(item.path)}
                         title={item.label}
                         className={`flex w-full items-center justify-center rounded-xl px-3 py-2 text-left text-sm transition ${
                           activeItem.key === item.key
@@ -184,7 +214,7 @@ const AdminConsoleLayout = ({
                     ))}
                   </section>
                 ) : (
-                  NAV_GROUPS.map((group) => {
+                  navGroups.map((group) => {
                     const isExpanded = Boolean(expandedGroups[group.key]);
                     return (
                       <section key={group.key} className="space-y-1.5">
@@ -202,7 +232,7 @@ const AdminConsoleLayout = ({
                               <button
                                 key={item.key}
                                 type="button"
-                                onClick={() => navigate(item.path)}
+                                onClick={() => handleNavigate(item.path)}
                                 title={`${group.label}: ${item.label}`}
                                 className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition ${
                                   activeItem.key === item.key
@@ -260,15 +290,48 @@ const AdminConsoleLayout = ({
             </aside>
 
             <section className="flex min-h-0 flex-col">
-              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e6ec] bg-[#f9fafb] px-4 py-3">
-                <div className="min-w-[180px]">
-                  <h1 className="text-[22px] font-semibold tracking-tight text-[#111827]">{title}</h1>
+              <div className="border-b border-[#e3e6ec] bg-[#f9fafb] px-3 py-3 lg:hidden">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[#111827]">{title}</p>
+                    <p className="truncate text-[11px] text-[#64748b]">{authMeta?.email || "-"}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="h-8 shrink-0 rounded-lg border border-[#e5e7eb] bg-white px-3 text-xs font-semibold text-[#475569]"
+                  >
+                    Logout
+                  </button>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {flatNavItems.map((item) => (
+                    <button
+                      key={`mobile-${item.key}`}
+                      type="button"
+                      onClick={() => handleNavigate(item.path)}
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                        activeItem.key === item.key
+                          ? "border-[#111827] bg-[#111827] text-white"
+                          : "border-[#d8dde6] bg-white text-[#334155]"
+                      }`}
+                    >
+                      <Icon path={item.icon} />
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e6ec] bg-[#f9fafb] px-3 py-3 sm:px-4">
+                <div className="min-w-0">
+                  <h1 className="text-lg font-semibold tracking-tight text-[#111827] sm:text-[22px]">{title}</h1>
                   {subtitle ? <p className="text-[12px] text-[#6b7280]">{subtitle}</p> : null}
                 </div>
 
-                <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:flex-1 md:justify-end">
                   {onSearchChange ? (
-                    <div className="min-w-[220px] flex-1 max-w-[420px]">
+                    <div className="w-full min-w-0 sm:min-w-[220px] md:flex-1 md:max-w-[420px]">
                       <input
                         type="text"
                         value={searchValue}
@@ -278,11 +341,11 @@ const AdminConsoleLayout = ({
                       />
                     </div>
                   ) : null}
-                  {topActions}
+                  {topActions ? <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">{topActions}</div> : null}
                 </div>
               </header>
 
-              <div className="min-h-0 flex-1 overflow-auto bg-[#f4f6f8] px-4 py-4">{children}</div>
+              <div className="min-h-0 flex-1 overflow-auto bg-[#f4f6f8] px-2 py-3 sm:px-4 sm:py-4">{children}</div>
             </section>
           </div>
         </div>

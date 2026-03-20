@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -165,7 +163,7 @@ public class CustomerService {
     }
 
     private void assertCanAccessCustomer(Customer customer) {
-        if (isAdmin()) {
+        if (isSuperAdmin()) {
             return;
         }
 
@@ -176,13 +174,8 @@ public class CustomerService {
         }
     }
 
-    private boolean isAdmin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            return false;
-        }
-        return authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+    private boolean isSuperAdmin() {
+        return securityUtil.hasRole("SUPER_ADMIN");
     }
 
     private String trimToNull(String value) {

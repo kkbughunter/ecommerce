@@ -208,7 +208,7 @@ const AdminInvoicesView = () => {
       onSearchChange={setSearch}
       searchPlaceholder="Search invoice/order/customer..."
       topActions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={() => navigate("/admin/orders")}
@@ -234,7 +234,7 @@ const AdminInvoicesView = () => {
             <select
               value={filters.paymentStatus}
               onChange={(event) => setFilters((prev) => ({ ...prev, paymentStatus: event.target.value }))}
-              className="h-9 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+              className="h-9 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
             >
               {PAYMENT_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -245,7 +245,7 @@ const AdminInvoicesView = () => {
             <select
               value={filters.dateRange}
               onChange={(event) => setFilters((prev) => ({ ...prev, dateRange: event.target.value }))}
-              className="h-9 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+              className="h-9 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
             >
               {DATE_RANGE_OPTIONS.map((range) => (
                 <option key={range.value} value={range.value}>
@@ -320,7 +320,7 @@ const AdminInvoicesView = () => {
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-end gap-2 border-t border-[#edf0f3] px-4 py-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#edf0f3] px-4 py-3">
             <button
               type="button"
               disabled={ordersPage.first}
@@ -353,7 +353,7 @@ const AdminInvoicesView = () => {
           <p className="text-sm text-[#64748b]">Loading invoice details...</p>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-xs uppercase tracking-[0.08em] text-[#94a3b8]">Billing Summary</p>
                 <p className="text-sm font-semibold text-[#111827]">{selectedOrder?.userEmail || "-"}</p>

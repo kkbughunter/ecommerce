@@ -90,6 +90,7 @@ IotRoot Team',0,'2026-02-25 16:27:31.500097','Email template used for password r
 INSERT INTO roles (role_code, landing_url, role_name)
 VALUES
     ('ADMIN', '/admin/products', 'Administrator'),
+    ('SUPER_ADMIN', '/admin/categories', 'Super-Admin'),
     ('USER', '/shop', 'Customer')
 ON CONFLICT (role_code) DO UPDATE
 SET landing_url = EXCLUDED.landing_url,

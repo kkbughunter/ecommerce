@@ -241,10 +241,7 @@ const ClientTopNav = ({
       {/* Mobile slide-over menu */}
       {menuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={closeMenu}
-          />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeMenu} />
           <div className="absolute right-0 top-0 flex h-full w-72 flex-col bg-white shadow-2xl">
             <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-100 px-4">
               <span className="text-lg font-bold text-slate-900">{title}</span>
@@ -281,9 +278,7 @@ const ClientTopNav = ({
                   >
                     <span
                       className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                        item.isActive
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-slate-100 text-slate-500"
+                        item.isActive ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-500"
                       }`}
                     >
                       <SvgIcon path={item.icon} className="h-4 w-4 fill-current" />

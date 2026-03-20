@@ -36,33 +36,33 @@ const adminRoutes = [
     ),
   },
   {
-    path: "/admin/categories",
+    path: "/superadmin/categories",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminCategoriesView />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/admin/sliders",
+    path: "/superadmin/sliders",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminSlidersView />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/admin/main-banners",
+    path: "/superadmin/main-banners",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminMainBannersView />
       </ProtectedRoute>
     ),
   },
   {
-    path: "/admin/customers",
+    path: "/superadmin/customers",
     element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
         <AdminCustomersView />
       </ProtectedRoute>
     ),

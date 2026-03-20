@@ -49,7 +49,7 @@ public class MainBannerController {
     }
 
     @GetMapping("/admin/main-banners")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: list all main banners")
     public ResponseEntity<ApiResponse<List<MainBannerResponse>>> getAllMainBannersForAdmin() {
         List<MainBannerResponse> response = mainBannerService.getAllMainBannersForAdmin();
@@ -57,7 +57,7 @@ public class MainBannerController {
     }
 
     @PostMapping("/admin/main-banners")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: create main banner")
     public ResponseEntity<ApiResponse<MainBannerResponse>> createMainBanner(
             @Valid @RequestBody CreateMainBannerRequest request) {
@@ -66,7 +66,7 @@ public class MainBannerController {
     }
 
     @PutMapping("/admin/main-banners/{mainBannerId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: update main banner")
     public ResponseEntity<ApiResponse<MainBannerResponse>> updateMainBanner(
             @PathVariable Long mainBannerId,
@@ -76,7 +76,7 @@ public class MainBannerController {
     }
 
     @PatchMapping("/admin/main-banners/{mainBannerId}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: activate main banner")
     public ResponseEntity<ApiResponse<MainBannerResponse>> activateMainBanner(@PathVariable Long mainBannerId) {
         MainBannerResponse response = mainBannerService.activateMainBanner(mainBannerId);
@@ -84,7 +84,7 @@ public class MainBannerController {
     }
 
     @PatchMapping("/admin/main-banners/{mainBannerId}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: deactivate main banner")
     public ResponseEntity<ApiResponse<MainBannerResponse>> deactivateMainBanner(@PathVariable Long mainBannerId) {
         MainBannerResponse response = mainBannerService.deactivateMainBanner(mainBannerId);

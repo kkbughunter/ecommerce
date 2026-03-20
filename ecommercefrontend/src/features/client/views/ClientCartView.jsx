@@ -28,6 +28,7 @@ const ClientCartView = () => {
     checkout,
   } = useCart();
   const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [localQuantities, setLocalQuantities] = useState({});
   const showAddressSetupError = (error || "")
     .toLowerCase()
     .includes("please set default shipping and billing addresses in your profile");
@@ -39,6 +40,11 @@ const ClientCartView = () => {
   useEffect(() => {
     const ids = (cart?.items || []).map((item) => item.productId).filter(Boolean);
     setSelectedProductIds(ids);
+    const quantities = {};
+    (cart?.items || []).forEach((item) => {
+      quantities[item.productId] = item.quantity;
+    });
+    setLocalQuantities(quantities);
   }, [cart?.items]);
 
   const allProductIds = useMemo(
@@ -75,8 +81,8 @@ const ClientCartView = () => {
           <p className="text-sm text-slate-500">Loading cart...</p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-            <article className="rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="mb-4 flex items-center justify-between">
+            <article className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-lg font-semibold text-slate-900">Cart Items</h2>
                 {!!allProductIds.length && (
                   <button
@@ -101,7 +107,7 @@ const ClientCartView = () => {
                           : "border-slate-200 bg-slate-50"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
                         <input
                           type="checkbox"
                           checked={selectedProductIds.includes(item.productId)}
@@ -127,7 +133,7 @@ const ClientCartView = () => {
                           </div>
                         )}
                         <div>
-                          <p className="max-w-[320px] truncate font-medium text-slate-900" title={item.productName}>
+                          <p className="max-w-[180px] truncate font-medium text-slate-900 sm:max-w-[320px]" title={item.productName}>
                             {item.productName}
                           </p>
                           <p className="text-xs text-slate-500">Unit: {formatMoney(item.unitPrice)}</p>
@@ -139,7 +145,7 @@ const ClientCartView = () => {
                           ) : null}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
@@ -148,7 +154,21 @@ const ClientCartView = () => {
                         >
                           -
                         </button>
-                        <span className="min-w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={localQuantities[item.productId] ?? item.quantity}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setLocalQuantities((prev) => ({ ...prev, [item.productId]: val }));
+                          }}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value) || 1;
+                            updateQuantity(item.productId, Math.max(1, val));
+                          }}
+                          disabled={isMutatingCart}
+                          className="h-8 w-20 rounded-md border border-slate-300 text-center text-sm font-semibold"
+                        />
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
@@ -179,7 +199,7 @@ const ClientCartView = () => {
               )}
             </article>
 
-            <article className="rounded-2xl border border-slate-200 bg-white p-4">
+            <article className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
               <h2 className="mb-4 text-lg font-semibold text-slate-900">Summary</h2>
               <div className="space-y-2 text-sm text-slate-700">
                 <p>Items: {cart?.totalItems || 0}</p>

@@ -96,15 +96,13 @@ const withBannerBackground = (imageUrl, fallbackBackground) => {
 
 const CATEGORY_COLORS = [
   "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
-  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-violet-50 to-purple-100 text-purple-700 border-purple-200",
+  "from-emerald-50 to-teal-100 text-teal-700 border-teal-200",
+  "from-orange-50 to-amber-100 text-amber-700 border-amber-200",
+  "from-rose-50 to-pink-100 text-pink-700 border-pink-200",
+  "from-cyan-50 to-sky-100 text-sky-700 border-sky-200",
+  "from-lime-50 to-green-100 text-green-700 border-green-200",
+  "from-fuchsia-50 to-pink-100 text-fuchsia-700 border-fuchsia-200",
 ];
 
 const ClientHomeView = ({ publicMode = false }) => {
@@ -115,7 +113,7 @@ const ClientHomeView = ({ publicMode = false }) => {
 
   const { filters, products, pageMeta, isLoading, error, updateSearch, goToPage, refresh } =
     useClientProducts();
-  const { categories, isLoading: isCategoriesLoading, refreshCategories } = useClientCategories();
+  const { categories, isLoading: isCategoriesLoading } = useClientCategories();
   const { cartCount, isMutatingCart, error: cartError, success: cartSuccess, addToCart } = useCart({
     enabled: !publicMode,
   });
@@ -212,7 +210,7 @@ const ClientHomeView = ({ publicMode = false }) => {
         cartCount={cartCount}
         rightActions={
           publicMode ? (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               {authenticated && roleHomePath !== "/login" ? (
                 <button
                   type="button"
@@ -344,11 +342,7 @@ const ClientHomeView = ({ publicMode = false }) => {
         <SectionTitle
           eyebrow="Browse"
           title="Shop by Category"
-          action={
-            isCategoriesLoading ? (
-              <p className="text-sm text-slate-400">Loading...</p>
-            ) : null
-          }
+          action={isCategoriesLoading ? <p className="text-sm text-slate-400">Loading...</p> : null}
         />
 
         {/* Mobile: horizontal scroll | Desktop: grid */}
