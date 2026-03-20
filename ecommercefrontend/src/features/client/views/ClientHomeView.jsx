@@ -10,8 +10,6 @@ import useClientCategories from "../hooks/useClientCategories";
 import useCart from "../hooks/useCart";
 import useClientProducts from "../hooks/useClientProducts";
 
-const trustPoints = [];
-
 const LIMITED_OFFER_FALLBACK = {
   title: "Modern tech, better prices, faster delivery.",
   subtitle: "Limited offer",
@@ -30,15 +28,21 @@ const CATEGORY_HIGHLIGHT_FALLBACK = {
   imageUrl: "",
 };
 
+const SvgIcon = ({ path, className = "h-5 w-5 fill-current" }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className={className}>
+    <path d={path} />
+  </svg>
+);
+
 const SectionTitle = ({ eyebrow, title, action }) => (
-  <div className="mb-5 flex items-end justify-between gap-3">
+  <div className="mb-6 flex items-center justify-between gap-3">
     <div>
       {eyebrow && (
-        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#7c3aed]">
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-500">
           {eyebrow}
         </p>
       )}
-      <h2 className="mt-1 text-[26px] font-semibold text-[#0f172a]">{title}</h2>
+      <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
     </div>
     {action}
   </div>
@@ -52,9 +56,7 @@ const useAutoSlider = (slides, intervalMs = 6000) => {
   }, [slides.length]);
 
   useEffect(() => {
-    if (slides.length <= 1) {
-      return undefined;
-    }
+    if (slides.length <= 1) return undefined;
     const timerId = window.setInterval(() => {
       setIndex((prev) => (prev + 1) % slides.length);
     }, intervalMs);
@@ -66,73 +68,62 @@ const useAutoSlider = (slides, intervalMs = 6000) => {
     index,
     count: slides.length,
     hasMultiple: slides.length > 1,
+    goTo: (i) => setIndex(i),
     next: () => {
-      if (slides.length <= 1) {
-        return;
-      }
+      if (slides.length <= 1) return;
       setIndex((prev) => (prev + 1) % slides.length);
     },
     prev: () => {
-      if (slides.length <= 1) {
-        return;
-      }
+      if (slides.length <= 1) return;
       setIndex((prev) => (prev - 1 + slides.length) % slides.length);
     },
   };
 };
 
 const getCategoryImageUrl = (apiBase, category) => {
-  if (!apiBase || !category?.categoryImageProductId || !category?.categoryImageUploadId) {
-    return null;
-  }
+  if (!apiBase || !category?.categoryImageProductId || !category?.categoryImageUploadId) return null;
   return `${apiBase}/products/${category.categoryImageProductId}/images/${category.categoryImageUploadId}/file`;
 };
 
 const withBannerBackground = (imageUrl, fallbackBackground) => {
-  if (!imageUrl) {
-    return { background: fallbackBackground };
-  }
+  if (!imageUrl) return { background: fallbackBackground };
   return {
-    backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.82), rgba(49,46,129,0.72), rgba(29,78,216,0.72)), url(${imageUrl})`,
+    backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.82), rgba(49,46,129,0.68), rgba(29,78,216,0.65)), url(${imageUrl})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
   };
 };
+
+const CATEGORY_COLORS = [
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+  "from-blue-50 to-indigo-100 text-indigo-700 border-indigo-200",
+];
 
 const ClientHomeView = ({ publicMode = false }) => {
   const navigate = useNavigate();
   const authenticated = isAuthenticated();
   const roleHomePath = getHomePathByRole();
   const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
-  const {
-    filters,
-    products,
-    pageMeta,
-    isLoading,
-    error,
-    updateSearch,
-    goToPage,
-    refresh,
-  } = useClientProducts();
-  const {
-    categories,
-    isLoading: isCategoriesLoading,
-    refreshCategories,
-  } = useClientCategories();
-  const {
-    cartCount,
-    isMutatingCart,
-    error: cartError,
-    success: cartSuccess,
-    addToCart,
-  } = useCart({ enabled: !publicMode });
+
+  const { filters, products, pageMeta, isLoading, error, updateSearch, goToPage, refresh } =
+    useClientProducts();
+  const { categories, isLoading: isCategoriesLoading, refreshCategories } = useClientCategories();
+  const { cartCount, isMutatingCart, error: cartError, success: cartSuccess, addToCart } = useCart({
+    enabled: !publicMode,
+  });
 
   const [homeSliders, setHomeSliders] = useState([]);
-  const [isLoadingSliders, setIsLoadingSliders] = useState(false);
   const [sliderError, setSliderError] = useState("");
 
   const loadHomeSliders = useCallback(async () => {
-    setIsLoadingSliders(true);
     setSliderError("");
     try {
       const response = await homeSliderApi.getActiveSliders();
@@ -141,8 +132,6 @@ const ClientHomeView = ({ publicMode = false }) => {
     } catch (err) {
       setHomeSliders([]);
       setSliderError(getApiErrorMessage(err, "Unable to load homepage sliders."));
-    } finally {
-      setIsLoadingSliders(false);
     }
   }, []);
 
@@ -153,9 +142,7 @@ const ClientHomeView = ({ publicMode = false }) => {
   const openSliderTarget = useCallback(
     (targetUrl) => {
       const normalized = String(targetUrl || "").trim();
-      if (!normalized) {
-        return;
-      }
+      if (!normalized) return;
       if (/^https?:\/\//i.test(normalized)) {
         window.location.href = normalized;
         return;
@@ -166,21 +153,21 @@ const ClientHomeView = ({ publicMode = false }) => {
   );
 
   const flashProducts = useMemo(
-    () => products.filter((product) => product?.productTag === "FLASH_SALES"),
+    () => products.filter((p) => p?.productTag === "FLASH_SALES"),
     [products],
   );
   const trendingProducts = useMemo(
-    () => products.filter((product) => product?.productTag === "TRENDING_PRODUCTS"),
+    () => products.filter((p) => p?.productTag === "TRENDING_PRODUCTS"),
     [products],
   );
   const categoryTiles = useMemo(() => categories.slice(0, 8), [categories]);
 
   const limitedOfferSlides = useMemo(
-    () => homeSliders.filter((slider) => slider?.placementTag === "LIMITED_OFFER"),
+    () => homeSliders.filter((s) => s?.placementTag === "LIMITED_OFFER"),
     [homeSliders],
   );
   const categoryHighlightSlides = useMemo(
-    () => homeSliders.filter((slider) => slider?.placementTag === "CATEGORY_HIGHLIGHT"),
+    () => homeSliders.filter((s) => s?.placementTag === "CATEGORY_HIGHLIGHT"),
     [homeSliders],
   );
 
@@ -202,21 +189,19 @@ const ClientHomeView = ({ publicMode = false }) => {
   );
 
   const resolvePrimaryEntryPath = () => {
-    if (authenticated && roleHomePath !== "/login") {
-      return roleHomePath;
-    }
+    if (authenticated && roleHomePath !== "/login") return roleHomePath;
     return "/login";
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
+    <main className="min-h-screen bg-slate-50 text-slate-900">
       <ClientTopNav
-        title={publicMode ? "Villpo Storefront" : "Villpo Store"}
+        title="Villpo Store"
         eyebrow={publicMode ? "Public Home" : ""}
         quickLinks={[
           { label: "Discover", href: "#discover" },
           { label: "Categories", href: "#categories" },
-          { label: "Flash", href: "#flash" },
+          { label: "Flash Sales", href: "#flash" },
           { label: "Trending", href: "#trending" },
         ]}
         showSearch
@@ -232,308 +217,419 @@ const ClientHomeView = ({ publicMode = false }) => {
                 <button
                   type="button"
                   onClick={() => navigate(roleHomePath)}
-                  className="h-10 rounded-xl border border-[#d8deef] bg-white px-3 text-[12px] font-semibold text-[#334155]"
+                  className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
                 >
-                  Go To Dashboard
+                  Dashboard
                 </button>
               ) : null}
               <button
                 type="button"
                 onClick={() => navigate(resolvePrimaryEntryPath())}
-                className="h-10 rounded-xl bg-[linear-gradient(90deg,#2563eb,#7c3aed)] px-3 text-[12px] font-semibold text-white"
+                className="h-9 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700"
               >
-                {authenticated ? "Go To App" : "Login"}
+                {authenticated ? "Go to App" : "Login"}
               </button>
             </div>
           ) : null
         }
       />
 
-      <section id="discover" className="mt-6 w-full px-2 md:px-3">
-        {sliderError ? (
-          <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+      {/* ── HERO SECTION ── */}
+      <section id="discover" className="px-4 pt-6 pb-0 md:px-6">
+        {sliderError && (
+          <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
             {sliderError}
           </div>
-        ) : null}
+        )}
+
         <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+          {/* Main banner */}
           <article
-            className="rounded-3xl p-8 text-white shadow-[0_25px_60px_rgba(30,41,59,0.35)]"
+            className="relative min-h-[280px] overflow-hidden rounded-3xl shadow-xl md:min-h-[360px]"
             style={withBannerBackground(
               limitedOffer.imageUrl,
-              "linear-gradient(135deg,#0f172a,#312e81_45%,#1d4ed8)",
+              "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #1d4ed8 100%)",
             )}
           >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[12px] uppercase tracking-[0.12em] text-[#93c5fd]">
+            <div className="relative z-10 flex h-full flex-col justify-end p-6 md:p-10">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-300">
                 {limitedOffer.subtitle || "Limited offer"}
               </p>
-              {limitedOfferSlider.hasMultiple ? (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={limitedOfferSlider.prev}
-                    className="rounded-lg border border-white/35 bg-white/10 px-2 py-1 text-[11px] font-semibold text-white"
-                  >
-                    Prev
-                  </button>
-                  <span className="text-[11px] text-[#dbeafe]">
-                    {limitedOfferSlider.index + 1}/{limitedOfferSlider.count}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={limitedOfferSlider.next}
-                    className="rounded-lg border border-white/35 bg-white/10 px-2 py-1 text-[11px] font-semibold text-white"
-                  >
-                    Next
-                  </button>
+              <h2 className="mt-2 max-w-lg text-3xl font-bold leading-tight text-white md:text-4xl">
+                {limitedOffer.title}
+              </h2>
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-blue-100">
+                {limitedOffer.description || "Discover the latest picks from our catalog."}
+              </p>
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={() => openSliderTarget(limitedOffer.targetUrl)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-blue-700 shadow-lg transition hover:bg-blue-50"
+                >
+                  {limitedOffer.ctaLabel || "Start Shopping"}
+                  <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-4 w-4 fill-current" />
+                </button>
+              </div>
+            </div>
+
+            {/* Slider nav arrows */}
+            {limitedOfferSlider.hasMultiple && (
+              <>
+                <button
+                  type="button"
+                  onClick={limitedOfferSlider.prev}
+                  className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+                  aria-label="Previous slide"
+                >
+                  <SvgIcon path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" className="h-5 w-5 fill-current" />
+                </button>
+                <button
+                  type="button"
+                  onClick={limitedOfferSlider.next}
+                  className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+                  aria-label="Next slide"
+                >
+                  <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-5 w-5 fill-current" />
+                </button>
+                <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+                  {Array.from({ length: limitedOfferSlider.count }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => limitedOfferSlider.goTo(i)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === limitedOfferSlider.index ? "w-6 bg-white" : "w-1.5 bg-white/40"
+                      }`}
+                      aria-label={`Go to slide ${i + 1}`}
+                    />
+                  ))}
                 </div>
-              ) : null}
-            </div>
-            <h2 className="mt-2 max-w-lg text-[42px] font-semibold leading-[1.1]">
-              {limitedOffer.title}
-            </h2>
-            <p className="mt-3 max-w-lg text-[14px] text-[#dbeafe]">
-              {limitedOffer.description || "Discover the latest picks from our catalog."}
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => openSliderTarget(limitedOffer.targetUrl)}
-                className="rounded-xl bg-white px-4 py-2 text-[13px] font-semibold text-[#1e40af]"
-              >
-                {limitedOffer.ctaLabel || "Start Shopping"}
-              </button>
-              <button
-                type="button"
-                onClick={loadHomeSliders}
-                disabled={isLoadingSliders}
-                className="rounded-xl border border-white/35 bg-white/10 px-4 py-2 text-[13px] font-semibold text-white backdrop-blur disabled:opacity-60"
-              >
-                {isLoadingSliders ? "Refreshing..." : "Refresh Banners"}
-              </button>
-            </div>
+              </>
+            )}
           </article>
 
-          <article className="rounded-3xl border border-[#e7ebff] bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.07)]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#7c3aed]">Featured drop</p>
-            <h3 className="mt-2 text-[24px] font-semibold text-[#0f172a]">Weekly Picks</h3>
-            <p className="mt-2 text-[13px] text-[#64748b]">
-              Hand-picked products refreshed from active inventory.
-            </p>
-            <p className="mt-5 text-[30px] font-semibold text-[#0f172a]">{pageMeta.totalElements}</p>
-            <p className="text-[12px] text-[#64748b]">
-              {isLoading ? "Updating catalog..." : "Active products available"}
-            </p>
-            <button
-              type="button"
-              onClick={refresh}
-              className="mt-6 rounded-xl bg-[linear-gradient(90deg,#2563eb,#7c3aed)] px-4 py-2 text-[12px] font-semibold text-white"
-            >
-              Refresh Catalog
-            </button>
+          {/* Stats / promo card */}
+          <article className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div>
+              <span className="inline-block rounded-full bg-violet-100 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-violet-600">
+                Featured Collection
+              </span>
+              <h3 className="mt-4 text-2xl font-bold text-slate-900">Shop Now</h3>
+              <p className="mt-2 text-sm text-slate-500">
+                Fresh products added regularly. Find what you love.
+              </p>
+            </div>
+            <div className="mt-6">
+              <p className="text-5xl font-extrabold text-slate-900">
+                {isLoading ? "—" : pageMeta.totalElements}
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-500">
+                {isLoading ? "Loading catalog..." : "Products available"}
+              </p>
+              <a
+                href="#flash"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700"
+              >
+                Browse All Products
+                <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-4 w-4 fill-current" />
+              </a>
+            </div>
           </article>
         </div>
       </section>
 
-      <section id="categories" className="mt-10 w-full px-2 md:px-3">
+      {/* ── CATEGORIES ── */}
+      <section id="categories" className="mt-12 px-4 md:px-6">
         <SectionTitle
-          eyebrow="Categories"
-          title="Browse By Category"
+          eyebrow="Browse"
+          title="Shop by Category"
           action={
-            <button
-              type="button"
-              onClick={refreshCategories}
-              className="h-9 rounded-xl border border-[#d8deef] bg-white px-3 text-[12px] font-semibold text-[#334155]"
-            >
-              {isCategoriesLoading ? "Loading..." : "Refresh"}
-            </button>
+            isCategoriesLoading ? (
+              <p className="text-sm text-slate-400">Loading...</p>
+            ) : null
           }
         />
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
-          {categoryTiles.map((category) => (
-            <button
-              key={`${category?.categoryId || "cat"}-${category?.categoryName || "home-kitchen"}`}
-              type="button"
-              onClick={() => updateSearch(category?.categoryName || "")}
-              className="rounded-2xl border border-[#dde2f8] bg-white px-3 py-3 text-center text-[12px] font-semibold text-[#334155] transition hover:border-[#7c3aed] hover:text-[#7c3aed]"
-            >
-              {getCategoryImageUrl(apiBase, category) ? (
-                <div
-                  className="mb-2 h-16 rounded-xl border border-[#dce2f9] bg-cover bg-center"
-                  style={{ backgroundImage: `url(${getCategoryImageUrl(apiBase, category)})` }}
-                />
-              ) : (
-                <div className="mb-2 flex h-16 items-center justify-center rounded-xl border border-[#dce2f9] bg-[linear-gradient(145deg,#eef2ff,#e2e8f8)] text-lg font-semibold text-[#475569]">
-                  {(category?.categoryName || "C").charAt(0).toUpperCase()}
-                </div>
-              )}
-              <p className="line-clamp-2">{category?.categoryName || "Home & Kitchen"}</p>
-            </button>
-          ))}
+
+        {/* Mobile: horizontal scroll | Desktop: grid */}
+        <div className="flex gap-3 overflow-x-auto pb-3 md:grid md:grid-cols-4 md:overflow-visible md:pb-0 lg:grid-cols-8">
+          {categoryTiles.map((category, idx) => {
+            const colorClass = CATEGORY_COLORS[idx % CATEGORY_COLORS.length];
+            const imageUrl = getCategoryImageUrl(apiBase, category);
+            return (
+              <button
+                key={`${category?.categoryId || "cat"}-${category?.categoryName || "unknown"}`}
+                type="button"
+                onClick={() => updateSearch(category?.categoryName || "")}
+                className={`flex w-28 shrink-0 flex-col items-center rounded-2xl border bg-gradient-to-b p-3 text-center transition hover:scale-105 hover:shadow-md md:w-auto ${colorClass}`}
+              >
+                {imageUrl ? (
+                  <div
+                    className="mb-2.5 h-14 w-14 rounded-xl border border-white/60 bg-cover bg-center shadow-sm"
+                    style={{ backgroundImage: `url(${imageUrl})` }}
+                  />
+                ) : (
+                  <div className="mb-2.5 flex h-14 w-14 items-center justify-center rounded-xl bg-white/60 text-xl font-bold shadow-sm">
+                    {(category?.categoryName || "C").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <p className="line-clamp-2 text-[11px] font-semibold leading-tight">
+                  {category?.categoryName || "Category"}
+                </p>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      <section id="flash" className="mt-12 w-full px-2 md:px-3">
+      {/* ── FLASH SALES ── */}
+      <section id="flash" className="mt-14 px-4 md:px-6">
         <SectionTitle
-          eyebrow="Today"
+          eyebrow="Today Only"
           title="Flash Sales"
-          action={<p className="text-[13px] text-[#64748b]">{isLoading ? "Loading..." : `${pageMeta.totalElements} items`}</p>}
+          action={
+            <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-600">
+              {isLoading ? "Loading..." : `${flashProducts.length} deals`}
+            </span>
+          }
         />
-        {error && <p className="mb-4 text-sm text-[#dc2626]">{error}</p>}
-        {!publicMode && cartError && <p className="mb-4 text-sm text-[#dc2626]">{cartError}</p>}
-        {!publicMode && cartSuccess && <p className="mb-4 text-sm text-[#059669]">{cartSuccess}</p>}
-        {publicMode ? (
-          <p className="mb-4 text-sm text-[#475569]">
-            Browse products publicly. Login to add items to cart and checkout.
+
+        {error && (
+          <p className="mb-4 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>
+        )}
+        {!publicMode && cartError && (
+          <p className="mb-4 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">{cartError}</p>
+        )}
+        {!publicMode && cartSuccess && (
+          <p className="mb-4 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+            {cartSuccess}
           </p>
-        ) : null}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {flashProducts.map((product) => (
-            <ProductCard
-              key={`${product.productId}-flash`}
-              product={product}
-              onAddToCart={handleAddToCart}
-              isAddingToCart={isMutatingCart}
-            />
-          ))}
-        </div>
-        {!flashProducts.length && !isLoading && (
-          <p className="mt-4 text-sm text-[#64748b]">No products tagged for Flash Sales yet.</p>
+        )}
+        {publicMode && (
+          <p className="mb-5 rounded-xl bg-blue-50 px-4 py-2.5 text-sm text-blue-700">
+            Browse products freely.{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="font-semibold underline"
+            >
+              Login
+            </button>{" "}
+            to add items to your cart.
+          </p>
+        )}
+
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse rounded-2xl bg-white p-4">
+                <div className="aspect-square rounded-xl bg-slate-100" />
+                <div className="mt-3 h-3 rounded bg-slate-100" />
+                <div className="mt-2 h-3 w-2/3 rounded bg-slate-100" />
+              </div>
+            ))}
+          </div>
+        ) : flashProducts.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {flashProducts.map((product) => (
+              <ProductCard
+                key={`${product.productId}-flash`}
+                product={product}
+                onAddToCart={handleAddToCart}
+                isAddingToCart={isMutatingCart}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-12 text-center">
+            <p className="text-slate-400">No Flash Sale products available right now.</p>
+          </div>
         )}
       </section>
 
-      <section className="mt-14 w-full px-2 md:px-3">
+      {/* ── MID-PAGE CATEGORY HIGHLIGHT BANNER ── */}
+      <section className="mt-16 px-4 md:px-6">
         <article
-          className="rounded-3xl p-8 text-white shadow-[0_20px_45px_rgba(15,23,42,0.35)]"
+          className="relative min-h-[220px] overflow-hidden rounded-3xl shadow-xl md:min-h-[280px]"
           style={withBannerBackground(
             categoryHighlight.imageUrl,
-            "linear-gradient(120deg,#0b1120,#1e293b,#1d4ed8)",
+            "linear-gradient(120deg, #0b1120 0%, #1e293b 50%, #1d4ed8 100%)",
           )}
         >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[11px] uppercase tracking-[0.1em] text-[#93c5fd]">
+          <div className="relative z-10 flex h-full flex-col justify-end p-6 md:p-10">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-300">
               {categoryHighlight.subtitle || "Category highlight"}
             </p>
-            {categoryHighlightSlider.hasMultiple ? (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={categoryHighlightSlider.prev}
-                  className="rounded-lg border border-white/35 bg-white/10 px-2 py-1 text-[11px] font-semibold text-white"
-                >
-                  Prev
-                </button>
-                <span className="text-[11px] text-[#dbeafe]">
-                  {categoryHighlightSlider.index + 1}/{categoryHighlightSlider.count}
-                </span>
-                <button
-                  type="button"
-                  onClick={categoryHighlightSlider.next}
-                  className="rounded-lg border border-white/35 bg-white/10 px-2 py-1 text-[11px] font-semibold text-white"
-                >
-                  Next
-                </button>
-              </div>
-            ) : null}
+            <h2 className="mt-2 max-w-lg text-2xl font-bold text-white md:text-3xl">
+              {categoryHighlight.title}
+            </h2>
+            <p className="mt-2 max-w-md text-sm text-blue-100">
+              {categoryHighlight.description || "Discover category-focused picks curated for your needs."}
+            </p>
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={() => openSliderTarget(categoryHighlight.targetUrl)}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-bold text-emerald-950 transition hover:bg-emerald-300"
+              >
+                {categoryHighlight.ctaLabel || "Explore"}
+                <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-4 w-4 fill-current" />
+              </button>
+            </div>
           </div>
-          <h2 className="mt-2 text-[34px] font-semibold leading-[1.12]">{categoryHighlight.title}</h2>
-          <p className="mt-2 max-w-lg text-[13px] text-[#dbeafe]">
-            {categoryHighlight.description || "Discover category-focused picks curated for your needs."}
-          </p>
-          <button
-            type="button"
-            onClick={() => openSliderTarget(categoryHighlight.targetUrl)}
-            className="mt-5 rounded-xl bg-[#22c55e] px-4 py-2 text-[13px] font-semibold text-[#052e16]"
-          >
-            {categoryHighlight.ctaLabel || "Explore"}
-          </button>
+
+          {categoryHighlightSlider.hasMultiple && (
+            <>
+              <button
+                type="button"
+                onClick={categoryHighlightSlider.prev}
+                className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+                aria-label="Previous"
+              >
+                <SvgIcon path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" className="h-5 w-5 fill-current" />
+              </button>
+              <button
+                type="button"
+                onClick={categoryHighlightSlider.next}
+                className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+                aria-label="Next"
+              >
+                <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-5 w-5 fill-current" />
+              </button>
+              <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+                {Array.from({ length: categoryHighlightSlider.count }).map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => categoryHighlightSlider.goTo(i)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === categoryHighlightSlider.index ? "w-6 bg-white" : "w-1.5 bg-white/40"
+                    }`}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </article>
       </section>
 
-      <section id="trending" className="mt-14 w-full px-2 md:px-3">
+      {/* ── TRENDING PRODUCTS ── */}
+      <section id="trending" className="mt-14 px-4 md:px-6">
         <SectionTitle
           eyebrow="Discover"
           title="Trending Products"
           action={
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 disabled={pageMeta.first}
                 onClick={() => goToPage(Math.max(pageMeta.page - 1, 0))}
-                className="h-9 rounded-xl border border-[#d8deef] bg-white px-3 text-[12px] font-semibold text-[#334155] disabled:opacity-40"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Previous page"
               >
-                Prev
+                <SvgIcon path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" className="h-4 w-4 fill-current" />
               </button>
+              <span className="text-sm font-medium text-slate-500">
+                {pageMeta.page + 1} / {Math.max(pageMeta.totalPages, 1)}
+              </span>
               <button
                 type="button"
                 disabled={pageMeta.last}
                 onClick={() => goToPage(pageMeta.page + 1)}
-                className="h-9 rounded-xl border border-[#d8deef] bg-white px-3 text-[12px] font-semibold text-[#334155] disabled:opacity-40"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Next page"
               >
-                Next
+                <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-4 w-4 fill-current" />
               </button>
             </div>
           }
         />
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {trendingProducts.map((product) => (
-            <ProductCard
-              key={`${product.productId}-trend`}
-              product={product}
-              onAddToCart={handleAddToCart}
-              isAddingToCart={isMutatingCart}
-            />
-          ))}
-        </div>
-        {!trendingProducts.length && !isLoading && (
-          <p className="mt-4 text-sm text-[#64748b]">No products tagged for Trending Products yet.</p>
+
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse rounded-2xl bg-white p-4">
+                <div className="aspect-square rounded-xl bg-slate-100" />
+                <div className="mt-3 h-3 rounded bg-slate-100" />
+                <div className="mt-2 h-3 w-2/3 rounded bg-slate-100" />
+              </div>
+            ))}
+          </div>
+        ) : trendingProducts.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {trendingProducts.map((product) => (
+              <ProductCard
+                key={`${product.productId}-trend`}
+                product={product}
+                onAddToCart={handleAddToCart}
+                isAddingToCart={isMutatingCart}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-12 text-center">
+            <p className="text-slate-400">No Trending products available right now.</p>
+          </div>
         )}
       </section>
 
-      <section className="mt-16 w-full px-2 md:px-3">
-        <div className="grid gap-4 md:grid-cols-3">
-          {trustPoints.map((item) => (
-            <article
-              key={item.title}
-              className="rounded-2xl border border-[#e4e8f7] bg-white p-5 text-center shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
-            >
-              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#2563eb,#7c3aed)] text-[12px] font-bold text-white">
-                OK
-              </div>
-              <h3 className="text-[14px] font-semibold text-[#0f172a]">{item.title}</h3>
-              <p className="mt-1 text-[12px] text-[#64748b]">{item.subtitle}</p>
-            </article>
-          ))}
+      {/* ── FOOTER ── */}
+      <footer className="mt-20 bg-slate-900 text-white">
+        <div className="grid gap-8 px-4 py-12 md:grid-cols-4 md:px-6">
+          <div>
+            <h4 className="text-xl font-extrabold tracking-tight">Villpo Store</h4>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              Smart products. Better prices. Modern shopping experience.
+            </p>
+          </div>
+          <div>
+            <h5 className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Contact</h5>
+            <p className="mt-3 text-sm text-slate-300">admin@astraval.com</p>
+            <p className="mt-1 text-sm text-slate-300">+91 9043368684</p>
+          </div>
+          <div>
+            <h5 className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Quick Links</h5>
+            <div className="mt-3 space-y-2">
+              {[
+                { label: "My Account", path: "/client/account" },
+                { label: "My Cart", path: "/client/cart" },
+                { label: "My Orders", path: "/client/orders" },
+              ].map((item) => (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => navigate(item.path)}
+                  className="block text-sm text-slate-300 transition hover:text-white"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h5 className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Policies</h5>
+            <div className="mt-3 space-y-2">
+              {[
+                { label: "Privacy Policy", path: "/legal/privacy" },
+                { label: "Terms of Use", path: "/legal/terms" },
+                { label: "Returns & Refunds", path: "/legal/returns" },
+              ].map((item) => (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => navigate(item.path)}
+                  className="block text-sm text-slate-300 transition hover:text-white"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      </section>
-
-      <footer className="mt-16 bg-[#0b1020] text-white">
-        <div className="grid w-full gap-8 px-2 py-12 md:grid-cols-4 md:px-3">
-          <div>
-            <h4 className="text-[22px] font-semibold">Villpo Store</h4>
-            <p className="mt-3 text-[13px] text-[#aab2d5]">Smart products. Better prices. Modern shopping experience.</p>
-          </div>
-          <div>
-            <h4 className="text-[14px] font-semibold uppercase tracking-[0.08em] text-[#dbe4ff]">Contact</h4>
-            <p className="mt-3 text-[13px] text-[#aab2d5]">support@Villpo Store.com</p>
-            <p className="mt-1 text-[13px] text-[#aab2d5]">+91 98765 43210</p>
-          </div>
-          <div>
-            <h4 className="text-[14px] font-semibold uppercase tracking-[0.08em] text-[#dbe4ff]">Quick Links</h4>
-            <p className="mt-3 text-[13px] text-[#aab2d5]">My Account</p>
-            <p className="mt-1 text-[13px] text-[#aab2d5]">Cart</p>
-            <p className="mt-1 text-[13px] text-[#aab2d5]">Wishlist</p>
-          </div>
-          <div>
-            <h4 className="text-[14px] font-semibold uppercase tracking-[0.08em] text-[#dbe4ff]">Policies</h4>
-            <p className="mt-3 text-[13px] text-[#aab2d5]">Privacy Policy</p>
-            <p className="mt-1 text-[13px] text-[#aab2d5]">Terms of Use</p>
-            <p className="mt-1 text-[13px] text-[#aab2d5]">Returns</p>
-          </div>
+        <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+          &copy; {new Date().getFullYear()} Villpo Store. All rights reserved.
         </div>
-        <p className="border-t border-[#1f2a4f] py-4 text-center text-[12px] text-[#7f8ab4]">
-          (c) {new Date().getFullYear()} Villpo Store. All rights reserved.
-        </p>
       </footer>
     </main>
   );

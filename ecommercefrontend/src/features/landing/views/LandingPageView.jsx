@@ -891,8 +891,8 @@ const LandingPageView = () => {
           </div>
           <div>
             <h4 className="text-[13px] font-semibold uppercase tracking-[0.08em]">Support</h4>
-            <p className="mt-3 text-[12px] text-[#9ca3af]">support@villpostore.com</p>
-            <p className="mt-1 text-[12px] text-[#9ca3af]">+91 98765 43210</p>
+            <p className="mt-3 text-[12px] text-[#9ca3af]">admin@astraval.com</p>
+            <p className="mt-1 text-[12px] text-[#9ca3af]">+91 9043368684</p>
           </div>
           <div>
             <h4 className="text-[13px] font-semibold uppercase tracking-[0.08em]">Account</h4>
