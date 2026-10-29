@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ENV from "../../../core/config/env";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("en-IN", {
@@ -45,7 +44,6 @@ const ProductTable = ({
   onUpdateTag = () => {},
 }) => {
   const navigate = useNavigate();
-  const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
   const [maxPriceDrafts, setMaxPriceDrafts] = useState({});
   const [tagDrafts, setTagDrafts] = useState({});
 
@@ -78,10 +76,7 @@ const ProductTable = ({
   };
 
   const buildImageUrl = (product) => {
-    if (!product?.productId || !product?.mainImageUploadId) {
-      return null;
-    }
-    return `${apiBase}/products/${product.productId}/images/${product.mainImageUploadId}/file`;
+    return product?.thumbnailUrl || product?.mediumImageUrl || product?.largeImageUrl || null;
   };
 
   return (

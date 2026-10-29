@@ -13,9 +13,10 @@ spring:
       mode: ${SQL_INIT_MODE:always}
   jpa:
     defer-datasource-initialization: true
+    open-in-view: ${SPRING_JPA_OPEN_IN_VIEW:false}
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
-    show-sql: ${JPA_SHOW_SQL:true}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -30,13 +31,30 @@ spring:
           auth: ${MAIL_SMTP_AUTH:true}
           starttls:
             enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
+  servlet:
+    multipart:
+      max-file-size: ${IMAGE_MAX_FILE_SIZE:50MB}
+      max-request-size: ${IMAGE_MAX_REQUEST_SIZE:200MB}
 
 server:
   port: ${SERVER_PORT:8080}
 
 upload:
-  path: ${UPLOAD_PATH:uploads}
-  product-image-folder: ${UPLOAD_PRODUCT_IMAGE_FOLDER:products}
+  image:
+    max-files-per-request: ${IMAGE_MAX_FILES_PER_REQUEST:8}
+    max-file-bytes: ${IMAGE_MAX_FILE_BYTES:52428800}
+    max-pixels: ${IMAGE_MAX_PIXELS:50000000}
+    worker-delay-ms: ${IMAGE_WORKER_DELAY_MS:5000}
+    worker-batch-size: ${IMAGE_WORKER_BATCH_SIZE:5}
+    max-processing-attempts: ${IMAGE_MAX_PROCESSING_ATTEMPTS:3}
+
+r2:
+  enabled: ${R2_ENABLED:false}
+  endpoint: ${R2_ENDPOINT:}
+  access-key-id: ${R2_ACCESS_KEY_ID:}
+  secret-access-key: ${R2_SECRET_ACCESS_KEY:}
+  bucket: ${R2_BUCKET:}
+  public-url: ${R2_PUBLIC_URL:}
 
 frontend:
   url: ${FRONTEND_URL:http://localhost:3000}

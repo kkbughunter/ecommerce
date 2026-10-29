@@ -6,6 +6,7 @@ public record CartItemResponse(
         Long productId,
         String productName,
         String mainImageUploadId,
+        String thumbnailUrl,
         BigDecimal unitPrice,
         Integer quantity,
         BigDecimal lineSubtotal,

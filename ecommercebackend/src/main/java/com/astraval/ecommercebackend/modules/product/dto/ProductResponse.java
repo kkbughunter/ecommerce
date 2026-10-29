@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.astraval.ecommercebackend.modules.product.ProductTag;
+import com.astraval.ecommercebackend.modules.upload.ImageProcessingStatus;
 
 public record ProductResponse(
         Long productId,
@@ -17,6 +18,10 @@ public record ProductResponse(
         BigDecimal heightCm,
         BigDecimal weightKg,
         String mainImageUploadId,
+        ImageProcessingStatus mainImageProcessingStatus,
+        String thumbnailUrl,
+        String mediumImageUrl,
+        String largeImageUrl,
         ProductTag productTag,
         Integer categoryId,
         String categoryName,

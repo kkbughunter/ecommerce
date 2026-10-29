@@ -230,6 +230,11 @@ public class ProductService {
     }
 
     private ProductResponse toProductResponse(Product product) {
+        UploadResponse mainImage = uploadService.getUploadResponse(product.getMainImageUploadId());
+        return toProductResponse(product, mainImage);
+    }
+
+    private ProductResponse toProductResponse(Product product, UploadResponse mainImage) {
         Category category = product.getCategory();
         return new ProductResponse(
                 product.getProductId(),
@@ -243,6 +248,10 @@ public class ProductService {
                 product.getHeightCm(),
                 product.getWeightKg(),
                 product.getMainImageUploadId(),
+                mainImage != null ? mainImage.processingStatus() : null,
+                mainImage != null ? mainImage.thumbnailUrl() : null,
+                mainImage != null ? mainImage.mediumUrl() : null,
+                mainImage != null ? mainImage.largeUrl() : null,
                 product.getProductTag(),
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,
@@ -252,8 +261,9 @@ public class ProductService {
     }
 
     private ProductPageResponse toProductPageResponse(Page<Product> productPage) {
+        Map<String, UploadResponse> imagesById = getMainImagesByUploadId(productPage.getContent());
         List<ProductResponse> content = productPage.getContent().stream()
-                .map(this::toProductResponse)
+                .map(product -> toProductResponse(product, imagesById.get(product.getMainImageUploadId())))
                 .toList();
         return new ProductPageResponse(
                 content,
@@ -285,6 +295,7 @@ public class ProductService {
         List<Product> products = activeOnly
                 ? productRepository.findByCategoryCategoryIdInAndIsActiveTrue(categoryIds)
                 : productRepository.findByCategoryCategoryIdIn(categoryIds);
+        Map<String, UploadResponse> imagesById = getMainImagesByUploadId(products);
 
         Map<Integer, List<Product>> allProductsByCategoryId = new HashMap<>();
         Map<Integer, List<Product>> matchedProductsByCategoryId = new HashMap<>();
@@ -310,7 +321,7 @@ public class ProductService {
             }
 
             List<ProductResponse> productResponses = categoryProducts.stream()
-                    .map(this::toProductResponse)
+                    .map(product -> toProductResponse(product, imagesById.get(product.getMainImageUploadId())))
                     .toList();
             content.add(new CategoryProductsResponse(
                     categoryId,
@@ -334,6 +345,15 @@ public class ProductService {
         }
         String normalized = query.trim();
         return normalized.isEmpty() ? null : normalized;
+    }
+
+    private Map<String, UploadResponse> getMainImagesByUploadId(List<Product> products) {
+        List<String> uploadIds = products.stream()
+                .map(Product::getMainImageUploadId)
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+        return uploadService.getUploadResponses(uploadIds);
     }
 
     private boolean productMatchesQuery(Product product, String query) {

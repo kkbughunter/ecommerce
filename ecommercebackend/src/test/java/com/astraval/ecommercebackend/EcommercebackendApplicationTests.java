@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"spring.jpa.hibernate.ddl-auto=create-drop",
 		"spring.sql.init.mode=never",
 		"spring.jpa.defer-datasource-initialization=false",
+		"r2.enabled=false",
 		"jwt.secret=test-secret-key-test-secret-key-123456"
 })
 class EcommercebackendApplicationTests {

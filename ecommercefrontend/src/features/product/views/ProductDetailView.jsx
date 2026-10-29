@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import categoryApi from "../../../core/api/categoryApi";
 import productApi from "../../../core/api/productApi";
 import { clearAuthSession, getHomePathByRole, hasAnyRole } from "../../../core/auth/session";
-import ENV from "../../../core/config/env";
 import getApiErrorMessage from "../../../core/utils/apiError";
 import ProductCard from "../../client/components/ProductCard";
 import useCart from "../../client/hooks/useCart";
@@ -105,34 +104,18 @@ const ProductDetailView = () => {
     });
   };
 
-  const buildImageFileUrl = useCallback(
-    (uploadId) => {
-      const base = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
-      return `${base}/products/${productId}/images/${uploadId}/file`;
-    },
-    [productId],
-  );
-
   const galleryImages = useMemo(() => {
     if (!product?.productId) return [];
     const images = Array.isArray(product?.images) ? product.images : [];
-    const existingIds = new Set(images.map((img) => img?.uploadId).filter(Boolean));
-    const normalized = images
-      .filter((img) => Boolean(img?.uploadId))
+    return images
+      .filter((img) => img?.processingStatus === "READY" && Boolean(img?.largeUrl || img?.mediumUrl))
       .map((img) => ({
         uploadId: img.uploadId,
         filename: img?.filename || "Product image",
-        url: buildImageFileUrl(img.uploadId),
+        url: img.largeUrl || img.mediumUrl || img.thumbnailUrl,
+        thumbnailUrl: img.thumbnailUrl || img.mediumUrl || img.largeUrl,
       }));
-    if (product?.mainImageUploadId && !existingIds.has(product.mainImageUploadId)) {
-      normalized.unshift({
-        uploadId: product.mainImageUploadId,
-        filename: product?.name || "Product image",
-        url: buildImageFileUrl(product.mainImageUploadId),
-      });
-    }
-    return normalized;
-  }, [buildImageFileUrl, product]);
+  }, [product]);
 
   useEffect(() => {
     if (!galleryImages.length) {
@@ -178,6 +161,16 @@ const ProductDetailView = () => {
   useEffect(() => {
     loadProduct({ withLoader: true });
   }, [loadProduct]);
+
+  useEffect(() => {
+    const hasProcessingImages = (product?.images || []).some((image) =>
+      ["PENDING", "PROCESSING"].includes(image?.processingStatus),
+    );
+    if (!hasProcessingImages) return undefined;
+
+    const timerId = window.setTimeout(() => loadProduct(), 2000);
+    return () => window.clearTimeout(timerId);
+  }, [loadProduct, product?.images]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -297,7 +290,7 @@ const ProductDetailView = () => {
       const response = await productApi.uploadProductImages(productId, selectedFiles);
       const uploaded = response?.data?.data || [];
       setSelectedFiles([]);
-      setSuccess(`Uploaded ${uploaded.length} image(s) successfully.`);
+      setSuccess(`Uploaded ${uploaded.length} image(s). WebP variants are being generated.`);
       await loadProduct();
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to upload images."));
@@ -501,7 +494,7 @@ const ProductDetailView = () => {
                         }`}
                       >
                         <img
-                          src={img.url}
+                          src={img.thumbnailUrl}
                           alt={img.filename || `Image ${idx + 1}`}
                           className="aspect-square w-full object-cover"
                           loading="lazy"
@@ -819,7 +812,9 @@ const ProductDetailView = () => {
                                 Uploaded Images — click to set as main
                               </p>
                               <div className="grid grid-cols-3 gap-2">
-                                {(product?.images || []).map((img) => (
+                                {(product?.images || [])
+                                  .filter((img) => img?.processingStatus === "READY")
+                                  .map((img) => (
                                   <button
                                     key={img.uploadId}
                                     type="button"
@@ -837,13 +832,13 @@ const ProductDetailView = () => {
                                     title="Click to set as main image"
                                   >
                                     <img
-                                      src={buildImageFileUrl(img.uploadId)}
+                                      src={img.thumbnailUrl || img.mediumUrl || img.largeUrl}
                                       alt={img.filename || "Product image"}
                                       className="aspect-square w-full object-cover"
                                       loading="lazy"
                                     />
                                   </button>
-                                ))}
+                                  ))}
                               </div>
                             </div>
                           )}

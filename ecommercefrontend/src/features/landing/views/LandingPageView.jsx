@@ -6,7 +6,6 @@ import mainBannerApi from "../../../core/api/mainBannerApi";
 import productApi from "../../../core/api/productApi";
 import categoryApi from "../../../core/api/categoryApi";
 import { getHomePathByRole, isAuthenticated } from "../../../core/auth/session";
-import ENV from "../../../core/config/env";
 import getApiErrorMessage from "../../../core/utils/apiError";
 
 const FALLBACK_CATEGORY_CAMPAIGN = {
@@ -183,7 +182,6 @@ const ProductTile = ({
 
 const LandingPageView = () => {
   const navigate = useNavigate();
-  const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
   const authenticated = isAuthenticated();
   const roleHomePath = getHomePathByRole();
 
@@ -446,16 +444,19 @@ const LandingPageView = () => {
     navigate(`/products/${productId}`);
   };
 
-  const getProductImageUrl = (product) => {
-    if (!apiBase || !product?.productId || !product?.mainImageUploadId) {
-      return null;
+  const getProductImageUrl = (product, preferredSize = "thumbnail") => {
+    if (preferredSize === "large") {
+      return product?.largeImageUrl || product?.mediumImageUrl || product?.thumbnailUrl || null;
     }
-    return `${apiBase}/products/${product.productId}/images/${product.mainImageUploadId}/file`;
+    if (preferredSize === "medium") {
+      return product?.mediumImageUrl || product?.largeImageUrl || product?.thumbnailUrl || null;
+    }
+    return product?.thumbnailUrl || product?.mediumImageUrl || product?.largeImageUrl || null;
   };
 
   const getCategoryPreviewImage = (categoryBlock) => {
     const firstImageProduct = (categoryBlock?.products || []).find(
-      (product) => product?.productId && product?.mainImageUploadId,
+      (product) => getProductImageUrl(product),
     );
     return getProductImageUrl(firstImageProduct);
   };
@@ -825,7 +826,7 @@ const LandingPageView = () => {
             <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
               <article className="relative overflow-hidden rounded-xl border border-[#e5e7eb] bg-black">
                 <img
-                  src={getProductImageUrl(newestProducts[0]) || loginImage}
+                  src={getProductImageUrl(newestProducts[0], "large") || loginImage}
                   alt={newestProducts[0]?.name || "New arrival"}
                   className="absolute inset-0 h-full w-full object-cover"
                 />
@@ -853,7 +854,7 @@ const LandingPageView = () => {
                     className="relative overflow-hidden rounded-xl border border-[#e5e7eb] bg-black"
                   >
                     <img
-                      src={getProductImageUrl(product) || loginImage}
+                      src={getProductImageUrl(product, "medium") || loginImage}
                       alt={product?.name || "New arrival product"}
                       className="absolute inset-0 h-full w-full object-cover"
                     />

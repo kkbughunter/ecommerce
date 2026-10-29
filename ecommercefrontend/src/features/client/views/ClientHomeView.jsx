@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getHomePathByRole, isAuthenticated } from "../../../core/auth/session";
 import homeSliderApi from "../../../core/api/homeSliderApi";
-import ENV from "../../../core/config/env";
 import getApiErrorMessage from "../../../core/utils/apiError";
 import ClientTopNav from "../components/ClientTopNav";
 import ProductCard from "../components/ProductCard";
@@ -80,10 +79,7 @@ const useAutoSlider = (slides, intervalMs = 6000) => {
   };
 };
 
-const getCategoryImageUrl = (apiBase, category) => {
-  if (!apiBase || !category?.categoryImageProductId || !category?.categoryImageUploadId) return null;
-  return `${apiBase}/products/${category.categoryImageProductId}/images/${category.categoryImageUploadId}/file`;
-};
+const getCategoryImageUrl = (category) => category?.categoryImageUrl || null;
 
 const withBannerBackground = (imageUrl, fallbackBackground) => {
   if (!imageUrl) return { background: fallbackBackground };
@@ -109,7 +105,6 @@ const ClientHomeView = ({ publicMode = false }) => {
   const navigate = useNavigate();
   const authenticated = isAuthenticated();
   const roleHomePath = getHomePathByRole();
-  const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
 
   const { filters, products, pageMeta, isLoading, error, updateSearch, goToPage, refresh } =
     useClientProducts();
@@ -349,7 +344,7 @@ const ClientHomeView = ({ publicMode = false }) => {
         <div className="flex gap-3 overflow-x-auto pb-3 md:grid md:grid-cols-4 md:overflow-visible md:pb-0 lg:grid-cols-8">
           {categoryTiles.map((category, idx) => {
             const colorClass = CATEGORY_COLORS[idx % CATEGORY_COLORS.length];
-            const imageUrl = getCategoryImageUrl(apiBase, category);
+            const imageUrl = getCategoryImageUrl(category);
             return (
               <button
                 key={`${category?.categoryId || "cat"}-${category?.categoryName || "unknown"}`}

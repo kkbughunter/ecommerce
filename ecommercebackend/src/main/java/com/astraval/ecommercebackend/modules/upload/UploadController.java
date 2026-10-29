@@ -2,11 +2,8 @@ package com.astraval.ecommercebackend.modules.upload;
 
 import java.util.List;
 
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.core.io.Resource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.astraval.ecommercebackend.common.util.ApiResponse;
 import com.astraval.ecommercebackend.common.util.ApiResponseFactory;
-import com.astraval.ecommercebackend.modules.upload.dto.UploadFileContent;
 import com.astraval.ecommercebackend.modules.upload.dto.UploadResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,20 +46,5 @@ public class UploadController {
     public ResponseEntity<ApiResponse<List<UploadResponse>>> getProductImages(@PathVariable Long productId) {
         List<UploadResponse> response = uploadService.getProductImages(productId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Product images fetched successfully"));
-    }
-
-    @GetMapping("/{uploadId}/file")
-    @Operation(summary = "Get product image file")
-    public ResponseEntity<Resource> getProductImageFile(
-            @PathVariable Long productId,
-            @PathVariable String uploadId) {
-        UploadFileContent fileContent = uploadService.getProductImageFile(productId, uploadId);
-        return ResponseEntity.ok()
-                .contentType(fileContent.mediaType())
-                .contentLength(fileContent.contentLength())
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        ContentDisposition.inline().filename(fileContent.filename()).build().toString())
-                .body(fileContent.resource());
     }
 }

@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ENV from "../../../core/config/env";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("en-IN", {
@@ -25,13 +24,7 @@ const ProductCard = ({ product, onAddToCart = () => {}, isAddingToCart = false }
         ? "Trending"
         : "";
   const isOutOfStock = Number(product?.stockQuantity || 0) <= 0;
-  const imageUrl = useMemo(() => {
-    if (!product?.productId || !product?.mainImageUploadId) {
-      return null;
-    }
-    const base = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
-    return `${base}/products/${product.productId}/images/${product.mainImageUploadId}/file`;
-  }, [product?.mainImageUploadId, product?.productId]);
+  const imageUrl = product?.thumbnailUrl || product?.mediumImageUrl || product?.largeImageUrl || null;
 
   const shouldShowImage = Boolean(imageUrl) && !imageLoadFailed;
 
@@ -64,6 +57,8 @@ const ProductCard = ({ product, onAddToCart = () => {}, isAddingToCart = false }
             onError={() => setImageLoadFailed(true)}
             className="h-full w-full rounded-xl object-cover"
             loading="lazy"
+            width="320"
+            height="320"
           />
         ) : (
           <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-[#cfd6f7] bg-white/70 text-[11px] font-medium text-[#64748b] backdrop-blur">

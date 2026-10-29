@@ -29,6 +29,7 @@ const pickDirectImageMeta = (entry) => {
   return {
     productId,
     uploadId: String(uploadId),
+    imageUrl: entry?.categoryImageUrl || entry?.imageUrl || null,
   };
 };
 
@@ -55,6 +56,7 @@ const normalizeCategories = (items, imageById, imageByName) => {
       categoryName,
       categoryImageProductId: imageMeta?.productId || null,
       categoryImageUploadId: imageMeta?.uploadId || null,
+      categoryImageUrl: imageMeta?.imageUrl || null,
     });
   });
 
@@ -91,7 +93,7 @@ const useClientCategories = () => {
         const categoryId = toSafeId(categoryEntry?.categoryId);
         const categoryNameKey = buildKey(categoryEntry?.categoryName);
         const products = Array.isArray(categoryEntry?.products) ? categoryEntry.products : [];
-        const firstImageProduct = products.find((product) => product?.productId && product?.mainImageUploadId);
+        const firstImageProduct = products.find((product) => product?.thumbnailUrl || product?.mediumImageUrl);
 
         if (!firstImageProduct) {
           return;
@@ -100,6 +102,11 @@ const useClientCategories = () => {
         const imageMeta = {
           productId: toSafeId(firstImageProduct.productId),
           uploadId: String(firstImageProduct.mainImageUploadId),
+          imageUrl:
+            firstImageProduct.thumbnailUrl ||
+            firstImageProduct.mediumImageUrl ||
+            firstImageProduct.largeImageUrl ||
+            null,
         };
 
         if (imageMeta.productId && imageMeta.uploadId) {

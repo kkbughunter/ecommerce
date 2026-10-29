@@ -2,19 +2,14 @@ package com.astraval.ecommercebackend.modules.upload;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.InvalidMediaTypeException;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -24,7 +19,6 @@ import com.astraval.ecommercebackend.common.exception.BadRequestException;
 import com.astraval.ecommercebackend.common.exception.ResourceNotFoundException;
 import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.product.ProductRepository;
-import com.astraval.ecommercebackend.modules.upload.dto.UploadFileContent;
 import com.astraval.ecommercebackend.modules.upload.dto.UploadResponse;
 
 @Service
@@ -33,20 +27,23 @@ public class UploadService {
     private final UploadRepository uploadRepository;
     private final ProductRepository productRepository;
     private final SecurityUtil securityUtil;
-    private final Path uploadRootPath;
-    private final String productImageFolder;
+    private final R2StorageService storageService;
+    private final ImageConversionService imageConversionService;
+    private final int maxFilesPerRequest;
 
     public UploadService(
             UploadRepository uploadRepository,
             ProductRepository productRepository,
             SecurityUtil securityUtil,
-            @Value("${upload.path:uploads}") String uploadPath,
-            @Value("${upload.product-image-folder:products}") String productImageFolder) {
+            R2StorageService storageService,
+            ImageConversionService imageConversionService,
+            @Value("${upload.image.max-files-per-request:8}") int maxFilesPerRequest) {
         this.uploadRepository = uploadRepository;
         this.productRepository = productRepository;
         this.securityUtil = securityUtil;
-        this.uploadRootPath = Paths.get(uploadPath).toAbsolutePath().normalize();
-        this.productImageFolder = productImageFolder;
+        this.storageService = storageService;
+        this.imageConversionService = imageConversionService;
+        this.maxFilesPerRequest = maxFilesPerRequest;
     }
 
     @Transactional
@@ -58,12 +55,36 @@ public class UploadService {
         if (!StringUtils.hasText(createdBy)) {
             throw new BadRequestException("Invalid authenticated user identifier");
         }
+        if (!storageService.isEnabled()) {
+            throw new IllegalStateException("R2 image storage is not enabled");
+        }
 
-        return files.stream()
-                .map(file -> storeProductImage(file, productId, createdBy))
-                .map(uploadRepository::save)
-                .map(this::toUploadResponse)
-                .toList();
+        List<Upload> storedUploads = new ArrayList<>();
+        List<String> uploadedSourceKeys = new ArrayList<>();
+        try {
+            for (MultipartFile file : files) {
+                ImageConversionService.ImageInfo imageInfo = imageConversionService.inspect(file);
+                Upload upload = createPendingUpload(productId, file, imageInfo, createdBy);
+
+                try (InputStream inputStream = file.getInputStream()) {
+                    storageService.upload(
+                            upload.getUploadedPath(),
+                            inputStream,
+                            file.getSize(),
+                            imageInfo.contentType());
+                }
+
+                uploadedSourceKeys.add(upload.getUploadedPath());
+                storedUploads.add(uploadRepository.save(upload));
+            }
+            return storedUploads.stream().map(this::toUploadResponse).toList();
+        } catch (IOException | RuntimeException ex) {
+            uploadedSourceKeys.forEach(storageService::deleteQuietly);
+            if (ex instanceof BadRequestException badRequestException) {
+                throw badRequestException;
+            }
+            throw new IllegalStateException("Unable to queue product images for processing", ex);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -83,77 +104,69 @@ public class UploadService {
     }
 
     @Transactional(readOnly = true)
-    public UploadFileContent getProductImageFile(Long productId, String uploadId) {
-        ensureProductExists(productId);
-
-        Upload upload = uploadRepository.findById(uploadId)
-                .orElseThrow(() -> new ResourceNotFoundException("Upload not found"));
-
-        if (!UploadType.PRODUCT_IMAGE.name().equals(upload.getUploadType())
-                || !String.valueOf(productId).equals(upload.getRelatedId())
-                || !Boolean.TRUE.equals(upload.getIsActive())) {
-            throw new ResourceNotFoundException("Product image not found");
+    public UploadResponse getUploadResponse(String uploadId) {
+        if (!StringUtils.hasText(uploadId)) {
+            return null;
         }
-
-        Path filePath = resolveUploadedPath(upload.getUploadedPath());
-        if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
-            throw new ResourceNotFoundException("Image file not found");
-        }
-
-        try {
-            Resource resource = new UrlResource(filePath.toUri());
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new ResourceNotFoundException("Image file is not readable");
-            }
-            return new UploadFileContent(
-                    resource,
-                    resolveMediaType(upload, filePath),
-                    upload.getFilename(),
-                    Files.size(filePath));
-        } catch (IOException ex) {
-            throw new IllegalStateException("Unable to read uploaded file", ex);
-        }
+        return uploadRepository.findById(uploadId)
+                .filter(upload -> Boolean.TRUE.equals(upload.getIsActive()))
+                .map(this::toUploadResponse)
+                .orElse(null);
     }
 
-    private Upload storeProductImage(MultipartFile file, Long productId, String createdBy) {
-        String originalFilename = normalizeOriginalFilename(file.getOriginalFilename());
-        String extension = extractExtension(originalFilename);
-        String storedFilename = UUID.randomUUID() + extension;
-
-        Path relativeFilePath = Paths.get(productImageFolder)
-                .resolve(String.valueOf(productId))
-                .resolve(storedFilename)
-                .normalize();
-
-        Path targetPath = uploadRootPath
-                .resolve(relativeFilePath)
-                .normalize();
-
-        Path productDirectory = uploadRootPath
-                .resolve(productImageFolder)
-                .resolve(String.valueOf(productId))
-                .normalize();
-
-        if (!targetPath.startsWith(uploadRootPath)) {
-            throw new BadRequestException("Invalid file path");
+    @Transactional(readOnly = true)
+    public Map<String, UploadResponse> getUploadResponses(List<String> uploadIds) {
+        if (uploadIds == null || uploadIds.isEmpty()) {
+            return Map.of();
         }
+        return uploadRepository.findAllById(uploadIds).stream()
+                .filter(upload -> Boolean.TRUE.equals(upload.getIsActive()))
+                .map(this::toUploadResponse)
+                .collect(Collectors.toMap(UploadResponse::uploadId, Function.identity()));
+    }
 
-        try {
-            Files.createDirectories(productDirectory);
-            try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (IOException ex) {
-            throw new IllegalStateException("Unable to store uploaded file", ex);
-        }
+    public UploadResponse toUploadResponse(Upload upload) {
+        boolean ready = upload.getProcessingStatus() == ImageProcessingStatus.READY;
+        return new UploadResponse(
+                upload.getUploadId(),
+                upload.getFilename(),
+                upload.getStoredFilename(),
+                upload.getUploadType(),
+                upload.getUploadedPath(),
+                upload.getRelatedId(),
+                upload.getFileType(),
+                upload.getIsActive(),
+                upload.getCreatedDt(),
+                upload.getCreatedBy(),
+                upload.getProcessingStatus(),
+                upload.getProcessingError(),
+                upload.getOriginalWidth(),
+                upload.getOriginalHeight(),
+                ready ? storageService.publicUrl(upload.getThumbnailObjectKey()) : null,
+                ready ? storageService.publicUrl(upload.getMediumObjectKey()) : null,
+                ready ? storageService.publicUrl(upload.getLargeObjectKey()) : null);
+    }
+
+    private Upload createPendingUpload(
+            Long productId,
+            MultipartFile file,
+            ImageConversionService.ImageInfo imageInfo,
+            String createdBy) {
+        String uploadId = UUID.randomUUID().toString();
+        String sourceObjectKey = "products/%d/%s/source".formatted(productId, uploadId);
 
         Upload upload = new Upload();
-        upload.setFilename(originalFilename);
-        upload.setStoredFilename(storedFilename);
+        upload.setUploadId(uploadId);
+        upload.setFilename(normalizeOriginalFilename(file.getOriginalFilename()));
+        upload.setStoredFilename("source");
         upload.setUploadType(UploadType.PRODUCT_IMAGE.name());
-        upload.setUploadedPath(toUnixSeparators(relativeFilePath));
+        upload.setUploadedPath(sourceObjectKey);
         upload.setRelatedId(String.valueOf(productId));
-        upload.setFileType(file.getContentType());
+        upload.setFileType(imageInfo.contentType());
+        upload.setOriginalWidth(imageInfo.width());
+        upload.setOriginalHeight(imageInfo.height());
+        upload.setProcessingStatus(ImageProcessingStatus.PENDING);
+        upload.setProcessingAttempts(0);
         upload.setIsActive(true);
         upload.setCreatedBy(createdBy);
         return upload;
@@ -169,8 +182,10 @@ public class UploadService {
         if (files == null || files.isEmpty()) {
             throw new BadRequestException("At least one file is required");
         }
-        boolean hasEmptyFile = files.stream().anyMatch(file -> file == null || file.isEmpty());
-        if (hasEmptyFile) {
+        if (files.size() > maxFilesPerRequest) {
+            throw new BadRequestException("A maximum of " + maxFilesPerRequest + " images can be uploaded at once");
+        }
+        if (files.stream().anyMatch(file -> file == null || file.isEmpty())) {
             throw new BadRequestException("Uploaded files must not be empty");
         }
     }
@@ -184,68 +199,5 @@ public class UploadService {
             throw new BadRequestException("Invalid file name");
         }
         return cleaned;
-    }
-
-    private String extractExtension(String originalFilename) {
-        int extensionIndex = originalFilename.lastIndexOf('.');
-        if (extensionIndex < 0 || extensionIndex == originalFilename.length() - 1) {
-            return "";
-        }
-        return "." + originalFilename.substring(extensionIndex + 1).toLowerCase(Locale.ROOT);
-    }
-
-    private UploadResponse toUploadResponse(Upload upload) {
-        return new UploadResponse(
-                upload.getUploadId(),
-                upload.getFilename(),
-                upload.getStoredFilename(),
-                upload.getUploadType(),
-                upload.getUploadedPath(),
-                upload.getRelatedId(),
-                upload.getFileType(),
-                upload.getIsActive(),
-                upload.getCreatedDt(),
-                upload.getCreatedBy());
-    }
-
-    private String toUnixSeparators(Path path) {
-        return path.toString().replace("\\", "/");
-    }
-
-    private Path resolveUploadedPath(String uploadedPath) {
-        if (!StringUtils.hasText(uploadedPath)) {
-            throw new ResourceNotFoundException("Stored file path is missing");
-        }
-
-        Path rawPath = Paths.get(uploadedPath).normalize();
-        Path resolvedPath = rawPath.isAbsolute()
-                ? rawPath
-                : uploadRootPath.resolve(rawPath).normalize();
-
-        if (!resolvedPath.startsWith(uploadRootPath)) {
-            throw new BadRequestException("Invalid stored upload path");
-        }
-        return resolvedPath;
-    }
-
-    private MediaType resolveMediaType(Upload upload, Path filePath) {
-        if (StringUtils.hasText(upload.getFileType())) {
-            try {
-                return MediaType.parseMediaType(upload.getFileType());
-            } catch (InvalidMediaTypeException ignored) {
-                // Continue to probe content type.
-            }
-        }
-
-        try {
-            String probedType = Files.probeContentType(filePath);
-            if (StringUtils.hasText(probedType)) {
-                return MediaType.parseMediaType(probedType);
-            }
-        } catch (IOException | InvalidMediaTypeException ignored) {
-            // Fallback to octet-stream when probing fails.
-        }
-
-        return MediaType.APPLICATION_OCTET_STREAM;
     }
 }

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ENV from "../../../core/config/env";
 import AppFooter from "../../../layouts/AppFooter";
 import ClientTopNav from "../components/ClientTopNav";
 import useCart from "../hooks/useCart";
@@ -14,7 +13,6 @@ const formatMoney = (value) =>
 
 const ClientCartView = () => {
   const navigate = useNavigate();
-  const apiBase = ENV.API_BASE_URL?.replace(/\/+$/, "") || "";
   const {
     cart,
     isLoadingCart,
@@ -120,9 +118,9 @@ const ClientCartView = () => {
                           }
                           className="h-4 w-4"
                         />
-                        {item?.mainImageUploadId ? (
+                        {item?.thumbnailUrl ? (
                           <img
-                            src={`${apiBase}/products/${item.productId}/images/${item.mainImageUploadId}/file`}
+                            src={item.thumbnailUrl}
                             alt={item.productName || "Product"}
                             className="h-16 w-16 rounded-lg border border-slate-200 object-cover"
                             loading="lazy"

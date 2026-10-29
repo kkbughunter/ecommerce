@@ -33,6 +33,8 @@ import com.astraval.ecommercebackend.modules.product.Product;
 import com.astraval.ecommercebackend.modules.product.ProductRepository;
 import com.astraval.ecommercebackend.modules.user.User;
 import com.astraval.ecommercebackend.modules.user.UserRepository;
+import com.astraval.ecommercebackend.modules.upload.UploadService;
+import com.astraval.ecommercebackend.modules.upload.dto.UploadResponse;
 
 @Service
 public class CartService {
@@ -46,6 +48,7 @@ public class CartService {
     private final SecurityUtil securityUtil;
     private final OrderService orderService;
     private final RazorpayPaymentService razorpayPaymentService;
+    private final UploadService uploadService;
 
     public CartService(
             CartRepository cartRepository,
@@ -53,13 +56,15 @@ public class CartService {
             UserRepository userRepository,
             SecurityUtil securityUtil,
             OrderService orderService,
-            RazorpayPaymentService razorpayPaymentService) {
+            RazorpayPaymentService razorpayPaymentService,
+            UploadService uploadService) {
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.securityUtil = securityUtil;
         this.orderService = orderService;
         this.razorpayPaymentService = razorpayPaymentService;
+        this.uploadService = uploadService;
     }
 
     @Transactional(readOnly = true)
@@ -262,6 +267,7 @@ public class CartService {
 
             int availableStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
             boolean available = Boolean.TRUE.equals(product.getIsActive()) && availableStock >= quantity;
+            UploadResponse mainImage = uploadService.getUploadResponse(product.getMainImageUploadId());
 
             subtotal = subtotal.add(lineSubtotal).setScale(2, RoundingMode.HALF_UP);
             taxAmount = taxAmount.add(lineTax).setScale(2, RoundingMode.HALF_UP);
@@ -272,6 +278,7 @@ public class CartService {
                     product.getProductId(),
                     product.getName(),
                     product.getMainImageUploadId(),
+                    mainImage != null ? mainImage.thumbnailUrl() : null,
                     unitPrice,
                     quantity,
                     lineSubtotal,
