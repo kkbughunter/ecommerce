@@ -4,6 +4,7 @@ import loginImage from "../../../core/assets/images/login/login.png";
 import homeSliderApi from "../../../core/api/homeSliderApi";
 import mainBannerApi from "../../../core/api/mainBannerApi";
 import productApi from "../../../core/api/productApi";
+import categoryApi from "../../../core/api/categoryApi";
 import { getHomePathByRole, isAuthenticated } from "../../../core/auth/session";
 import ENV from "../../../core/config/env";
 import getApiErrorMessage from "../../../core/utils/apiError";
@@ -32,18 +33,6 @@ const FALLBACK_MAIN_BANNER = {
   placementTag: "MAIN_BANNER",
   badgeText: "Main Banner",
 };
-
-const FALLBACK_MENU_CATEGORIES = [
-  "Women's Fashion",
-  "Men's Fashion",
-  "Electronics",
-  "Home & Lifestyle",
-  "Medicine",
-  "Sports & Outdoor",
-  "Groceries",
-  "Books & Stationery",
-];
-
 
 const formatMoney = (value, currency = "INR") =>
   new Intl.NumberFormat("en-IN", {
@@ -202,6 +191,7 @@ const LandingPageView = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [products, setProducts] = useState([]);
   const [categoryBlocks, setCategoryBlocks] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
   const [search, setSearch] = useState("");
   const [heroIndex, setHeroIndex] = useState(0);
   const [highlightIndex, setHighlightIndex] = useState(0);
@@ -250,7 +240,7 @@ const LandingPageView = () => {
       try {
         const listResponse = await mainBannerApi.getActiveMainBanners();
         fromList = extractBannerItems(listResponse);
-      } catch (error) {
+      } catch {
         fromList = [];
       }
 
@@ -258,7 +248,7 @@ const LandingPageView = () => {
       try {
         const singleResponse = await mainBannerApi.getActiveMainBanner();
         fromSingle = extractBannerItems(singleResponse);
-      } catch (error) {
+      } catch {
         fromSingle = [];
       }
 
@@ -270,11 +260,12 @@ const LandingPageView = () => {
       setError("");
 
       try {
-        const [bannerData, campaignResult, productsResult, categoriesResult] = await Promise.allSettled([
+        const [bannerData, campaignResult, productsResult, categoriesResult, allCategoriesResult] = await Promise.allSettled([
           resolveBannerList(),
           homeSliderApi.getActiveSliders(),
           productApi.getActiveProducts({ page: 0, size: 32 }),
           productApi.getActiveCategoriesWithProducts({ page: 0, size: 16 }),
+          categoryApi.getAllCategories(),
         ]);
 
         const resolvedBanners = bannerData.status === "fulfilled" ? bannerData.value || [] : [];
@@ -290,13 +281,22 @@ const LandingPageView = () => {
           categoriesResult.status === "fulfilled"
             ? categoriesResult.value?.data?.data?.content || []
             : [];
+        const allCategoriesData =
+          allCategoriesResult.status === "fulfilled"
+            ? allCategoriesResult.value?.data?.data || []
+            : [];
 
         setMainBanners(Array.isArray(resolvedBanners) ? resolvedBanners : []);
         setCampaigns(Array.isArray(campaignData) ? campaignData : []);
         setProducts(Array.isArray(productData) ? productData : []);
         setCategoryBlocks(Array.isArray(categoryData) ? categoryData : []);
+        setSubcategories(
+          Array.isArray(allCategoriesData)
+            ? allCategoriesData.filter((category) => category?.parentCategoryId != null)
+            : [],
+        );
 
-        const allFailed = [bannerData, campaignResult, productsResult, categoriesResult].every(
+        const allFailed = [bannerData, campaignResult, productsResult, categoriesResult, allCategoriesResult].every(
           (result) => result.status === "rejected",
         );
         if (allFailed) {
@@ -430,15 +430,10 @@ const LandingPageView = () => {
   }, [filteredProducts]);
 
   const categoryHighlights = useMemo(() => categoryBlocks.slice(0, 6), [categoryBlocks]);
-  const menuCategories = useMemo(() => {
-    if (categoryBlocks.length) {
-      return categoryBlocks
-        .map((item) => item?.categoryName)
-        .filter(Boolean)
-        .slice(0, 8);
-    }
-    return FALLBACK_MENU_CATEGORIES;
-  }, [categoryBlocks]);
+  const menuSubcategories = useMemo(
+    () => subcategories.filter((item) => item?.categoryName).slice(0, 8),
+    [subcategories],
+  );
 
   const openProduct = (productId) => {
     if (!productId) {
@@ -469,9 +464,9 @@ const LandingPageView = () => {
 
   return (
     <main className="min-h-screen bg-[#f5f6f8] text-[#111827] [font-family:'Manrope','Segoe_UI',sans-serif]">
-      <div className="bg-black px-3 py-2 text-center text-[11px] font-medium text-white">
+      {/* <div className="bg-black px-3 py-2 text-center text-[11px] font-medium text-white">
         Summer Sale For All Swim Suits And Free Delivery - OFF 50%
-      </div>
+      </div> */}
 
       <header className="border-b border-[#e6e9ee] bg-white">
         <div className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-3 px-3 py-4">
@@ -515,25 +510,27 @@ const LandingPageView = () => {
           </div>
         ) : null}
 
-        <div className="grid gap-4 lg:grid-cols-[230px_1fr]">
-          <aside className="rounded-xl border border-[#e6e9ee] bg-white p-3">
-            <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">
-              Shop Categories
-            </p>
-            <div className="space-y-1">
-              {menuCategories.map((categoryName, index) => (
-                <button
-                  key={`${categoryName}-${index}`}
-                  type="button"
-                  onClick={goToEntry}
-                  className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[13px] text-[#111827] transition hover:bg-[#f5f6f8]"
-                >
-                  <span className="line-clamp-1">{categoryName}</span>
-                  <span className="text-[#9ca3af]">{">"}</span>
-                </button>
-              ))}
-            </div>
-          </aside>
+        <div className={`grid gap-4 ${menuSubcategories.length ? "lg:grid-cols-[230px_1fr]" : "grid-cols-1"}`}>
+          {menuSubcategories.length ? (
+            <aside className="rounded-xl border border-[#e6e9ee] bg-white p-3">
+              <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#6b7280]">
+                Shop Categories
+              </p>
+              <div className="space-y-1">
+                {menuSubcategories.map((subcategory) => (
+                  <button
+                    key={subcategory.categoryId}
+                    type="button"
+                    onClick={goToEntry}
+                    className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[13px] text-[#111827] transition hover:bg-[#f5f6f8]"
+                  >
+                    <span className="line-clamp-1">{subcategory.categoryName}</span>
+                    <span className="text-[#9ca3af]">{">"}</span>
+                  </button>
+                ))}
+              </div>
+            </aside>
+          ) : null}
 
           <article className="relative overflow-hidden rounded-xl border border-[#dde3ec] bg-black">
             {activeHero ? (

@@ -1,8 +1,60 @@
+import { useState } from "react";
 import loginImage from "../../../core/assets/images/login/login.png";
 import AppFooter from "../../../layouts/AppFooter";
 import useLogin from "../hooks/useLogin";
 
+const PasswordVisibilityIcon = ({ visible }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    className="h-5 w-5"
+  >
+    {visible ? (
+      <>
+        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+        <circle cx="12" cy="12" r="2.5" />
+      </>
+    ) : (
+      <>
+        <path d="m3 3 18 18" />
+        <path d="M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-2.1 2.8M6.4 6.4C3.9 8.1 2.5 12 2.5 12s3.5 6 9.5 6a9 9 0 0 0 3.5-.7" />
+        <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+      </>
+    )}
+  </svg>
+);
+
+const PasswordInput = ({ visible, onToggle, label, ...inputProps }) => (
+  <div>
+    <label className="mb-1 block text-sm font-medium text-slate-700">{label}</label>
+    <div className="relative">
+      <input
+        {...inputProps}
+        type={visible ? "text" : "password"}
+        className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 pr-11 text-sm text-slate-800 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`}
+        aria-pressed={visible}
+        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-500 transition hover:text-violet-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500"
+      >
+        <PasswordVisibilityIcon visible={visible} />
+      </button>
+    </div>
+  </div>
+);
+
 const LoginView = () => {
+  const [passwordVisibility, setPasswordVisibility] = useState({
+    login: false,
+    register: false,
+    confirm: false,
+  });
   const {
     mode,
     loginForm,
@@ -59,20 +111,18 @@ const LoginView = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={loginForm.password}
-                    onChange={handleLoginChange}
-                    placeholder="Enter password"
-                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
-                    required
-                  />
-                </div>
+                <PasswordInput
+                  label="Password"
+                  name="password"
+                  value={loginForm.password}
+                  onChange={handleLoginChange}
+                  placeholder="Enter password"
+                  visible={passwordVisibility.login}
+                  onToggle={() =>
+                    setPasswordVisibility((prev) => ({ ...prev, login: !prev.login }))
+                  }
+                  required
+                />
 
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 {success && <p className="text-sm text-emerald-600">{success}</p>}
@@ -131,22 +181,35 @@ const LoginView = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={registerForm.password}
-                    onChange={handleRegisterChange}
-                    placeholder="Enter password (8-32 chars)"
-                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
-                    minLength={8}
-                    maxLength={32}
-                    required
-                  />
-                </div>
+                <PasswordInput
+                  label="Password"
+                  name="password"
+                  value={registerForm.password}
+                  onChange={handleRegisterChange}
+                  placeholder="Enter password (8-32 chars)"
+                  visible={passwordVisibility.register}
+                  onToggle={() =>
+                    setPasswordVisibility((prev) => ({ ...prev, register: !prev.register }))
+                  }
+                  minLength={8}
+                  maxLength={32}
+                  required
+                />
+
+                <PasswordInput
+                  label="Confirm Password"
+                  name="confirmPassword"
+                  value={registerForm.confirmPassword}
+                  onChange={handleRegisterChange}
+                  placeholder="Re-enter your password"
+                  visible={passwordVisibility.confirm}
+                  onToggle={() =>
+                    setPasswordVisibility((prev) => ({ ...prev, confirm: !prev.confirm }))
+                  }
+                  minLength={8}
+                  maxLength={32}
+                  required
+                />
 
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 {success && <p className="text-sm text-emerald-600">{success}</p>}

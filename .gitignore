@@ -1,2 +1,3 @@
 ecommercebackend/logs/*
 ecommercebackend/uploads/*
+ecommercebackend/.env

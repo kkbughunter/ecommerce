@@ -84,7 +84,16 @@ This code is valid for the next {{otp_expiry_minutes}} minutes.
 If you did not request this, please secure your account.
 
 Best regards,
-IotRoot Team',0,'2026-02-25 16:27:31.500097','Email template used for password reset OTP.',NULL,true,0,'2026-02-26 12:58:23.731476','Your Password Reset Code',NULL,'TRANSACTIONAL');
+IotRoot Team',0,'2026-02-25 16:27:31.500097','Email template used for password reset OTP.',NULL,true,0,'2026-02-26 12:58:23.731476','Your Password Reset Code',NULL,'TRANSACTIONAL')
+ON CONFLICT (name) DO UPDATE
+SET subject = EXCLUDED.subject,
+    body_html = EXCLUDED.body_html,
+    body_text = EXCLUDED.body_text,
+    description = EXCLUDED.description,
+    type = EXCLUDED.type,
+    is_active = EXCLUDED.is_active,
+    modified_by = EXCLUDED.modified_by,
+    modified_dt = NOW();
 
 
 INSERT INTO roles (role_code, landing_url, role_name)

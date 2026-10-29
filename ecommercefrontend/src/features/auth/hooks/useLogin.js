@@ -12,6 +12,7 @@ const initialLoginForm = {
 const initialRegisterForm = {
   email: "",
   password: "",
+  confirmPassword: "",
   firstName: "",
   lastName: "",
 };
@@ -101,6 +102,12 @@ const useLogin = () => {
     event.preventDefault();
     setError("");
     setSuccess("");
+
+    if (registerForm.password !== registerForm.confirmPassword) {
+      setError("Password and confirm password do not match.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {

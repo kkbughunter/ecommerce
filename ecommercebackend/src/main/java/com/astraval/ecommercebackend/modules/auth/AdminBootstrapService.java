@@ -24,16 +24,16 @@ public class AdminBootstrapService implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    @Value("${bootstrap.admin.email:admin@yourstore.com}")
+    @Value("${bootstrap.admin.email:admin@villpo.com}")
     private String bootstrapAdminEmail;
 
-    @Value("${bootstrap.admin.password:Admin@123}")
+    @Value("${bootstrap.admin.password:cyber7020@VILLPO#Admin}")
     private String bootstrapAdminPassword;
 
-    @Value("${bootstrap.super-admin.email:superadmin@yourstore.com}")
+    @Value("${bootstrap.super-admin.email:superadmin@villpo.com}")
     private String bootstrapSuperAdminEmail;
 
-    @Value("${bootstrap.super-admin.password:SuperAdmin@123}")
+    @Value("${bootstrap.super-admin.password:cyber7020@VILLPO#SuperAdmin}")
     private String bootstrapSuperAdminPassword;
 
     public AdminBootstrapService(
