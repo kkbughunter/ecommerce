@@ -2,9 +2,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import categoryApi from "../../../core/api/categoryApi";
 import productApi from "../../../core/api/productApi";
-import { clearAuthSession, getHomePathByRole, hasAnyRole } from "../../../core/auth/session";
+import {
+  clearAuthSession,
+  getHomePathByRole,
+  hasAnyRole,
+  isAuthenticated,
+} from "../../../core/auth/session";
 import getApiErrorMessage from "../../../core/utils/apiError";
 import ProductCard from "../../client/components/ProductCard";
+import ProductImage from "../../client/components/ProductImage";
+import ClientTopNav from "../../client/components/ClientTopNav";
+import StoreFooter from "../../client/components/StoreFooter";
 import useCart from "../../client/hooks/useCart";
 
 const formatMoney = (value) =>
@@ -42,14 +50,18 @@ const SvgIcon = ({ path, className = "h-5 w-5 fill-current" }) => (
 const SpecRow = ({ label, value }) => (
   <div className="flex items-start justify-between gap-4 border-b border-slate-100 py-2.5 last:border-0">
     <span className="text-sm text-slate-500">{label}</span>
-    <span className="text-right text-sm font-medium text-slate-800">{value}</span>
+    <span className="text-right text-sm font-medium text-slate-800">
+      {value}
+    </span>
   </div>
 );
 
 const ProductDetailView = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
-  const isAdmin = hasAnyRole(["ADMIN"]);
+  const authenticated = isAuthenticated();
+  const isAdmin = authenticated && hasAnyRole(["ADMIN"]);
+  const isCustomer = authenticated && hasAnyRole(["USER"]);
 
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,9 +91,23 @@ const ProductDetailView = () => {
     productTag: "",
   });
 
-  const { addToCart, isMutatingCart, error: cartError, success: cartSuccess } = useCart({
-    enabled: !isAdmin,
+  const {
+    addToCart,
+    cartCount,
+    isMutatingCart,
+    error: cartError,
+    success: cartSuccess,
+  } = useCart({
+    enabled: isCustomer,
   });
+
+  const handleAddToCart = (id) => {
+    if (!isCustomer) {
+      navigate(authenticated ? getHomePathByRole() : "/login");
+      return;
+    }
+    return addToCart(id);
+  };
 
   const applyDescriptionFormat = (type) => {
     const input = descriptionRef.current;
@@ -108,7 +134,11 @@ const ProductDetailView = () => {
     if (!product?.productId) return [];
     const images = Array.isArray(product?.images) ? product.images : [];
     return images
-      .filter((img) => img?.processingStatus === "READY" && Boolean(img?.largeUrl || img?.mediumUrl))
+      .filter(
+        (img) =>
+          img?.processingStatus === "READY" &&
+          Boolean(img?.largeUrl || img?.mediumUrl || img?.thumbnailUrl),
+      )
       .map((img) => ({
         uploadId: img.uploadId,
         filename: img?.filename || "Product image",
@@ -178,14 +208,18 @@ const ProductDetailView = () => {
       setIsLoadingCategories(true);
       try {
         const response = await categoryApi.getAllCategories();
-        const list = Array.isArray(response?.data?.data) ? response.data.data : [];
+        const list = Array.isArray(response?.data?.data)
+          ? response.data.data
+          : [];
         setCategories(
           list
             .map((item) => ({
               categoryId: Number(item?.categoryId),
               categoryName: String(item?.categoryName || "").trim(),
             }))
-            .filter((item) => Number.isFinite(item.categoryId) && item.categoryName),
+            .filter(
+              (item) => Number.isFinite(item.categoryId) && item.categoryName,
+            ),
         );
       } catch {
         setCategories([]);
@@ -203,14 +237,19 @@ const ProductDetailView = () => {
         return;
       }
       try {
-        const response = await productApi.getActiveProductsByCategory(product.categoryId, {
-          page: 0,
-          size: 8,
-        });
+        const response = await productApi.getActiveProductsByCategory(
+          product.categoryId,
+          {
+            page: 0,
+            size: 8,
+          },
+        );
         const items = response?.data?.data?.content || [];
         setRelatedProducts(
           items
-            .filter((item) => Number(item?.productId) !== Number(product.productId))
+            .filter(
+              (item) => Number(item?.productId) !== Number(product.productId),
+            )
             .slice(0, 4),
         );
       } catch {
@@ -226,7 +265,9 @@ const ProductDetailView = () => {
   };
 
   const handleBack = () => {
-    navigate(getHomePathByRole(), { replace: true });
+    navigate(isAdmin ? getHomePathByRole() : isCustomer ? "/client" : "/", {
+      replace: true,
+    });
   };
 
   const handleEditChange = (event) => {
@@ -248,7 +289,9 @@ const ProductDetailView = () => {
         name: editForm.name.trim(),
         description: editForm.description.trim() || null,
         price: Number(editForm.price),
-        maxPrice: editForm.maxPrice ? Number(editForm.maxPrice) : Number(editForm.price),
+        maxPrice: editForm.maxPrice
+          ? Number(editForm.maxPrice)
+          : Number(editForm.price),
         gstPercentage: Number(editForm.gstPercentage),
         stockQuantity: Number(editForm.stockQuantity),
         widthCm: Number(editForm.widthCm),
@@ -287,10 +330,15 @@ const ProductDetailView = () => {
     setSuccess("");
     setIsUploading(true);
     try {
-      const response = await productApi.uploadProductImages(productId, selectedFiles);
+      const response = await productApi.uploadProductImages(
+        productId,
+        selectedFiles,
+      );
       const uploaded = response?.data?.data || [];
       setSelectedFiles([]);
-      setSuccess(`Uploaded ${uploaded.length} image(s). WebP variants are being generated.`);
+      setSuccess(
+        `Uploaded ${uploaded.length} image(s). WebP variants are being generated.`,
+      );
       await loadProduct();
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to upload images."));
@@ -302,14 +350,16 @@ const ProductDetailView = () => {
   const price = Number(product?.price || 0);
   const maxPrice = Number(product?.maxPrice || product?.price || 0);
   const savePercentage =
-    maxPrice > price && maxPrice > 0 ? Math.round(((maxPrice - price) / maxPrice) * 100) : 0;
+    maxPrice > price && maxPrice > 0
+      ? Math.round(((maxPrice - price) / maxPrice) * 100)
+      : 0;
   const hasMultipleImages = galleryImages.length > 1;
   const activeImage = galleryImages[selectedImageIndex] || null;
   const isInStock = Number(product?.stockQuantity || 0) > 0;
   const tagLabel = getTagLabel(product?.productTag);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className={isAdmin ? "min-h-screen bg-slate-50" : "storefront"}>
       {/* ── TOP NAV ── */}
       {isAdmin ? (
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
@@ -320,14 +370,19 @@ const ProductDetailView = () => {
                 onClick={handleBack}
                 className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
               >
-                <SvgIcon path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" className="h-4 w-4 fill-current" />
+                <SvgIcon
+                  path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                  className="h-4 w-4 fill-current"
+                />
                 Back
               </button>
               <span className="hidden rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 sm:inline">
                 Admin Product Studio
               </span>
             </div>
-            <span className="text-sm font-semibold text-slate-500">Product #{productId}</span>
+            <span className="text-sm font-semibold text-slate-500">
+              Product #{productId}
+            </span>
             <button
               type="button"
               onClick={handleLogout}
@@ -342,40 +397,18 @@ const ProductDetailView = () => {
           </div>
         </header>
       ) : (
-        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
-          <div className="flex h-14 items-center justify-between px-4 md:px-6">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              <SvgIcon path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" className="h-4 w-4 fill-current" />
-              Back
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client")}
-              className="text-lg font-extrabold tracking-tight text-slate-900"
-            >
-              Villpo Store
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client/cart")}
-              className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
-              aria-label="Cart"
-            >
-              <SvgIcon
-                path="M7 18c-1.1 0-1.99.9-1.99 2A2 2 0 0 0 7 22a2 2 0 0 0 0-4zm10 0a2 2 0 1 0 2 2 2 2 0 0 0-2-2zM7.17 14h9.9a2 2 0 0 0 1.92-1.45L21 6H6.21l-.47-2H2v2h2l2.6 10a2 2 0 0 0 1.94 1.5H19v-2H8.53a.5.5 0 0 1-.48-.36L7.17 14z"
-                className="h-5 w-5 fill-current"
-              />
-              <span className="hidden sm:inline">Cart</span>
-            </button>
-          </div>
-        </header>
+        <ClientTopNav cartCount={isCustomer ? cartCount : null} />
       )}
 
-      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+      <main
+        id="main-content"
+        tabIndex="-1"
+        className={
+          isAdmin
+            ? "mx-auto max-w-6xl px-4 py-6 md:px-6"
+            : "store-container store-detail-content store-page-content"
+        }
+      >
         {isLoading ? (
           <div className="animate-pulse">
             <div className="grid gap-8 lg:grid-cols-2">
@@ -403,15 +436,16 @@ const ProductDetailView = () => {
         ) : product ? (
           <>
             {/* ── MAIN PRODUCT LAYOUT ── */}
-            <div className="grid gap-8 lg:grid-cols-[45%_55%]">
+            <div className="store-detail-grid">
               {/* LEFT: Image Gallery */}
               <div className="space-y-3">
-                <div className="relative aspect-square overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 shadow-sm">
+                <div className="store-gallery-image">
                   {activeImage ? (
-                    <img
+                    <ProductImage
+                      loading="eager"
                       src={activeImage.url}
-                      alt={activeImage.filename || product.name}
-                      className="h-full w-full object-cover"
+                      alt={product.name}
+                      className="h-full w-full object-contain"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-slate-400">
@@ -459,7 +493,10 @@ const ProductDetailView = () => {
                         className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
                         aria-label="Previous image"
                       >
-                        <SvgIcon path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" className="h-4 w-4 fill-current" />
+                        <SvgIcon
+                          path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                          className="h-4 w-4 fill-current"
+                        />
                       </button>
                       <button
                         type="button"
@@ -471,7 +508,10 @@ const ProductDetailView = () => {
                         className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
                         aria-label="Next image"
                       >
-                        <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-4 w-4 fill-current" />
+                        <SvgIcon
+                          path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                          className="h-4 w-4 fill-current"
+                        />
                       </button>
                       <p className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white">
                         {selectedImageIndex + 1} / {galleryImages.length}
@@ -481,11 +521,13 @@ const ProductDetailView = () => {
                 </div>
 
                 {hasMultipleImages && (
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="store-gallery-thumbs">
                     {galleryImages.map((img, idx) => (
                       <button
                         key={img.uploadId}
                         type="button"
+                        aria-label={`View product image ${idx + 1}`}
+                        aria-pressed={idx === selectedImageIndex}
                         onClick={() => setSelectedImageIndex(idx)}
                         className={`overflow-hidden rounded-xl border-2 transition ${
                           idx === selectedImageIndex
@@ -493,10 +535,10 @@ const ProductDetailView = () => {
                             : "border-transparent hover:border-slate-300"
                         }`}
                       >
-                        <img
+                        <ProductImage
                           src={img.thumbnailUrl}
                           alt={img.filename || `Image ${idx + 1}`}
-                          className="aspect-square w-full object-cover"
+                          className="aspect-square w-full object-contain"
                           loading="lazy"
                         />
                       </button>
@@ -506,24 +548,38 @@ const ProductDetailView = () => {
               </div>
 
               {/* RIGHT: Product Info */}
-              <div className="flex flex-col gap-5">
+              <div className="store-detail-info">
                 {/* Breadcrumb */}
                 <div className="flex items-center gap-2 text-sm text-slate-400">
                   <button
                     type="button"
-                    onClick={() => navigate(isAdmin ? "/admin" : "/client")}
+                    onClick={() =>
+                      navigate(
+                        isAdmin ? "/admin" : isCustomer ? "/client" : "/",
+                      )
+                    }
                     className="hover:text-blue-600"
                   >
                     {isAdmin ? "Admin" : "Home"}
                   </button>
-                  <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-3.5 w-3.5 fill-slate-300" />
+                  <SvgIcon
+                    path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                    className="h-3.5 w-3.5 fill-slate-300"
+                  />
                   {product.categoryName && (
                     <>
-                      <span className="text-slate-500">{product.categoryName}</span>
-                      <SvgIcon path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" className="h-3.5 w-3.5 fill-slate-300" />
+                      <span className="text-slate-500">
+                        {product.categoryName}
+                      </span>
+                      <SvgIcon
+                        path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                        className="h-3.5 w-3.5 fill-slate-300"
+                      />
                     </>
                   )}
-                  <span className="line-clamp-1 text-slate-700">{product.name}</span>
+                  <span className="line-clamp-1 text-slate-700">
+                    {product.name}
+                  </span>
                 </div>
 
                 {/* Product name */}
@@ -531,15 +587,16 @@ const ProductDetailView = () => {
                   <h1 className="text-2xl font-bold leading-snug text-slate-900 md:text-3xl">
                     {product.name}
                   </h1>
-                  {product.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                      {product.description}
-                    </p>
-                  )}
                 </div>
 
+                {product.description && (
+                  <div className="store-detail-description">
+                    <h2>About this component</h2>
+                    <p>{product.description}</p>
+                  </div>
+                )}
                 {/* Price section */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="store-detail-price">
                   <div className="flex flex-wrap items-baseline gap-3">
                     <span className="text-3xl font-extrabold text-slate-900">
                       {formatMoney(price)}
@@ -579,22 +636,24 @@ const ProductDetailView = () => {
                   <div className="space-y-3">
                     <button
                       type="button"
-                      onClick={() => addToCart(product?.productId)}
+                      onClick={() => handleAddToCart(product?.productId)}
                       disabled={isMutatingCart || !isInStock}
-                      className={`flex h-13 w-full items-center justify-center gap-2 rounded-2xl text-base font-bold shadow-md transition ${
-                        isInStock
-                          ? "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98]"
-                          : "cursor-not-allowed bg-slate-200 text-slate-400"
-                      } disabled:opacity-70`}
+                      className="store-detail-add disabled:opacity-50"
                     >
                       <SvgIcon
                         path="M7 18c-1.1 0-1.99.9-1.99 2A2 2 0 0 0 7 22a2 2 0 0 0 0-4zm10 0a2 2 0 1 0 2 2 2 2 0 0 0-2-2zM7.17 14h9.9a2 2 0 0 0 1.92-1.45L21 6H6.21l-.47-2H2v2h2l2.6 10a2 2 0 0 0 1.94 1.5H19v-2H8.53a.5.5 0 0 1-.48-.36L7.17 14z"
                         className="h-5 w-5 fill-current"
                       />
-                      {isMutatingCart ? "Adding to Cart..." : isInStock ? "Add to Cart" : "Out of Stock"}
+                      {isMutatingCart
+                        ? "Adding to Cart..."
+                        : isInStock
+                          ? "Add to Cart"
+                          : "Out of Stock"}
                     </button>
                     {cartError && (
-                      <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-600">{cartError}</p>
+                      <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-600">
+                        {cartError}
+                      </p>
                     )}
                     {cartSuccess && (
                       <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700">
@@ -605,7 +664,9 @@ const ProductDetailView = () => {
                 ) : (
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="mb-4 flex items-center justify-between gap-2">
-                      <h2 className="font-semibold text-slate-900">Admin Controls</h2>
+                      <h2 className="font-semibold text-slate-900">
+                        Admin Controls
+                      </h2>
                       <div className="flex gap-1.5">
                         <button
                           type="button"
@@ -638,25 +699,48 @@ const ProductDetailView = () => {
                           <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                             Pricing
                           </p>
-                          <SpecRow label="Selling Price" value={formatMoney(price)} />
-                          <SpecRow label="Max Price" value={formatMoney(maxPrice)} />
-                          <SpecRow label="Discount" value={`${savePercentage}%`} />
+                          <SpecRow
+                            label="Selling Price"
+                            value={formatMoney(price)}
+                          />
+                          <SpecRow
+                            label="Max Price"
+                            value={formatMoney(maxPrice)}
+                          />
+                          <SpecRow
+                            label="Discount"
+                            value={`${savePercentage}%`}
+                          />
                         </div>
                         <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                           <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                             Inventory
                           </p>
-                          <SpecRow label="Stock" value={product?.stockQuantity} />
-                          <SpecRow label="GST" value={`${product?.gstPercentage}%`} />
-                          <SpecRow label="Weight" value={`${product?.weightKg} kg`} />
-                          <SpecRow label="Dimensions" value={`${product?.widthCm} × ${product?.heightCm} cm`} />
+                          <SpecRow
+                            label="Stock"
+                            value={product?.stockQuantity}
+                          />
+                          <SpecRow
+                            label="GST"
+                            value={`${product?.gstPercentage}%`}
+                          />
+                          <SpecRow
+                            label="Weight"
+                            value={`${product?.weightKg} kg`}
+                          />
+                          <SpecRow
+                            label="Dimensions"
+                            value={`${product?.widthCm} × ${product?.heightCm} cm`}
+                          />
                         </div>
                       </div>
                     ) : (
                       <>
                         <form className="grid gap-3" onSubmit={handleUpdate}>
                           <label className="space-y-1">
-                            <span className="text-xs font-semibold text-slate-600">Product Name</span>
+                            <span className="text-xs font-semibold text-slate-600">
+                              Product Name
+                            </span>
                             <input
                               type="text"
                               name="name"
@@ -668,18 +752,22 @@ const ProductDetailView = () => {
                             />
                           </label>
                           <label className="space-y-1">
-                            <span className="text-xs font-semibold text-slate-600">Description</span>
+                            <span className="text-xs font-semibold text-slate-600">
+                              Description
+                            </span>
                             <div className="mb-1 flex flex-wrap gap-1">
-                              {["bold", "italic", "bullet", "number"].map((type) => (
-                                <button
-                                  key={type}
-                                  type="button"
-                                  onClick={() => applyDescriptionFormat(type)}
-                                  className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold capitalize text-slate-600 hover:bg-slate-50"
-                                >
-                                  {type}
-                                </button>
-                              ))}
+                              {["bold", "italic", "bullet", "number"].map(
+                                (type) => (
+                                  <button
+                                    key={type}
+                                    type="button"
+                                    onClick={() => applyDescriptionFormat(type)}
+                                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold capitalize text-slate-600 hover:bg-slate-50"
+                                  >
+                                    {type}
+                                  </button>
+                                ),
+                              )}
                             </div>
                             <textarea
                               ref={descriptionRef}
@@ -693,16 +781,61 @@ const ProductDetailView = () => {
                           </label>
                           <div className="grid gap-3 sm:grid-cols-2">
                             {[
-                              { name: "price", label: "Price", type: "number", min: "0", step: "0.01" },
-                              { name: "maxPrice", label: "Max Price", type: "number", min: "0", step: "0.01" },
-                              { name: "gstPercentage", label: "GST %", type: "number", min: "0", max: "100", step: "0.01" },
-                              { name: "stockQuantity", label: "Stock", type: "number", min: "0", step: "1" },
-                              { name: "widthCm", label: "Width (cm)", type: "number", min: "0", step: "0.01" },
-                              { name: "heightCm", label: "Height (cm)", type: "number", min: "0", step: "0.01" },
-                              { name: "weightKg", label: "Weight (kg)", type: "number", min: "0", step: "0.001" },
+                              {
+                                name: "price",
+                                label: "Price",
+                                type: "number",
+                                min: "0",
+                                step: "0.01",
+                              },
+                              {
+                                name: "maxPrice",
+                                label: "Max Price",
+                                type: "number",
+                                min: "0",
+                                step: "0.01",
+                              },
+                              {
+                                name: "gstPercentage",
+                                label: "GST %",
+                                type: "number",
+                                min: "0",
+                                max: "100",
+                                step: "0.01",
+                              },
+                              {
+                                name: "stockQuantity",
+                                label: "Stock",
+                                type: "number",
+                                min: "0",
+                                step: "1",
+                              },
+                              {
+                                name: "widthCm",
+                                label: "Width (cm)",
+                                type: "number",
+                                min: "0",
+                                step: "0.01",
+                              },
+                              {
+                                name: "heightCm",
+                                label: "Height (cm)",
+                                type: "number",
+                                min: "0",
+                                step: "0.01",
+                              },
+                              {
+                                name: "weightKg",
+                                label: "Weight (kg)",
+                                type: "number",
+                                min: "0",
+                                step: "0.001",
+                              },
                             ].map((field) => (
                               <label key={field.name} className="space-y-1">
-                                <span className="text-xs font-semibold text-slate-600">{field.label}</span>
+                                <span className="text-xs font-semibold text-slate-600">
+                                  {field.label}
+                                </span>
                                 <input
                                   type={field.type}
                                   name={field.name}
@@ -712,12 +845,21 @@ const ProductDetailView = () => {
                                   max={field.max}
                                   step={field.step}
                                   className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-500"
-                                  required={["price", "gstPercentage", "stockQuantity", "widthCm", "heightCm", "weightKg"].includes(field.name)}
+                                  required={[
+                                    "price",
+                                    "gstPercentage",
+                                    "stockQuantity",
+                                    "widthCm",
+                                    "heightCm",
+                                    "weightKg",
+                                  ].includes(field.name)}
                                 />
                               </label>
                             ))}
                             <label className="space-y-1">
-                              <span className="text-xs font-semibold text-slate-600">Category</span>
+                              <span className="text-xs font-semibold text-slate-600">
+                                Category
+                              </span>
                               <select
                                 name="categoryId"
                                 value={editForm.categoryId}
@@ -725,17 +867,24 @@ const ProductDetailView = () => {
                                 className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-500"
                               >
                                 <option value="">
-                                  {isLoadingCategories ? "Loading..." : "Select category"}
+                                  {isLoadingCategories
+                                    ? "Loading..."
+                                    : "Select category"}
                                 </option>
                                 {categories.map((cat) => (
-                                  <option key={cat.categoryId} value={cat.categoryId}>
+                                  <option
+                                    key={cat.categoryId}
+                                    value={cat.categoryId}
+                                  >
                                     {cat.categoryName}
                                   </option>
                                 ))}
                               </select>
                             </label>
                             <label className="space-y-1">
-                              <span className="text-xs font-semibold text-slate-600">Product Tag</span>
+                              <span className="text-xs font-semibold text-slate-600">
+                                Product Tag
+                              </span>
                               <select
                                 name="productTag"
                                 value={editForm.productTag}
@@ -744,12 +893,16 @@ const ProductDetailView = () => {
                               >
                                 <option value="">No tag</option>
                                 <option value="FLASH_SALES">Flash Sales</option>
-                                <option value="TRENDING_PRODUCTS">Trending Products</option>
+                                <option value="TRENDING_PRODUCTS">
+                                  Trending Products
+                                </option>
                               </select>
                             </label>
                           </div>
                           <label className="space-y-1">
-                            <span className="text-xs font-semibold text-slate-600">Main Image Upload ID</span>
+                            <span className="text-xs font-semibold text-slate-600">
+                              Main Image Upload ID
+                            </span>
                             <input
                               type="text"
                               name="mainImageUploadId"
@@ -788,8 +941,13 @@ const ProductDetailView = () => {
                         </form>
 
                         <div className="mt-4 border-t border-slate-100 pt-4">
-                          <h3 className="mb-3 text-sm font-semibold text-slate-900">Upload Images</h3>
-                          <form className="space-y-3" onSubmit={handleUploadImages}>
+                          <h3 className="mb-3 text-sm font-semibold text-slate-900">
+                            Upload Images
+                          </h3>
+                          <form
+                            className="space-y-3"
+                            onSubmit={handleUploadImages}
+                          >
                             <input
                               type="file"
                               accept="image/*"
@@ -813,31 +971,38 @@ const ProductDetailView = () => {
                               </p>
                               <div className="grid grid-cols-3 gap-2">
                                 {(product?.images || [])
-                                  .filter((img) => img?.processingStatus === "READY")
+                                  .filter(
+                                    (img) => img?.processingStatus === "READY",
+                                  )
                                   .map((img) => (
-                                  <button
-                                    key={img.uploadId}
-                                    type="button"
-                                    onClick={() =>
-                                      setEditForm((prev) => ({
-                                        ...prev,
-                                        mainImageUploadId: img.uploadId,
-                                      }))
-                                    }
-                                    className={`overflow-hidden rounded-xl border-2 transition ${
-                                      editForm.mainImageUploadId === img.uploadId
-                                        ? "border-blue-500"
-                                        : "border-transparent hover:border-slate-300"
-                                    }`}
-                                    title="Click to set as main image"
-                                  >
-                                    <img
-                                      src={img.thumbnailUrl || img.mediumUrl || img.largeUrl}
-                                      alt={img.filename || "Product image"}
-                                      className="aspect-square w-full object-cover"
-                                      loading="lazy"
-                                    />
-                                  </button>
+                                    <button
+                                      key={img.uploadId}
+                                      type="button"
+                                      onClick={() =>
+                                        setEditForm((prev) => ({
+                                          ...prev,
+                                          mainImageUploadId: img.uploadId,
+                                        }))
+                                      }
+                                      className={`overflow-hidden rounded-xl border-2 transition ${
+                                        editForm.mainImageUploadId ===
+                                        img.uploadId
+                                          ? "border-blue-500"
+                                          : "border-transparent hover:border-slate-300"
+                                      }`}
+                                      title="Click to set as main image"
+                                    >
+                                      <img
+                                        src={
+                                          img.thumbnailUrl ||
+                                          img.mediumUrl ||
+                                          img.largeUrl
+                                        }
+                                        alt={img.filename || "Product image"}
+                                        className="aspect-square w-full object-contain"
+                                        loading="lazy"
+                                      />
+                                    </button>
                                   ))}
                               </div>
                             </div>
@@ -850,23 +1015,34 @@ const ProductDetailView = () => {
 
                 {/* Customer-only: product details */}
                 {!isAdmin && (
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h2 className="mb-4 text-base font-bold text-slate-900">Product Details</h2>
-                    <SpecRow label="Category" value={product.categoryName || "—"} />
+                  <div className="store-detail-specs rounded-xl border border-slate-200 bg-white p-5">
+                    <h2 className="mb-4 text-base font-bold text-slate-900">
+                      Product Details
+                    </h2>
+                    <SpecRow
+                      label="Category"
+                      value={product.categoryName || "—"}
+                    />
                     <SpecRow label="Weight" value={`${product?.weightKg} kg`} />
                     <SpecRow
                       label="Dimensions"
                       value={`${product?.widthCm} × ${product?.heightCm} cm`}
                     />
                     <SpecRow label="GST" value={`${product.gstPercentage}%`} />
-                    {tagLabel && <SpecRow label="Collection" value={tagLabel} />}
-                    <SpecRow label="Added" value={formatDateTime(product.createdDt)} />
+                    {tagLabel && (
+                      <SpecRow label="Collection" value={tagLabel} />
+                    )}
+                    <SpecRow
+                      label="Added"
+                      value={formatDateTime(product.createdDt)}
+                    />
                   </div>
                 )}
 
                 {isAdmin && (
                   <p className="text-xs text-slate-400">
-                    Created {formatDateTime(product.createdDt)} &middot; Updated {formatDateTime(product.modifiedDt)}
+                    Created {formatDateTime(product.createdDt)} &middot; Updated{" "}
+                    {formatDateTime(product.modifiedDt)}
                   </p>
                 )}
               </div>
@@ -879,14 +1055,16 @@ const ProductDetailView = () => {
                   <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-violet-500">
                     You may also like
                   </p>
-                  <h2 className="text-2xl font-bold text-slate-900">Related Products</h2>
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    Related Products
+                  </h2>
                 </div>
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <div className="store-product-grid">
                   {relatedProducts.map((item) => (
                     <ProductCard
                       key={`related-${item.productId}`}
                       product={item}
-                      onAddToCart={addToCart}
+                      onAddToCart={isAdmin ? undefined : handleAddToCart}
                       isAddingToCart={isMutatingCart}
                     />
                   ))}
@@ -906,13 +1084,9 @@ const ProductDetailView = () => {
             </button>
           </div>
         )}
-      </div>
+      </main>
 
-      <footer className="mt-16 border-t border-slate-200 bg-white">
-        <div className="px-4 py-5 text-center text-xs text-slate-400 md:px-6">
-          &copy; {new Date().getFullYear()} Villpo Store. All rights reserved.
-        </div>
-      </footer>
+      {!isAdmin && <StoreFooter />}
     </div>
   );
 };

@@ -263,7 +263,7 @@ public class ProductService {
     private ProductPageResponse toProductPageResponse(Page<Product> productPage) {
         Map<String, UploadResponse> imagesById = getMainImagesByUploadId(productPage.getContent());
         List<ProductResponse> content = productPage.getContent().stream()
-                .map(product -> toProductResponse(product, imagesById.get(product.getMainImageUploadId())))
+                .map(product -> toProductResponse(product, getMainImage(imagesById, product)))
                 .toList();
         return new ProductPageResponse(
                 content,
@@ -321,7 +321,7 @@ public class ProductService {
             }
 
             List<ProductResponse> productResponses = categoryProducts.stream()
-                    .map(product -> toProductResponse(product, imagesById.get(product.getMainImageUploadId())))
+                    .map(product -> toProductResponse(product, getMainImage(imagesById, product)))
                     .toList();
             content.add(new CategoryProductsResponse(
                     categoryId,
@@ -354,6 +354,11 @@ public class ProductService {
                 .distinct()
                 .toList();
         return uploadService.getUploadResponses(uploadIds);
+    }
+
+    private UploadResponse getMainImage(Map<String, UploadResponse> imagesById, Product product) {
+        String uploadId = product.getMainImageUploadId();
+        return uploadId == null || uploadId.isBlank() ? null : imagesById.get(uploadId);
     }
 
     private boolean productMatchesQuery(Product product, String query) {

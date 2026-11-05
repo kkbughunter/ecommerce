@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import customerApi from "../../../core/api/customerApi";
 import { getAuthMeta } from "../../../core/auth/session";
 import getApiErrorMessage from "../../../core/utils/apiError";
-import AppFooter from "../../../layouts/AppFooter";
+import StoreFooter from "../components/StoreFooter";
 import ClientTopNav from "../components/ClientTopNav";
 
 const emptyAddress = {
@@ -46,14 +46,18 @@ const formatAddressLine = (address) => {
 
 const ProfileField = ({ label, children, className = "" }) => (
   <label className={`space-y-1 ${className}`}>
-    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">{label}</span>
+    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">
+      {label}
+    </span>
     {children}
   </label>
 );
 
 const AddressForm = ({ title, value, onChange }) => (
   <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-    <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">{title}</h3>
+    <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">
+      {title}
+    </h3>
     <div className="grid gap-3 md:grid-cols-2">
       <ProfileField label="Full Name">
         <input
@@ -170,8 +174,12 @@ const AddressForm = ({ title, value, onChange }) => (
 
 const AddressSummaryCard = ({ title, value }) => (
   <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-    <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">{title}</h3>
-    <p className="mt-2 text-sm font-semibold text-slate-900">{value?.fullName || "-"}</p>
+    <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">
+      {title}
+    </h3>
+    <p className="mt-2 text-sm font-semibold text-slate-900">
+      {value?.fullName || "-"}
+    </p>
     <p className="text-xs text-slate-600">Phone: {value?.phoneNumber || "-"}</p>
     <p className="mt-1 text-xs text-slate-600">{formatAddressLine(value)}</p>
   </article>
@@ -225,21 +233,30 @@ const ClientAccountView = () => {
     setProfile((prev) => ({ ...prev, [name]: value }));
   }, []);
 
-  const handleAddressChange = useCallback((type) => (event) => {
-    const { name, value } = event.target;
-    setError("");
-    setSuccess("");
-    setProfile((prev) => ({
-      ...prev,
-      [type]: {
-        ...prev[type],
-        [name]: value,
-      },
-    }));
-  }, []);
+  const handleAddressChange = useCallback(
+    (type) => (event) => {
+      const { name, value } = event.target;
+      setError("");
+      setSuccess("");
+      setProfile((prev) => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          [name]: value,
+        },
+      }));
+    },
+    [],
+  );
 
-  const handleBillingChange = useMemo(() => handleAddressChange('billingAddress'), [handleAddressChange]);
-  const handleShippingChange = useMemo(() => handleAddressChange('shippingAddress'), [handleAddressChange]);
+  const handleBillingChange = useMemo(
+    () => handleAddressChange("billingAddress"),
+    [handleAddressChange],
+  );
+  const handleShippingChange = useMemo(
+    () => handleAddressChange("shippingAddress"),
+    [handleAddressChange],
+  );
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -273,25 +290,37 @@ const ClientAccountView = () => {
     }
   };
 
-  const accountInitials = `${(profile?.firstName || authMeta?.email || "U").charAt(0)}${(profile?.lastName || "").charAt(0)}`.toUpperCase();
+  const accountInitials =
+    `${(profile?.firstName || authMeta?.email || "U").charAt(0)}${(profile?.lastName || "").charAt(0)}`.toUpperCase();
 
   return (
-    <main className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
+    <main className="storefront flex min-h-screen flex-col">
       <ClientTopNav title="My Profile" eyebrow="Account Center" showLogout />
 
-      <section className="w-full flex-1 px-2 py-6 md:px-3">
+      <section
+        id="main-content"
+        tabIndex="-1"
+        className="store-container store-page-content"
+      >
+        <div className="store-page-heading">
+          <p className="store-eyebrow">YOUR VILLPO</p>
+          <h1>A space for your details.</h1>
+          <p>Manage your profile and delivery addresses.</p>
+        </div>
         <div className="space-y-4">
-          <article className="rounded-2xl border border-[#dce4ff] bg-[linear-gradient(120deg,#ffffff,#f1f5ff)] p-4 shadow-[0_12px_32px_rgba(30,41,59,0.08)] sm:p-5">
+          <article className="store-account-banner">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(140deg,#2563eb,#4f46e5)] text-lg font-semibold text-white">
-                  {accountInitials || "U"}
-                </div>
+                <div className="store-avatar">{accountInitials || "U"}</div>
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">
-                    {profile.firstName ? `${profile.firstName} ${profile.lastName}`.trim() : "Complete your profile"}
+                    {profile.firstName
+                      ? `${profile.firstName} ${profile.lastName}`.trim()
+                      : "Complete your profile"}
                   </h2>
-                  <p className="text-sm text-slate-600">{authMeta?.email || "-"}</p>
+                  <p className="text-sm text-slate-600">
+                    {authMeta?.email || "-"}
+                  </p>
                 </div>
               </div>
               <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
@@ -325,34 +354,64 @@ const ClientAccountView = () => {
             ) : !isEditing ? (
               <div className="space-y-4">
                 <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">Personal Info</h3>
+                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">
+                    Personal Info
+                  </h3>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">First Name</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-900">{profile.firstName || "-"}</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">
+                        First Name
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">
+                        {profile.firstName || "-"}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">Last Name</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-900">{profile.lastName || "-"}</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">
+                        Last Name
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">
+                        {profile.lastName || "-"}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">Gender</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-900">{profile.gender || "-"}</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">
+                        Gender
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">
+                        {profile.gender || "-"}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">Date Of Birth</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-900">{profile.dateOfBirth || "-"}</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">
+                        Date Of Birth
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">
+                        {profile.dateOfBirth || "-"}
+                      </p>
                     </div>
                   </div>
                 </section>
 
                 <div className="grid gap-4 xl:grid-cols-2">
-                  <AddressSummaryCard title="Billing Address" value={profile.billingAddress} />
-                  <AddressSummaryCard title="Shipping Address" value={profile.shippingAddress} />
+                  <AddressSummaryCard
+                    title="Billing Address"
+                    value={profile.billingAddress}
+                  />
+                  <AddressSummaryCard
+                    title="Shipping Address"
+                    value={profile.shippingAddress}
+                  />
                 </div>
 
-                {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
-                {success ? <p className="text-sm font-medium text-emerald-600">{success}</p> : null}
+                {error ? (
+                  <p className="text-sm font-medium text-red-600">{error}</p>
+                ) : null}
+                {success ? (
+                  <p className="text-sm font-medium text-emerald-600">
+                    {success}
+                  </p>
+                ) : null}
 
                 <div className="flex justify-end border-t border-slate-200 pt-3">
                   <button
@@ -371,7 +430,9 @@ const ClientAccountView = () => {
             ) : (
               <form className="space-y-4" onSubmit={handleSubmit}>
                 <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">Personal Info</h3>
+                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700">
+                    Personal Info
+                  </h3>
                   <div className="grid gap-3 md:grid-cols-2">
                     <ProfileField label="First Name">
                       <input
@@ -420,12 +481,26 @@ const ClientAccountView = () => {
                 </section>
 
                 <div className="grid gap-4 xl:grid-cols-2">
-                  <AddressForm title="Billing Address" value={profile.billingAddress} onChange={handleBillingChange} />
-                  <AddressForm title="Shipping Address" value={profile.shippingAddress} onChange={handleShippingChange} />
+                  <AddressForm
+                    title="Billing Address"
+                    value={profile.billingAddress}
+                    onChange={handleBillingChange}
+                  />
+                  <AddressForm
+                    title="Shipping Address"
+                    value={profile.shippingAddress}
+                    onChange={handleShippingChange}
+                  />
                 </div>
 
-                {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
-                {success ? <p className="text-sm font-medium text-emerald-600">{success}</p> : null}
+                {error ? (
+                  <p className="text-sm font-medium text-red-600">{error}</p>
+                ) : null}
+                {success ? (
+                  <p className="text-sm font-medium text-emerald-600">
+                    {success}
+                  </p>
+                ) : null}
 
                 <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-3">
                   <button
@@ -452,7 +527,7 @@ const ClientAccountView = () => {
           </article>
         </div>
       </section>
-      <AppFooter />
+      <StoreFooter />
     </main>
   );
 };

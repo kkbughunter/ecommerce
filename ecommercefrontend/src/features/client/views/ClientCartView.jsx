@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import AppFooter from "../../../layouts/AppFooter";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import StoreFooter from "../components/StoreFooter";
 import ClientTopNav from "../components/ClientTopNav";
 import useCart from "../hooks/useCart";
+import ProductImage from "../components/ProductImage";
+import StoreIcon from "../components/StoreIcon";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("en-IN", {
@@ -25,44 +27,62 @@ const ClientCartView = () => {
     clearCart,
     checkout,
   } = useCart();
-  const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [excludedProductIds, setExcludedProductIds] = useState([]);
   const [localQuantities, setLocalQuantities] = useState({});
   const showAddressSetupError = (error || "")
     .toLowerCase()
-    .includes("please set default shipping and billing addresses in your profile");
+    .includes(
+      "please set default shipping and billing addresses in your profile",
+    );
   const isInsufficientStockError = (error || "")
     .toLowerCase()
     .includes("insufficient stock for product");
-  const showGlobalError = !!error && !showAddressSetupError && !isInsufficientStockError;
-
-  useEffect(() => {
-    const ids = (cart?.items || []).map((item) => item.productId).filter(Boolean);
-    setSelectedProductIds(ids);
-    const quantities = {};
-    (cart?.items || []).forEach((item) => {
-      quantities[item.productId] = item.quantity;
-    });
-    setLocalQuantities(quantities);
-  }, [cart?.items]);
+  const showGlobalError =
+    !!error && !showAddressSetupError && !isInsufficientStockError;
 
   const allProductIds = useMemo(
     () => (cart?.items || []).map((item) => item.productId).filter(Boolean),
     [cart?.items],
   );
-  const isAllSelected = allProductIds.length > 0 && selectedProductIds.length === allProductIds.length;
+  const selectedProductIds = allProductIds.filter(
+    (id) => !excludedProductIds.includes(id),
+  );
+  const isAllSelected =
+    allProductIds.length > 0 &&
+    selectedProductIds.length === allProductIds.length;
+
+  const changeQuantity = async (productId, quantity) => {
+    await updateQuantity(productId, quantity);
+    setLocalQuantities((previous) => {
+      const next = { ...previous };
+      delete next[productId];
+      return next;
+    });
+  };
 
   return (
-    <main className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_20%_0%,#eef2ff_0%,#f8fafc_45%,#f6f8fc_100%)] text-[#0f172a]">
+    <main className="storefront flex min-h-screen flex-col">
       <ClientTopNav title="Your Cart" cartCount={cart?.totalItems || 0} />
 
-      <section className="w-full flex-1 px-2 py-6 md:px-3">
+      <section
+        id="main-content"
+        tabIndex="-1"
+        className="store-container store-page-content"
+      >
+        <div className="store-page-heading">
+          <p className="store-eyebrow">YOUR VILLPO</p>
+          <h1>Your project, in the bag.</h1>
+          <p>Review your components and get ready for your next build.</p>
+        </div>
         {showAddressSetupError ? (
           <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4">
             <p className="text-base font-semibold text-amber-800">
-              Please set default shipping and billing addresses in your profile before placing an order.
+              Please set default shipping and billing addresses in your profile
+              before placing an order.
             </p>
             <p className="mt-1 text-sm text-amber-700">
-              Update your address details in My Account, then return to checkout.
+              Update your address details in My Account, then return to
+              checkout.
             </p>
             <button
               type="button"
@@ -73,7 +93,9 @@ const ClientCartView = () => {
             </button>
           </div>
         ) : null}
-        {showGlobalError && <p className="mb-3 text-sm text-red-600">{error}</p>}
+        {showGlobalError && (
+          <p className="mb-3 text-sm text-red-600">{error}</p>
+        )}
         {success && <p className="mb-3 text-sm text-emerald-600">{success}</p>}
         {isLoadingCart ? (
           <p className="text-sm text-slate-500">Loading cart...</p>
@@ -81,12 +103,14 @@ const ClientCartView = () => {
           <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
             <article className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-lg font-semibold text-slate-900">Cart Items</h2>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Cart Items
+                </h2>
                 {!!allProductIds.length && (
                   <button
                     type="button"
                     onClick={() =>
-                      setSelectedProductIds((prev) => (prev.length === allProductIds.length ? [] : allProductIds))
+                      setExcludedProductIds(isAllSelected ? allProductIds : [])
                     }
                     className="h-8 rounded-md border border-slate-300 px-2 text-xs font-semibold text-slate-700"
                   >
@@ -99,7 +123,7 @@ const ClientCartView = () => {
                   {cart.items.map((item) => (
                     <div
                       key={item.productId}
-                      className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 ${
+                      className={`store-cart-item ${
                         itemErrors?.[item.productId]
                           ? "border-rose-300 bg-rose-50"
                           : "border-slate-200 bg-slate-50"
@@ -110,70 +134,102 @@ const ClientCartView = () => {
                           type="checkbox"
                           checked={selectedProductIds.includes(item.productId)}
                           onChange={(event) =>
-                            setSelectedProductIds((prev) =>
+                            setExcludedProductIds((prev) =>
                               event.target.checked
-                                ? Array.from(new Set([...prev, item.productId]))
-                                : prev.filter((id) => id !== item.productId),
+                                ? prev.filter((id) => id !== item.productId)
+                                : Array.from(
+                                    new Set([...prev, item.productId]),
+                                  ),
                             )
                           }
-                          className="h-4 w-4"
+                          aria-label={`Select ${item.productName}`}
+                          className="h-4 w-4 shrink-0 accent-emerald-700"
                         />
-                        {item?.thumbnailUrl ? (
-                          <img
-                            src={item.thumbnailUrl}
-                            alt={item.productName || "Product"}
-                            className="h-16 w-16 rounded-lg border border-slate-200 object-cover"
-                            loading="lazy"
+                        <Link
+                          to={`/products/${item.productId}`}
+                          className="store-cart-picture"
+                          aria-label={`View ${item.productName}`}
+                        >
+                          <ProductImage
+                            src={item.mediumImageUrl || item.thumbnailUrl}
+                            alt={item.productName}
                           />
-                        ) : (
-                          <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-slate-300 text-[10px] text-slate-400">
-                            N/A
-                          </div>
-                        )}
+                        </Link>
                         <div>
-                          <p className="max-w-[180px] truncate font-medium text-slate-900 sm:max-w-[320px]" title={item.productName}>
+                          <Link
+                            to={`/products/${item.productId}`}
+                            className="store-cart-name"
+                            title={item.productName}
+                          >
                             {item.productName}
+                          </Link>
+                          <p className="text-xs text-slate-500">
+                            Unit: {formatMoney(item.unitPrice)}
                           </p>
-                          <p className="text-xs text-slate-500">Unit: {formatMoney(item.unitPrice)}</p>
-                          <p className={`text-xs ${itemErrors?.[item.productId] ? "text-rose-700" : "text-slate-500"}`}>
-                            Stock now: {item.availableStock} {item.available ? "" : "(currently out of stock)"}
+                          <p
+                            className={`text-xs ${itemErrors?.[item.productId] ? "text-rose-700" : "text-slate-500"}`}
+                          >
+                            Stock now: {item.availableStock}{" "}
+                            {item.available ? "" : "(currently out of stock)"}
                           </p>
                           {itemErrors?.[item.productId] ? (
-                            <p className="text-xs font-semibold text-rose-700">{itemErrors[item.productId]}</p>
+                            <p className="text-xs font-semibold text-rose-700">
+                              {itemErrors[item.productId]}
+                            </p>
                           ) : null}
                         </div>
                       </div>
                       <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
-                          disabled={isMutatingCart}
-                          className="h-8 w-8 rounded-md border border-slate-300 text-sm"
+                          onClick={() =>
+                            changeQuantity(
+                              item.productId,
+                              Math.max(1, item.quantity - 1),
+                            )
+                          }
+                          disabled={isMutatingCart || item.quantity <= 1}
+                          aria-label={`Decrease quantity of ${item.productName}`}
+                          className="h-10 w-10 rounded-md border border-slate-300 text-sm"
                         >
                           -
                         </button>
                         <input
                           type="number"
+                          aria-label={`Quantity of ${item.productName}`}
                           min="1"
-                          value={localQuantities[item.productId] ?? item.quantity}
+                          value={
+                            localQuantities[item.productId] ?? item.quantity
+                          }
                           onChange={(e) => {
                             const val = e.target.value;
-                            setLocalQuantities((prev) => ({ ...prev, [item.productId]: val }));
+                            setLocalQuantities((prev) => ({
+                              ...prev,
+                              [item.productId]: val,
+                            }));
                           }}
                           onBlur={(e) => {
                             const val = parseInt(e.target.value) || 1;
-                            updateQuantity(item.productId, Math.max(1, val));
+                            changeQuantity(item.productId, Math.max(1, val));
                           }}
                           disabled={isMutatingCart}
                           className="h-8 w-20 rounded-md border border-slate-300 text-center text-sm font-semibold"
                         />
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          disabled={isMutatingCart || Number(item.quantity || 0) >= Number(item.availableStock || 0)}
-                          className="h-8 w-8 rounded-md border border-slate-300 text-sm"
+                          onClick={() =>
+                            changeQuantity(item.productId, item.quantity + 1)
+                          }
+                          disabled={
+                            isMutatingCart ||
+                            Number(item.quantity || 0) >=
+                              Number(item.availableStock || 0)
+                          }
+                          aria-label={`Increase quantity of ${item.productName}`}
+                          className="h-10 w-10 rounded-md border border-slate-300 text-sm"
                           title={
-                            Number(item.quantity || 0) >= Number(item.availableStock || 0)
+                            Number(item.quantity || 0) >=
+                            Number(item.availableStock || 0)
                               ? "Stock limit reached"
                               : "Increase quantity"
                           }
@@ -193,21 +249,47 @@ const ClientCartView = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">Your cart is empty.</p>
+                <div className="store-empty">
+                  <StoreIcon name="cart" />
+                  <h3>Your next project starts here</h3>
+                  <p>Add the components you need and we will keep them here.</p>
+                  <Link to="/client#products" className="store-button">
+                    Explore components <StoreIcon name="arrow" />
+                  </Link>
+                </div>
               )}
             </article>
 
-            <article className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
-              <h2 className="mb-4 text-lg font-semibold text-slate-900">Summary</h2>
+            <article className="store-order-summary rounded-2xl border border-slate-200 bg-white p-5">
+              <h2 className="mb-4 text-lg font-semibold text-slate-900">
+                Your cart summary
+              </h2>
               <div className="space-y-2 text-sm text-slate-700">
-                <p>Items: {cart?.totalItems || 0}</p>
-                <p>Subtotal: {formatMoney(cart?.subtotalAmount)}</p>
-                <p>Shipping: {formatMoney(cart?.shippingFee)}</p>
-                <p>Tax: {formatMoney(cart?.taxAmount)}</p>
-                <p className="border-t border-slate-200 pt-2 text-base font-semibold text-slate-900">
-                  Total: {formatMoney(cart?.totalAmount)}
+                <p className="store-summary-row">
+                  <span>Items</span>
+                  <span>{cart?.totalItems || 0}</span>
+                </p>
+                <p className="store-summary-row">
+                  <span>Subtotal</span>
+                  <span>{formatMoney(cart?.subtotalAmount)}</span>
+                </p>
+                <p className="store-summary-row">
+                  <span>Shipping</span>
+                  <span>{formatMoney(cart?.shippingFee)}</span>
+                </p>
+                <p className="store-summary-row">
+                  <span>Tax</span>
+                  <span>{formatMoney(cart?.taxAmount)}</span>
+                </p>
+                <p className="store-summary-row border-t border-slate-200 pt-2 text-base font-semibold text-slate-900">
+                  <span>Cart total</span>
+                  <span>{formatMoney(cart?.totalAmount)}</span>
                 </p>
               </div>
+              <p className="mt-3 text-xs text-slate-500">
+                Summary shows the full cart. The final amount for selected items
+                is confirmed at checkout.
+              </p>
               <div className="mt-4 grid gap-2">
                 <button
                   type="button"
@@ -230,7 +312,7 @@ const ClientCartView = () => {
           </div>
         )}
       </section>
-      <AppFooter />
+      <StoreFooter />
     </main>
   );
 };

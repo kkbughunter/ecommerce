@@ -2,16 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import categoryApi from "../../../core/api/categoryApi";
 import productApi from "../../../core/api/productApi";
 
-const DEFAULT_CATEGORIES = [
-  {
-    categoryId: null,
-    categoryName: "Home & Kitchen",
-    categoryImageProductId: null,
-    categoryImageUploadId: null,
-  },
-];
+const DEFAULT_CATEGORIES = [];
 
-const sanitizeCategoryName = (value) => (typeof value === "string" ? value.trim() : "");
+const sanitizeCategoryName = (value) =>
+  typeof value === "string" ? value.trim() : "";
 
 const toSafeId = (value) => {
   const parsed = Number(value);
@@ -22,13 +16,19 @@ const buildKey = (name) => sanitizeCategoryName(name).toLowerCase();
 
 const pickDirectImageMeta = (entry) => {
   const uploadId = entry?.categoryImageUploadId || entry?.imageUploadId || null;
-  const productId = toSafeId(entry?.categoryImageProductId ?? entry?.imageProductId);
-  if (!uploadId || !productId) {
+  const productId = toSafeId(
+    entry?.categoryImageProductId ?? entry?.imageProductId,
+  );
+  if (
+    !entry?.categoryImageUrl &&
+    !entry?.imageUrl &&
+    (!uploadId || !productId)
+  ) {
     return null;
   }
   return {
     productId,
-    uploadId: String(uploadId),
+    uploadId: uploadId ? String(uploadId) : null,
     imageUrl: entry?.categoryImageUrl || entry?.imageUrl || null,
   };
 };
@@ -48,7 +48,8 @@ const normalizeCategories = (items, imageById, imageByName) => {
 
     const categoryId = toSafeId(item?.categoryId);
     const directImageMeta = pickDirectImageMeta(item);
-    const fallbackImageMeta = (categoryId && imageById.get(categoryId)) || imageByName.get(key) || null;
+    const fallbackImageMeta =
+      (categoryId && imageById.get(categoryId)) || imageByName.get(key) || null;
     const imageMeta = directImageMeta || fallbackImageMeta;
 
     output.push({
@@ -70,13 +71,15 @@ const useClientCategories = () => {
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [categoriesResult, categoryProductsResult] = await Promise.allSettled([
-        categoryApi.getAllCategories(),
-        productApi.getActiveCategoriesWithProducts({ page: 0, size: 100 }),
-      ]);
+      const [categoriesResult, categoryProductsResult] =
+        await Promise.allSettled([
+          categoryApi.getAllCategories(),
+          productApi.getActiveCategoriesWithProducts({ page: 0, size: 100 }),
+        ]);
 
       const rawCategories =
-        categoriesResult.status === "fulfilled" && Array.isArray(categoriesResult.value?.data?.data)
+        categoriesResult.status === "fulfilled" &&
+        Array.isArray(categoriesResult.value?.data?.data)
           ? categoriesResult.value.data.data
           : [];
 
@@ -92,8 +95,12 @@ const useClientCategories = () => {
       categoryProducts.forEach((categoryEntry) => {
         const categoryId = toSafeId(categoryEntry?.categoryId);
         const categoryNameKey = buildKey(categoryEntry?.categoryName);
-        const products = Array.isArray(categoryEntry?.products) ? categoryEntry.products : [];
-        const firstImageProduct = products.find((product) => product?.thumbnailUrl || product?.mediumImageUrl);
+        const products = Array.isArray(categoryEntry?.products)
+          ? categoryEntry.products
+          : [];
+        const firstImageProduct = products.find(
+          (product) => product?.thumbnailUrl || product?.mediumImageUrl,
+        );
 
         if (!firstImageProduct) {
           return;
@@ -126,7 +133,11 @@ const useClientCategories = () => {
             categoryName: item?.categoryName,
           }));
 
-      const normalizedCategories = normalizeCategories(sourceCategories, imageByCategoryId, imageByCategoryName);
+      const normalizedCategories = normalizeCategories(
+        sourceCategories,
+        imageByCategoryId,
+        imageByCategoryName,
+      );
 
       if (normalizedCategories.length) {
         setCategories(normalizedCategories);

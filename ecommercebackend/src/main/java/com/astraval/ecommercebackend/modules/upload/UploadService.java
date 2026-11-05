@@ -1,7 +1,6 @@
 package com.astraval.ecommercebackend.modules.upload;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,13 +65,12 @@ public class UploadService {
                 ImageConversionService.ImageInfo imageInfo = imageConversionService.inspect(file);
                 Upload upload = createPendingUpload(productId, file, imageInfo, createdBy);
 
-                try (InputStream inputStream = file.getInputStream()) {
-                    storageService.upload(
-                            upload.getUploadedPath(),
-                            inputStream,
-                            file.getSize(),
-                            imageInfo.contentType());
-                }
+                // A multipart InputStream is not guaranteed to be repeatable. The AWS SDK
+                // may retry a PUT, so use an in-memory request body that can be replayed.
+                storageService.upload(
+                        upload.getUploadedPath(),
+                        file.getBytes(),
+                        imageInfo.contentType());
 
                 uploadedSourceKeys.add(upload.getUploadedPath());
                 storedUploads.add(uploadRepository.save(upload));

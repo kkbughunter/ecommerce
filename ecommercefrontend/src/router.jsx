@@ -1,4 +1,9 @@
-import { Navigate, createBrowserRouter } from "react-router-dom";
+import {
+  Navigate,
+  Outlet,
+  ScrollRestoration,
+  createBrowserRouter,
+} from "react-router-dom";
 import adminRoutes from "./features/admin/routes";
 import authRoutes from "./features/auth/routes";
 import clientRoutes from "./features/client/routes";
@@ -8,17 +13,27 @@ import productRoutes from "./features/product/routes";
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <LandingPageView />,
-  },
-  ...authRoutes,
-  ...adminRoutes,
-  ...clientRoutes,
-  ...productRoutes,
-  ...legalRoutes,
-  {
-    path: "*",
-    element: <Navigate to="/" replace />,
+    element: (
+      <>
+        <Outlet />
+        <ScrollRestoration />
+      </>
+    ),
+    children: [
+      {
+        path: "/",
+        element: <LandingPageView />,
+      },
+      ...authRoutes,
+      ...adminRoutes,
+      ...clientRoutes,
+      ...productRoutes,
+      ...legalRoutes,
+      {
+        path: "*",
+        element: <Navigate to="/" replace />,
+      },
+    ],
   },
 ]);
 
