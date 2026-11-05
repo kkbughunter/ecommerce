@@ -203,7 +203,7 @@ const AdminConsoleLayout = ({
   };
 
   return (
-    <main className="admin-console min-h-screen">
+    <main className="admin-console h-screen overflow-hidden">
       <div className="w-full">
         <div className="bg-white">
           <div
@@ -421,13 +421,15 @@ const AdminConsoleLayout = ({
                 </div>
               </header>
 
-              <div className="admin-content">{children}</div>
+              <div className="admin-content">
+              {children}
+              <AppFooter />
+            </div>
             </section>
           </div>
         </div>
       </div>
-      <AppFooter />
-    </main>
+      </main>
   );
 };
 
