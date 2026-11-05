@@ -11,3 +11,7 @@ All API requests and image fixtures are intercepted in the browser. The script d
 The default browser is installed Microsoft Edge. Set `PLAYWRIGHT_CHANNEL=chrome` to use installed Chrome. `STOREFRONT_URL` overrides the default `http://127.0.0.1:5173`.
 
 Screenshots use test-only catalog data and are saved to `villpo-storefront-qa` in the OS temporary directory. Production catalog data is never replaced by these fixtures.
+
+## Admin and super-admin drawers
+
+Run `node tests/admin.browser.mjs` with the same setup to check nine console pages at four viewport widths, eight drawer workflows, keyboard focus, background scroll locking, edit values, product drafts, direct URLs, and pending/failed category saves. Requests are mocked; no real catalog or customer records are modified. Screenshots are written to `villpo-admin-qa` in the OS temporary directory.

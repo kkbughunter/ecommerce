@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import mainBannerApi from "../../../core/api/mainBannerApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
+import AdminRightPanel from "../components/AdminRightPanel";
 import AdminConsoleLayout from "../components/AdminConsoleLayout";
 
 const initialForm = {
@@ -45,6 +46,7 @@ const orderByDisplayOrder = (a, b) => {
 };
 
 const AdminMainBannersView = () => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [banners, setBanners] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [search, setSearch] = useState("");
@@ -58,7 +60,9 @@ const AdminMainBannersView = () => {
     setIsLoading(true);
     try {
       const response = await mainBannerApi.getAdminMainBanners();
-      const payload = Array.isArray(response?.data?.data) ? response.data.data : [];
+      const payload = Array.isArray(response?.data?.data)
+        ? response.data.data
+        : [];
       setBanners(payload);
     } catch (err) {
       setBanners([]);
@@ -145,6 +149,7 @@ const AdminMainBannersView = () => {
       }
 
       resetForm();
+      setIsFormOpen(false);
       await loadBanners();
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to save main banner."));
@@ -154,6 +159,7 @@ const AdminMainBannersView = () => {
   };
 
   const handleEdit = (banner) => {
+    setIsFormOpen(true);
     setForm({
       mainBannerId: banner.mainBannerId,
       headline: banner.headline || "",
@@ -215,10 +221,19 @@ const AdminMainBannersView = () => {
   });
 
   const persistBannerOrder = async (orderedItems) => {
-    const normalized = orderedItems.map((item, index) => ({ ...item, displayOrder: index }));
-    const oldOrderById = new Map(banners.map((item) => [item.mainBannerId, Number(item.displayOrder ?? 0)]));
+    const normalized = orderedItems.map((item, index) => ({
+      ...item,
+      displayOrder: index,
+    }));
+    const oldOrderById = new Map(
+      banners.map((item) => [
+        item.mainBannerId,
+        Number(item.displayOrder ?? 0),
+      ]),
+    );
     const changed = normalized.filter(
-      (item) => oldOrderById.get(item.mainBannerId) !== Number(item.displayOrder ?? 0),
+      (item) =>
+        oldOrderById.get(item.mainBannerId) !== Number(item.displayOrder ?? 0),
     );
 
     if (!changed.length) {
@@ -263,8 +278,12 @@ const AdminMainBannersView = () => {
       return;
     }
     const ordered = [...banners].sort(orderByDisplayOrder);
-    const fromIndex = ordered.findIndex((item) => item.mainBannerId === draggingBannerId);
-    const toIndex = ordered.findIndex((item) => item.mainBannerId === targetBannerId);
+    const fromIndex = ordered.findIndex(
+      (item) => item.mainBannerId === draggingBannerId,
+    );
+    const toIndex = ordered.findIndex(
+      (item) => item.mainBannerId === targetBannerId,
+    );
     if (fromIndex < 0 || toIndex < 0) {
       return;
     }
@@ -283,18 +302,34 @@ const AdminMainBannersView = () => {
       onSearchChange={setSearch}
       searchPlaceholder="Search main banners..."
       topActions={
-        <button
-          type="button"
-          onClick={loadBanners}
-          className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
-        >
-          Refresh
-        </button>
+        <>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={() => {
+              resetForm();
+              setError("");
+              setSuccess("");
+              setIsFormOpen(true);
+            }}
+          >
+            + New Main Banner
+          </button>
+          <button
+            type="button"
+            onClick={loadBanners}
+            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+          >
+            Refresh
+          </button>
+        </>
       }
     >
       <div className="space-y-4">
         {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
         ) : null}
         {success ? (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
@@ -302,198 +337,15 @@ const AdminMainBannersView = () => {
           </div>
         ) : null}
 
-        <section className="grid gap-4 xl:grid-cols-[1.1fr_1.6fr]">
-          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
-            <h2 className="text-base font-semibold text-[#111827]">
-              {form.mainBannerId ? "Update Main Banner" : "Create Main Banner"}
-            </h2>
-
-            <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Headline</span>
-                <input
-                  type="text"
-                  name="headline"
-                  value={form.headline}
-                  onChange={handleChange}
-                  placeholder="Hero headline"
-                  required
-                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Subheadline</span>
-                <input
-                  type="text"
-                  name="subheadline"
-                  value={form.subheadline}
-                  onChange={handleChange}
-                  placeholder="Short supporting text"
-                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Description</span>
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="Optional description"
-                  className="w-full rounded-lg border border-[#d8dde6] bg-white px-3 py-2 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Image URL</span>
-                <input
-                  type="url"
-                  name="imageUrl"
-                  value={form.imageUrl}
-                  onChange={handleChange}
-                  placeholder="https://... (optional)"
-                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Primary CTA Label</span>
-                  <input
-                    type="text"
-                    name="primaryCtaLabel"
-                    value={form.primaryCtaLabel}
-                    onChange={handleChange}
-                    placeholder="Start Shopping"
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Primary CTA URL</span>
-                  <input
-                    type="text"
-                    name="primaryCtaUrl"
-                    value={form.primaryCtaUrl}
-                    onChange={handleChange}
-                    placeholder="/client or https://..."
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Secondary CTA Label</span>
-                  <input
-                    type="text"
-                    name="secondaryCtaLabel"
-                    value={form.secondaryCtaLabel}
-                    onChange={handleChange}
-                    placeholder="Sign In"
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Secondary CTA URL</span>
-                  <input
-                    type="text"
-                    name="secondaryCtaUrl"
-                    value={form.secondaryCtaUrl}
-                    onChange={handleChange}
-                    placeholder="/login or https://..."
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-3">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Badge Text</span>
-                  <input
-                    type="text"
-                    name="badgeText"
-                    value={form.badgeText}
-                    onChange={handleChange}
-                    placeholder="Limited time"
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Display Order (optional)</span>
-                  <input
-                    type="number"
-                    min="0"
-                    name="displayOrder"
-                    value={form.displayOrder}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Active</span>
-                  <div className="flex h-10 items-center rounded-lg border border-[#d8dde6] bg-white px-3">
-                    <input
-                      type="checkbox"
-                      name="isActive"
-                      checked={form.isActive}
-                      onChange={handleChange}
-                      className="h-4 w-4"
-                    />
-                    <span className="ml-2 text-sm text-[#334155]">Enable banner</span>
-                  </div>
-                </label>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Start Date</span>
-                  <input
-                    type="datetime-local"
-                    name="startDt"
-                    value={form.startDt}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">End Date</span>
-                  <input
-                    type="datetime-local"
-                    name="endDt"
-                    value={form.endDt}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-              </div>
-
-              <div className="flex flex-wrap gap-2 pt-1">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="h-10 rounded-lg bg-[#111827] px-4 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  {isSubmitting ? "Saving..." : form.mainBannerId ? "Update Banner" : "Create Banner"}
-                </button>
-                {form.mainBannerId ? (
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="h-10 rounded-lg border border-[#d8dde6] px-4 text-sm font-semibold text-[#334155]"
-                  >
-                    Cancel Edit
-                  </button>
-                ) : null}
-              </div>
-            </form>
-          </article>
-
+        <section className="space-y-4">
           <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-[#111827]">Main Banner List</h2>
-              <p className="text-xs text-[#94a3b8]">{orderedBanners.length} total</p>
+              <h2 className="text-base font-semibold text-[#111827]">
+                Main Banner List
+              </h2>
+              <p className="text-xs text-[#94a3b8]">
+                {orderedBanners.length} total
+              </p>
             </div>
 
             {isLoading ? (
@@ -534,10 +386,16 @@ const AdminMainBannersView = () => {
                           )}
                         </td>
                         <td className="px-3 py-2">
-                          <p className="max-w-[280px] truncate font-medium text-[#111827]" title={banner.headline}>
+                          <p
+                            className="max-w-[280px] truncate font-medium text-[#111827]"
+                            title={banner.headline}
+                          >
                             {banner.headline}
                           </p>
-                          <p className="max-w-[280px] truncate text-xs text-[#64748b]" title={banner.primaryCtaUrl || "-"}>
+                          <p
+                            className="max-w-[280px] truncate text-xs text-[#64748b]"
+                            title={banner.primaryCtaUrl || "-"}
+                          >
                             Primary CTA: {banner.primaryCtaUrl || "-"}
                           </p>
                         </td>
@@ -546,7 +404,12 @@ const AdminMainBannersView = () => {
                             <button
                               type="button"
                               draggable={!isSubmitting && !search.trim()}
-                              onDragStart={(event) => handleBannerDragStart(event, banner.mainBannerId)}
+                              onDragStart={(event) =>
+                                handleBannerDragStart(
+                                  event,
+                                  banner.mainBannerId,
+                                )
+                              }
                               onDragEnd={() => setDraggingBannerId(null)}
                               disabled={isSubmitting || Boolean(search.trim())}
                               className="h-7 rounded-md border border-[#d8dde6] px-2 text-xs font-semibold text-[#334155] disabled:opacity-40"
@@ -554,13 +417,17 @@ const AdminMainBannersView = () => {
                             >
                               Drag
                             </button>
-                            <span>{Number(banner.displayOrder ?? index) + 1}</span>
+                            <span>
+                              {Number(banner.displayOrder ?? index) + 1}
+                            </span>
                           </div>
                         </td>
                         <td className="px-3 py-2">
                           <span
                             className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              banner.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"
+                              banner.isActive
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-slate-200 text-slate-700"
                             }`}
                           >
                             {banner.isActive ? "ACTIVE" : "INACTIVE"}
@@ -600,6 +467,244 @@ const AdminMainBannersView = () => {
           </article>
         </section>
       </div>
+      <AdminRightPanel
+        isOpen={isFormOpen}
+        title={form.mainBannerId ? "Update Main Banner" : "Create Main Banner"}
+        busy={isSubmitting}
+        onClose={() => setIsFormOpen(false)}
+      >
+        {error && (
+          <p role="alert" className="admin-feedback is-error">
+            {error}
+          </p>
+        )}
+        {success && (
+          <p role="status" className="admin-feedback is-success">
+            {success}
+          </p>
+        )}
+        <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
+          <h2 className="text-base font-semibold text-[#111827]">
+            {form.mainBannerId ? "Update Main Banner" : "Create Main Banner"}
+          </h2>
+
+          <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Headline
+              </span>
+              <input
+                type="text"
+                name="headline"
+                value={form.headline}
+                onChange={handleChange}
+                placeholder="Hero headline"
+                required
+                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Subheadline
+              </span>
+              <input
+                type="text"
+                name="subheadline"
+                value={form.subheadline}
+                onChange={handleChange}
+                placeholder="Short supporting text"
+                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Description
+              </span>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Optional description"
+                className="w-full rounded-lg border border-[#d8dde6] bg-white px-3 py-2 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Image URL
+              </span>
+              <input
+                type="url"
+                name="imageUrl"
+                value={form.imageUrl}
+                onChange={handleChange}
+                placeholder="https://... (optional)"
+                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Primary CTA Label
+                </span>
+                <input
+                  type="text"
+                  name="primaryCtaLabel"
+                  value={form.primaryCtaLabel}
+                  onChange={handleChange}
+                  placeholder="Start Shopping"
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Primary CTA URL
+                </span>
+                <input
+                  type="text"
+                  name="primaryCtaUrl"
+                  value={form.primaryCtaUrl}
+                  onChange={handleChange}
+                  placeholder="/client or https://..."
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Secondary CTA Label
+                </span>
+                <input
+                  type="text"
+                  name="secondaryCtaLabel"
+                  value={form.secondaryCtaLabel}
+                  onChange={handleChange}
+                  placeholder="Sign In"
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Secondary CTA URL
+                </span>
+                <input
+                  type="text"
+                  name="secondaryCtaUrl"
+                  value={form.secondaryCtaUrl}
+                  onChange={handleChange}
+                  placeholder="/login or https://..."
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Badge Text
+                </span>
+                <input
+                  type="text"
+                  name="badgeText"
+                  value={form.badgeText}
+                  onChange={handleChange}
+                  placeholder="Limited time"
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Display Order (optional)
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  name="displayOrder"
+                  value={form.displayOrder}
+                  onChange={handleChange}
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Active
+                </span>
+                <div className="flex h-10 items-center rounded-lg border border-[#d8dde6] bg-white px-3">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={form.isActive}
+                    onChange={handleChange}
+                    className="h-4 w-4"
+                  />
+                  <span className="ml-2 text-sm text-[#334155]">
+                    Enable banner
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Start Date
+                </span>
+                <input
+                  type="datetime-local"
+                  name="startDt"
+                  value={form.startDt}
+                  onChange={handleChange}
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  End Date
+                </span>
+                <input
+                  type="datetime-local"
+                  name="endDt"
+                  value={form.endDt}
+                  onChange={handleChange}
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-10 rounded-lg bg-[#111827] px-4 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {isSubmitting
+                  ? "Saving..."
+                  : form.mainBannerId
+                    ? "Update Banner"
+                    : "Create Banner"}
+              </button>
+              {form.mainBannerId ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setIsFormOpen(false);
+                  }}
+                  className="h-10 rounded-lg border border-[#d8dde6] px-4 text-sm font-semibold text-[#334155]"
+                >
+                  Cancel Edit
+                </button>
+              ) : null}
+            </div>
+          </form>
+        </article>
+      </AdminRightPanel>
     </AdminConsoleLayout>
   );
 };

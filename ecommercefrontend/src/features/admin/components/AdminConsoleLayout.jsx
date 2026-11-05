@@ -84,8 +84,18 @@ const NAV_GROUPS = [
   },
 ];
 const FLAT_NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
-const SUPER_ADMIN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers"]);
-const ADMIN_HIDDEN_NAV_KEYS = new Set(["categories", "sliders", "mainBanners", "customers"]);
+const SUPER_ADMIN_NAV_KEYS = new Set([
+  "categories",
+  "sliders",
+  "mainBanners",
+  "customers",
+]);
+const ADMIN_HIDDEN_NAV_KEYS = new Set([
+  "categories",
+  "sliders",
+  "mainBanners",
+  "customers",
+]);
 const DEFAULT_EXPANDED_GROUPS = {
   overview: true,
   catalog: true,
@@ -96,9 +106,11 @@ const DEFAULT_EXPANDED_GROUPS = {
 const filterNavGroupsByRole = (roles) => {
   const normalizedRoles = Array.isArray(roles) ? roles : [];
   const isAdminOnly =
-    normalizedRoles.includes("ADMIN") && !normalizedRoles.includes("SUPER_ADMIN");
+    normalizedRoles.includes("ADMIN") &&
+    !normalizedRoles.includes("SUPER_ADMIN");
   const isSuperAdminOnly =
-    normalizedRoles.includes("SUPER_ADMIN") && !normalizedRoles.includes("ADMIN");
+    normalizedRoles.includes("SUPER_ADMIN") &&
+    !normalizedRoles.includes("ADMIN");
 
   if (isAdminOnly) {
     return NAV_GROUPS.map((group) => ({
@@ -143,17 +155,29 @@ const AdminConsoleLayout = ({
     }
   });
   const [expandedGroups, setExpandedGroups] = useState(DEFAULT_EXPANDED_GROUPS);
-  const navGroups = useMemo(() => filterNavGroupsByRole(authMeta?.roles), [authMeta?.roles]);
-  const flatNavItems = useMemo(() => navGroups.flatMap((group) => group.items), [navGroups]);
+  const navGroups = useMemo(
+    () => filterNavGroupsByRole(authMeta?.roles),
+    [authMeta?.roles],
+  );
+  const flatNavItems = useMemo(
+    () => navGroups.flatMap((group) => group.items),
+    [navGroups],
+  );
 
   const activeItem = useMemo(
-    () => flatNavItems.find((item) => item.key === activeNav) || flatNavItems[0] || FLAT_NAV_ITEMS[0],
+    () =>
+      flatNavItems.find((item) => item.key === activeNav) ||
+      flatNavItems[0] ||
+      FLAT_NAV_ITEMS[0],
     [activeNav, flatNavItems],
   );
 
   useEffect(() => {
     try {
-      localStorage.setItem("admin_sidebar_collapsed", isSidebarCollapsed ? "1" : "0");
+      localStorage.setItem(
+        "admin_sidebar_collapsed",
+        isSidebarCollapsed ? "1" : "0",
+      );
     } catch {
       // ignore localStorage issues
     }
@@ -179,17 +203,29 @@ const AdminConsoleLayout = ({
   };
 
   return (
-    <main className="min-h-screen bg-[#dfe3ea] font-['Poppins','Segoe_UI',sans-serif] text-[#0f172a]">
+    <main className="admin-console min-h-screen">
       <div className="w-full">
-        <div className="overflow-hidden border border-[#d5d9df] bg-[#f6f7f9] shadow-[0_30px_80px_rgba(15,23,42,0.18)]">
-          <div className={`grid min-h-[calc(100vh-142px)] ${isSidebarCollapsed ? "lg:grid-cols-[78px_1fr]" : "lg:grid-cols-[238px_1fr]"}`}>
-            <aside className={`hidden border-b border-[#e3e6ec] bg-[#f3f4f7] p-4 lg:block lg:border-b-0 lg:border-r ${isSidebarCollapsed ? "lg:px-2" : ""}`}>
-              <div className={`mb-6 flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-2"}`}>
-                <div className="h-8 w-8 rounded-lg bg-[linear-gradient(140deg,#0f172a,#334155)]" />
+        <div className="bg-white">
+          <div
+            className={`admin-shell ${isSidebarCollapsed ? "is-collapsed" : ""}`}
+          >
+            <aside
+              className={`admin-sidebar ${isSidebarCollapsed ? "lg:px-2" : ""}`}
+            >
+              <div
+                className={`mb-6 flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-2"}`}
+              >
+                <div className="h-8 w-8 rounded-lg bg-blue-600" />
                 {!isSidebarCollapsed ? (
                   <div>
-                    <p className="text-base font-semibold text-[#0f172a]">Villpo</p>
-                    <p className="text-[11px] text-[#667085]">Admin Console</p>
+                    <p className="text-base font-semibold text-[#0f172a]">
+                      Villpo
+                    </p>
+                    <p className="text-[11px] text-[#667085]">
+                      {authMeta?.roles?.includes("SUPER_ADMIN")
+                        ? "Super Admin Console"
+                        : "Admin Console"}
+                    </p>
                   </div>
                 ) : null}
               </div>
@@ -201,6 +237,10 @@ const AdminConsoleLayout = ({
                       <button
                         key={item.key}
                         type="button"
+                        aria-current={
+                          activeItem.key === item.key ? "page" : undefined
+                        }
+                        aria-label={item.label}
                         onClick={() => handleNavigate(item.path)}
                         title={item.label}
                         className={`flex w-full items-center justify-center rounded-xl px-3 py-2 text-left text-sm transition ${
@@ -220,11 +260,14 @@ const AdminConsoleLayout = ({
                       <section key={group.key} className="space-y-1.5">
                         <button
                           type="button"
+                          aria-expanded={isExpanded}
                           onClick={() => toggleGroup(group.key)}
                           className="flex w-full items-center justify-between rounded-lg px-2 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.1em] text-[#9ca3af] hover:bg-white/60"
                         >
                           <span>{group.label}</span>
-                          <span className="text-[11px] text-[#94a3b8]">{isExpanded ? "-" : "+"}</span>
+                          <span className="text-[11px] text-[#94a3b8]">
+                            {isExpanded ? "-" : "+"}
+                          </span>
                         </button>
                         {isExpanded ? (
                           <div className="space-y-1.5">
@@ -232,6 +275,12 @@ const AdminConsoleLayout = ({
                               <button
                                 key={item.key}
                                 type="button"
+                                aria-current={
+                                  activeItem.key === item.key
+                                    ? "page"
+                                    : undefined
+                                }
+                                aria-label={item.label}
                                 onClick={() => handleNavigate(item.path)}
                                 title={`${group.label}: ${item.label}`}
                                 className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition ${
@@ -244,7 +293,9 @@ const AdminConsoleLayout = ({
                                   <Icon path={item.icon} />
                                   {item.label}
                                 </span>
-                                <span className="text-xs text-[#9ca3af]">+</span>
+                                <span className="text-xs text-[#9ca3af]">
+                                  +
+                                </span>
                               </button>
                             ))}
                           </div>
@@ -269,13 +320,21 @@ const AdminConsoleLayout = ({
               <div className="mt-3 rounded-xl border border-[#e3e6ec] bg-white p-3">
                 {!isSidebarCollapsed ? (
                   <>
-                    <p className="text-[11px] uppercase tracking-[0.09em] text-[#94a3b8]">Signed In</p>
-                    <p className="mt-1 truncate text-sm font-medium text-[#1f2937]" title={authMeta?.email || "-"}>
+                    <p className="text-[11px] uppercase tracking-[0.09em] text-[#94a3b8]">
+                      Signed In
+                    </p>
+                    <p
+                      className="mt-1 truncate text-sm font-medium text-[#1f2937]"
+                      title={authMeta?.email || "-"}
+                    >
                       {authMeta?.email || "-"}
                     </p>
                   </>
                 ) : (
-                  <p className="truncate text-center text-xs font-medium text-[#1f2937]" title={authMeta?.email || "-"}>
+                  <p
+                    className="truncate text-center text-xs font-medium text-[#1f2937]"
+                    title={authMeta?.email || "-"}
+                  >
                     {authMeta?.email?.slice(0, 2)?.toUpperCase() || "AD"}
                   </p>
                 )}
@@ -289,12 +348,16 @@ const AdminConsoleLayout = ({
               </div>
             </aside>
 
-            <section className="flex min-h-0 flex-col">
-              <div className="border-b border-[#e3e6ec] bg-[#f9fafb] px-3 py-3 lg:hidden">
+            <section className="admin-workspace">
+              <div className="admin-mobile-nav">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#111827]">{title}</p>
-                    <p className="truncate text-[11px] text-[#64748b]">{authMeta?.email || "-"}</p>
+                    <p className="truncate text-sm font-semibold text-[#111827]">
+                      {title}
+                    </p>
+                    <p className="truncate text-[11px] text-[#64748b]">
+                      {authMeta?.email || "-"}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -309,6 +372,10 @@ const AdminConsoleLayout = ({
                     <button
                       key={`mobile-${item.key}`}
                       type="button"
+                      aria-current={
+                        activeItem.key === item.key ? "page" : undefined
+                      }
+                      aria-label={item.label}
                       onClick={() => handleNavigate(item.path)}
                       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${
                         activeItem.key === item.key
@@ -323,29 +390,38 @@ const AdminConsoleLayout = ({
                 </div>
               </div>
 
-              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e6ec] bg-[#f9fafb] px-3 py-3 sm:px-4">
+              <header className="admin-page-header">
                 <div className="min-w-0">
-                  <h1 className="text-lg font-semibold tracking-tight text-[#111827] sm:text-[22px]">{title}</h1>
-                  {subtitle ? <p className="text-[12px] text-[#6b7280]">{subtitle}</p> : null}
+                  <h1 className="text-lg font-semibold tracking-tight text-[#111827] sm:text-[22px]">
+                    {title}
+                  </h1>
+                  {subtitle ? (
+                    <p className="text-[12px] text-[#6b7280]">{subtitle}</p>
+                  ) : null}
                 </div>
 
-                <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:flex-1 md:justify-end">
+                <div className="admin-header-actions">
                   {onSearchChange ? (
-                    <div className="w-full min-w-0 sm:min-w-[220px] md:flex-1 md:max-w-[420px]">
+                    <div className="admin-search">
                       <input
                         type="text"
                         value={searchValue}
                         onChange={(event) => onSearchChange(event.target.value)}
                         placeholder={searchPlaceholder}
+                        aria-label={searchPlaceholder}
                         className="h-10 w-full rounded-xl border border-[#e5e7eb] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
                       />
                     </div>
                   ) : null}
-                  {topActions ? <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">{topActions}</div> : null}
+                  {topActions ? (
+                    <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
+                      {topActions}
+                    </div>
+                  ) : null}
                 </div>
               </header>
 
-              <div className="min-h-0 flex-1 overflow-auto bg-[#f4f6f8] px-2 py-3 sm:px-4 sm:py-4">{children}</div>
+              <div className="admin-content">{children}</div>
             </section>
           </div>
         </div>

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import homeSliderApi from "../../../core/api/homeSliderApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
+import AdminRightPanel from "../components/AdminRightPanel";
 import AdminConsoleLayout from "../components/AdminConsoleLayout";
 
 const PLACEMENT_OPTIONS = [
@@ -48,6 +49,7 @@ const orderByDisplayOrder = (a, b) => {
 };
 
 const AdminSlidersView = () => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [sliders, setSliders] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [filterTag, setFilterTag] = useState("");
@@ -58,12 +60,14 @@ const AdminSlidersView = () => {
   const [success, setSuccess] = useState("");
   const [draggingSliderId, setDraggingSliderId] = useState(null);
 
-  const loadSliders = async (tag = filterTag) => {
+  const loadSliders = useCallback(async (tag = "") => {
     setIsLoading(true);
     try {
       const params = tag ? { tag } : {};
       const response = await homeSliderApi.getAdminSliders(params);
-      const payload = Array.isArray(response?.data?.data) ? response.data.data : [];
+      const payload = Array.isArray(response?.data?.data)
+        ? response.data.data
+        : [];
       setSliders(payload);
     } catch (err) {
       setSliders([]);
@@ -71,11 +75,11 @@ const AdminSlidersView = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadSliders("");
-  }, []);
+  }, [loadSliders]);
 
   const filteredSliders = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -142,6 +146,7 @@ const AdminSlidersView = () => {
       }
 
       resetForm();
+      setIsFormOpen(false);
       await loadSliders(filterTag);
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to save slider."));
@@ -151,6 +156,7 @@ const AdminSlidersView = () => {
   };
 
   const handleEdit = (slider) => {
+    setIsFormOpen(true);
     setForm({
       homeSliderId: slider.homeSliderId,
       title: slider.title || "",
@@ -208,10 +214,19 @@ const AdminSlidersView = () => {
   });
 
   const persistSliderOrder = async (orderedItems) => {
-    const normalized = orderedItems.map((item, index) => ({ ...item, displayOrder: index }));
-    const oldOrderById = new Map(sliders.map((item) => [item.homeSliderId, Number(item.displayOrder ?? 0)]));
+    const normalized = orderedItems.map((item, index) => ({
+      ...item,
+      displayOrder: index,
+    }));
+    const oldOrderById = new Map(
+      sliders.map((item) => [
+        item.homeSliderId,
+        Number(item.displayOrder ?? 0),
+      ]),
+    );
     const changed = normalized.filter(
-      (item) => oldOrderById.get(item.homeSliderId) !== Number(item.displayOrder ?? 0),
+      (item) =>
+        oldOrderById.get(item.homeSliderId) !== Number(item.displayOrder ?? 0),
     );
 
     if (!changed.length) {
@@ -256,8 +271,12 @@ const AdminSlidersView = () => {
       return;
     }
     const ordered = [...sliders].sort(orderByDisplayOrder);
-    const fromIndex = ordered.findIndex((item) => item.homeSliderId === draggingSliderId);
-    const toIndex = ordered.findIndex((item) => item.homeSliderId === targetSliderId);
+    const fromIndex = ordered.findIndex(
+      (item) => item.homeSliderId === draggingSliderId,
+    );
+    const toIndex = ordered.findIndex(
+      (item) => item.homeSliderId === targetSliderId,
+    );
     if (fromIndex < 0 || toIndex < 0) {
       return;
     }
@@ -275,36 +294,52 @@ const AdminSlidersView = () => {
       onSearchChange={setSearch}
       searchPlaceholder="Search sliders..."
       topActions={
-        <div className="flex flex-wrap justify-end gap-2">
-          <select
-            value={filterTag}
-            onChange={(event) => {
-              const nextTag = event.target.value;
-              setFilterTag(nextTag);
-              loadSliders(nextTag);
-            }}
-            className="h-10 w-full rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
-          >
-            <option value="">All Tags</option>
-            {PLACEMENT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+        <>
           <button
             type="button"
-            onClick={() => loadSliders(filterTag)}
-            className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+            className="admin-primary"
+            onClick={() => {
+              resetForm();
+              setError("");
+              setSuccess("");
+              setIsFormOpen(true);
+            }}
           >
-            Refresh
+            + New Slider
           </button>
-        </div>
+          <div className="flex flex-wrap justify-end gap-2">
+            <select
+              value={filterTag}
+              onChange={(event) => {
+                const nextTag = event.target.value;
+                setFilterTag(nextTag);
+                loadSliders(nextTag);
+              }}
+              className="h-10 w-full rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155] sm:w-auto"
+            >
+              <option value="">All Tags</option>
+              {PLACEMENT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => loadSliders(filterTag)}
+              className="h-10 rounded-xl border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
+            >
+              Refresh
+            </button>
+          </div>
+        </>
       }
     >
       <div className="space-y-4">
         {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
         ) : null}
         {success ? (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
@@ -312,180 +347,15 @@ const AdminSlidersView = () => {
           </div>
         ) : null}
 
-        <section className="grid gap-4 xl:grid-cols-[1.1fr_1.6fr]">
-          <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
-            <h2 className="text-base font-semibold text-[#111827]">
-              {form.homeSliderId ? "Update Slider" : "Create Slider"}
-            </h2>
-
-            <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Title</span>
-                <input
-                  type="text"
-                  name="title"
-                  value={form.title}
-                  onChange={handleChange}
-                  placeholder="Limited offer title"
-                  required
-                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Subtitle</span>
-                <input
-                  type="text"
-                  name="subtitle"
-                  value={form.subtitle}
-                  onChange={handleChange}
-                  placeholder="Short subtitle"
-                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Description</span>
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="Optional description"
-                  className="w-full rounded-lg border border-[#d8dde6] bg-white px-3 py-2 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Poster Image URL</span>
-                <input
-                  type="url"
-                  name="imageUrl"
-                  value={form.imageUrl}
-                  onChange={handleChange}
-                  placeholder="https://..."
-                  required
-                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">CTA Label</span>
-                  <input
-                    type="text"
-                    name="ctaLabel"
-                    value={form.ctaLabel}
-                    onChange={handleChange}
-                    placeholder="Start Shopping"
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Display Order (optional)</span>
-                  <input
-                    type="number"
-                    min="0"
-                    name="displayOrder"
-                    value={form.displayOrder}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-              </div>
-
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Target URL</span>
-                <input
-                  type="text"
-                  name="targetUrl"
-                  value={form.targetUrl}
-                  onChange={handleChange}
-                  placeholder="/products/1 or https://..."
-                  required
-                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                />
-              </label>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Placement Tag</span>
-                  <select
-                    name="placementTag"
-                    value={form.placementTag}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  >
-                    {PLACEMENT_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Active</span>
-                  <div className="flex h-10 items-center rounded-lg border border-[#d8dde6] bg-white px-3">
-                    <input
-                      type="checkbox"
-                      name="isActive"
-                      checked={form.isActive}
-                      onChange={handleChange}
-                      className="h-4 w-4"
-                    />
-                    <span className="ml-2 text-sm text-[#334155]">Enable slider</span>
-                  </div>
-                </label>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">Start Date</span>
-                  <input
-                    type="datetime-local"
-                    name="startDt"
-                    value={form.startDt}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">End Date</span>
-                  <input
-                    type="datetime-local"
-                    name="endDt"
-                    value={form.endDt}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-                  />
-                </label>
-              </div>
-
-              <div className="flex flex-wrap gap-2 pt-1">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="h-10 rounded-lg bg-[#111827] px-4 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  {isSubmitting ? "Saving..." : form.homeSliderId ? "Update Slider" : "Create Slider"}
-                </button>
-                {form.homeSliderId ? (
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="h-10 rounded-lg border border-[#d8dde6] px-4 text-sm font-semibold text-[#334155]"
-                  >
-                    Cancel Edit
-                  </button>
-                ) : null}
-              </div>
-            </form>
-          </article>
-
+        <section className="space-y-4">
           <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-[#111827]">Slider List</h2>
-              <p className="text-xs text-[#94a3b8]">{orderedSliders.length} total</p>
+              <h2 className="text-base font-semibold text-[#111827]">
+                Slider List
+              </h2>
+              <p className="text-xs text-[#94a3b8]">
+                {orderedSliders.length} total
+              </p>
             </div>
 
             {isLoading ? (
@@ -527,10 +397,16 @@ const AdminSlidersView = () => {
                           )}
                         </td>
                         <td className="px-3 py-2">
-                          <p className="max-w-[280px] truncate font-medium text-[#111827]" title={slider.title}>
+                          <p
+                            className="max-w-[280px] truncate font-medium text-[#111827]"
+                            title={slider.title}
+                          >
                             {slider.title}
                           </p>
-                          <p className="max-w-[280px] truncate text-xs text-[#64748b]" title={slider.targetUrl}>
+                          <p
+                            className="max-w-[280px] truncate text-xs text-[#64748b]"
+                            title={slider.targetUrl}
+                          >
                             {slider.targetUrl}
                           </p>
                         </td>
@@ -540,7 +416,12 @@ const AdminSlidersView = () => {
                             <button
                               type="button"
                               draggable={!isSubmitting && !search.trim()}
-                              onDragStart={(event) => handleSliderDragStart(event, slider.homeSliderId)}
+                              onDragStart={(event) =>
+                                handleSliderDragStart(
+                                  event,
+                                  slider.homeSliderId,
+                                )
+                              }
                               onDragEnd={() => setDraggingSliderId(null)}
                               disabled={isSubmitting || Boolean(search.trim())}
                               className="h-7 rounded-md border border-[#d8dde6] px-2 text-xs font-semibold text-[#334155] disabled:opacity-40"
@@ -548,13 +429,17 @@ const AdminSlidersView = () => {
                             >
                               Drag
                             </button>
-                            <span>{Number(slider.displayOrder ?? index) + 1}</span>
+                            <span>
+                              {Number(slider.displayOrder ?? index) + 1}
+                            </span>
                           </div>
                         </td>
                         <td className="px-3 py-2">
                           <span
                             className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              slider.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"
+                              slider.isActive
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-slate-200 text-slate-700"
                             }`}
                           >
                             {slider.isActive ? "ACTIVE" : "INACTIVE"}
@@ -594,6 +479,222 @@ const AdminSlidersView = () => {
           </article>
         </section>
       </div>
+      <AdminRightPanel
+        isOpen={isFormOpen}
+        title={form.homeSliderId ? "Update Slider" : "Create Slider"}
+        busy={isSubmitting}
+        onClose={() => setIsFormOpen(false)}
+      >
+        {error && (
+          <p role="alert" className="admin-feedback is-error">
+            {error}
+          </p>
+        )}
+        {success && (
+          <p role="status" className="admin-feedback is-success">
+            {success}
+          </p>
+        )}
+        <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
+          <h2 className="text-base font-semibold text-[#111827]">
+            {form.homeSliderId ? "Update Slider" : "Create Slider"}
+          </h2>
+
+          <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Title
+              </span>
+              <input
+                type="text"
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                placeholder="Limited offer title"
+                required
+                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Subtitle
+              </span>
+              <input
+                type="text"
+                name="subtitle"
+                value={form.subtitle}
+                onChange={handleChange}
+                placeholder="Short subtitle"
+                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Description
+              </span>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Optional description"
+                className="w-full rounded-lg border border-[#d8dde6] bg-white px-3 py-2 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Poster Image URL
+              </span>
+              <input
+                type="url"
+                name="imageUrl"
+                value={form.imageUrl}
+                onChange={handleChange}
+                placeholder="https://..."
+                required
+                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  CTA Label
+                </span>
+                <input
+                  type="text"
+                  name="ctaLabel"
+                  value={form.ctaLabel}
+                  onChange={handleChange}
+                  placeholder="Start Shopping"
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Display Order (optional)
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  name="displayOrder"
+                  value={form.displayOrder}
+                  onChange={handleChange}
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+            </div>
+
+            <label className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                Target URL
+              </span>
+              <input
+                type="text"
+                name="targetUrl"
+                value={form.targetUrl}
+                onChange={handleChange}
+                placeholder="/products/1 or https://..."
+                required
+                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+              />
+            </label>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Placement Tag
+                </span>
+                <select
+                  name="placementTag"
+                  value={form.placementTag}
+                  onChange={handleChange}
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                >
+                  {PLACEMENT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Active
+                </span>
+                <div className="flex h-10 items-center rounded-lg border border-[#d8dde6] bg-white px-3">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={form.isActive}
+                    onChange={handleChange}
+                    className="h-4 w-4"
+                  />
+                  <span className="ml-2 text-sm text-[#334155]">
+                    Enable slider
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  Start Date
+                </span>
+                <input
+                  type="datetime-local"
+                  name="startDt"
+                  value={form.startDt}
+                  onChange={handleChange}
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+                  End Date
+                </span>
+                <input
+                  type="datetime-local"
+                  name="endDt"
+                  value={form.endDt}
+                  onChange={handleChange}
+                  className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-10 rounded-lg bg-[#111827] px-4 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {isSubmitting
+                  ? "Saving..."
+                  : form.homeSliderId
+                    ? "Update Slider"
+                    : "Create Slider"}
+              </button>
+              {form.homeSliderId ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setIsFormOpen(false);
+                  }}
+                  className="h-10 rounded-lg border border-[#d8dde6] px-4 text-sm font-semibold text-[#334155]"
+                >
+                  Cancel Edit
+                </button>
+              ) : null}
+            </div>
+          </form>
+        </article>
+      </AdminRightPanel>
     </AdminConsoleLayout>
   );
 };
