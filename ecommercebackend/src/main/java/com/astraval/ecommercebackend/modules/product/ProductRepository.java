@@ -46,25 +46,25 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByCategoryCategoryIdAndIsActiveTrue(Integer categoryId, Pageable pageable);
 
     @Query("""
-            select p from Product p
+            select p from Product p left join p.category c
             where p.isActive = true
               and p.category.categoryId = :categoryId
               and (
                     :q is null or :q = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
-                    or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
+                    or lower(coalesce(c.categoryName, '')) like lower(concat('%', :q, '%'))
               )
             """)
     Page<Product> searchActiveProductsByCategory(@Param("categoryId") Integer categoryId, @Param("q") String q, Pageable pageable);
 
     @Query("""
-            select p from Product p
+            select p from Product p left join p.category c
             where (
                     :q is null or :q = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
-                    or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
+                    or lower(coalesce(c.categoryName, '')) like lower(concat('%', :q, '%'))
                   )
             """)
     Page<Product> searchAllProducts(@Param("q") String q, Pageable pageable);

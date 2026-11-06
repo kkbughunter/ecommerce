@@ -17,6 +17,7 @@ const ENDPOINTS = {
     UPDATE: "/products",
     DETAILS: "/products",
     IMAGES: "/products",
+    REVIEWS: "/products",
     ADMIN_CATEGORIES_WITH_PRODUCTS: "/admin/categories/products",
   },
   ORDERS: {

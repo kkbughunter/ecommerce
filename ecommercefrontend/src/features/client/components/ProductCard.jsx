@@ -19,6 +19,9 @@ export default function ProductCard({
   const discount =
     maxPrice > price ? Math.round(((maxPrice - price) / maxPrice) * 100) : 0;
   const inStock = Number(product?.stockQuantity || 0) > 0;
+  const rating = Number(product?.averageRating || 0);
+  const reviewCount = Number(product?.reviewCount || 0);
+  const purchaserCount = Number(product?.purchaserCount || 0);
   const url = `/products/${product.productId}`;
   return (
     <article className="store-product-card">
@@ -46,6 +49,12 @@ export default function ProductCard({
         <Link to={url} className="store-card-title">
           <h3>{product.name || "Product"}</h3>
         </Link>
+        <div className="store-card-social-proof" aria-label={`${rating.toFixed(1)} out of 5 stars from ${reviewCount} reviews`}>
+          <span className="store-card-rating" aria-hidden="true">★</span>
+          <strong>{reviewCount ? rating.toFixed(1) : "New"}</strong>
+          <span>{reviewCount ? `${reviewCount} review${reviewCount === 1 ? "" : "s"}` : "No reviews yet"}</span>
+        </div>
+        <p className="store-card-purchases">{purchaserCount} purchased</p>
         <div className="store-card-bottom">
           <div className="store-card-price">
             <strong>{money(price)}</strong>

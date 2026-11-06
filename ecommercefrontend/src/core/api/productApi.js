@@ -29,6 +29,10 @@ const productApi = {
   },
   deleteProductImage: (productId, uploadId) =>
     apiClient.delete(`${ENDPOINTS.PRODUCTS.IMAGES}/${productId}/images/${uploadId}`),
+  getProductReviews: (productId) =>
+    apiClient.get(`${ENDPOINTS.PRODUCTS.REVIEWS}/${productId}/reviews`),
+  saveProductReview: (productId, data) =>
+    apiClient.post(`${ENDPOINTS.PRODUCTS.REVIEWS}/${productId}/reviews`, data),
 };
 
 export default productApi;

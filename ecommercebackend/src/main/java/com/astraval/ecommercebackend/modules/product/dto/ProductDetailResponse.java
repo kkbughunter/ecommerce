@@ -24,6 +24,9 @@ public record ProductDetailResponse(
         Integer categoryId,
         String categoryName,
         List<UploadResponse> images,
+        Double averageRating,
+        Long reviewCount,
+        Long purchaserCount,
         LocalDateTime createdDt,
         LocalDateTime modifiedDt) {
 }

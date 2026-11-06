@@ -26,6 +26,8 @@ import com.astraval.ecommercebackend.modules.product.dto.ProductDetailResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductPageResponse;
 import com.astraval.ecommercebackend.modules.product.dto.ProductResponse;
 import com.astraval.ecommercebackend.modules.product.dto.UpdateProductRequest;
+import com.astraval.ecommercebackend.modules.product.review.ProductReviewService;
+import com.astraval.ecommercebackend.modules.product.review.dto.ProductReviewSummary;
 import com.astraval.ecommercebackend.modules.upload.UploadService;
 import com.astraval.ecommercebackend.modules.upload.UploadRepository;
 import com.astraval.ecommercebackend.modules.upload.UploadType;
@@ -42,18 +44,21 @@ public class ProductService {
     private final SecurityUtil securityUtil;
     private final UploadService uploadService;
     private final UploadRepository uploadRepository;
+    private final ProductReviewService productReviewService;
 
     public ProductService(
             ProductRepository productRepository,
             CategoryRepository categoryRepository,
             SecurityUtil securityUtil,
             UploadService uploadService,
-            UploadRepository uploadRepository) {
+            UploadRepository uploadRepository,
+            ProductReviewService productReviewService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.securityUtil = securityUtil;
         this.uploadService = uploadService;
         this.uploadRepository = uploadRepository;
+        this.productReviewService = productReviewService;
     }
 
     @Transactional(readOnly = true)
@@ -231,10 +236,14 @@ public class ProductService {
 
     private ProductResponse toProductResponse(Product product) {
         UploadResponse mainImage = uploadService.getUploadResponse(product.getMainImageUploadId());
-        return toProductResponse(product, mainImage);
+        return toProductResponse(product, mainImage, getReviewSummary(product.getProductId()));
     }
 
     private ProductResponse toProductResponse(Product product, UploadResponse mainImage) {
+        return toProductResponse(product, mainImage, getReviewSummary(product.getProductId()));
+    }
+
+    private ProductResponse toProductResponse(Product product, UploadResponse mainImage, ProductReviewSummary reviewSummary) {
         Category category = product.getCategory();
         return new ProductResponse(
                 product.getProductId(),
@@ -256,14 +265,20 @@ public class ProductService {
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,
                 product.getIsActive(),
+                reviewSummary.averageRating(),
+                reviewSummary.reviewCount(),
+                reviewSummary.purchaserCount(),
                 product.getCreatedDt(),
                 product.getModifiedDt());
     }
 
     private ProductPageResponse toProductPageResponse(Page<Product> productPage) {
         Map<String, UploadResponse> imagesById = getMainImagesByUploadId(productPage.getContent());
+        Map<Long, ProductReviewSummary> reviewsByProductId = productReviewService.getSummaries(
+                productPage.getContent().stream().map(Product::getProductId).toList());
         List<ProductResponse> content = productPage.getContent().stream()
-                .map(product -> toProductResponse(product, getMainImage(imagesById, product)))
+                .map(product -> toProductResponse(product, getMainImage(imagesById, product),
+                        reviewFor(reviewsByProductId, product.getProductId())))
                 .toList();
         return new ProductPageResponse(
                 content,
@@ -296,6 +311,8 @@ public class ProductService {
                 ? productRepository.findByCategoryCategoryIdInAndIsActiveTrue(categoryIds)
                 : productRepository.findByCategoryCategoryIdIn(categoryIds);
         Map<String, UploadResponse> imagesById = getMainImagesByUploadId(products);
+        Map<Long, ProductReviewSummary> reviewsByProductId = productReviewService.getSummaries(
+                products.stream().map(Product::getProductId).toList());
 
         Map<Integer, List<Product>> allProductsByCategoryId = new HashMap<>();
         Map<Integer, List<Product>> matchedProductsByCategoryId = new HashMap<>();
@@ -321,7 +338,8 @@ public class ProductService {
             }
 
             List<ProductResponse> productResponses = categoryProducts.stream()
-                    .map(product -> toProductResponse(product, getMainImage(imagesById, product)))
+                    .map(product -> toProductResponse(product, getMainImage(imagesById, product),
+                            reviewFor(reviewsByProductId, product.getProductId())))
                     .toList();
             content.add(new CategoryProductsResponse(
                     categoryId,
@@ -375,6 +393,7 @@ public class ProductService {
     private ProductDetailResponse toProductDetailResponse(Product product) {
         Category category = product.getCategory();
         List<UploadResponse> images = uploadService.getProductImagesByRelatedId(String.valueOf(product.getProductId()));
+        ProductReviewSummary reviewSummary = getReviewSummary(product.getProductId());
         return new ProductDetailResponse(
                 product.getProductId(),
                 product.getName(),
@@ -392,6 +411,9 @@ public class ProductService {
                 category != null ? category.getCategoryId() : null,
                 category != null ? category.getCategoryName() : null,
                 images,
+                reviewSummary.averageRating(),
+                reviewSummary.reviewCount(),
+                reviewSummary.purchaserCount(),
                 product.getCreatedDt(),
                 product.getModifiedDt());
     }
@@ -431,5 +453,13 @@ public class ProductService {
 
     private BigDecimal resolveResponseMaxPrice(Product product) {
         return product.getMaxPrice() != null ? product.getMaxPrice() : product.getPrice();
+    }
+
+    private ProductReviewSummary getReviewSummary(Long productId) {
+        return productReviewService.getSummaries(List.of(productId)).get(productId);
+    }
+
+    private ProductReviewSummary reviewFor(Map<Long, ProductReviewSummary> summaries, Long productId) {
+        return summaries.getOrDefault(productId, new ProductReviewSummary(0.0, 0L, 0L));
     }
 }

@@ -26,6 +26,9 @@ public record ProductResponse(
         Integer categoryId,
         String categoryName,
         Boolean isActive,
+        Double averageRating,
+        Long reviewCount,
+        Long purchaserCount,
         LocalDateTime createdDt,
         LocalDateTime modifiedDt) {
 }

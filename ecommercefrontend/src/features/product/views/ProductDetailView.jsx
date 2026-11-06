@@ -56,6 +56,12 @@ const SpecRow = ({ label, value }) => (
   </div>
 );
 
+const RatingStars = ({ rating, size = "text-base" }) => (
+  <span className={`inline-flex gap-0.5 text-amber-400 ${size}`} aria-label={`${rating} out of 5 stars`}>
+    {[1, 2, 3, 4, 5].map((star) => <span key={star} className={star <= Math.round(Number(rating || 0)) ? "" : "text-slate-200"}>★</span>)}
+  </span>
+);
+
 const ProductDetailView = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
@@ -75,6 +81,11 @@ const ProductDetailView = () => {
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [reviewData, setReviewData] = useState(null);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const [isSavingReview, setIsSavingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const [reviewForm, setReviewForm] = useState({ rating: 5, title: "", description: "" });
   const descriptionRef = useRef(null);
   const [editForm, setEditForm] = useState({
     name: "",
@@ -191,6 +202,35 @@ const ProductDetailView = () => {
   useEffect(() => {
     loadProduct({ withLoader: true });
   }, [loadProduct]);
+
+  const loadReviews = useCallback(async () => {
+    if (!isCustomer) {
+      setReviewData(null);
+      return;
+    }
+    setIsLoadingReviews(true);
+    setReviewError("");
+    try {
+      const response = await productApi.getProductReviews(productId);
+      const data = response?.data?.data || null;
+      setReviewData(data);
+      if (data?.currentUserReview) {
+        setReviewForm({
+          rating: data.currentUserReview.rating || 5,
+          title: data.currentUserReview.title || "",
+          description: data.currentUserReview.description || "",
+        });
+      }
+    } catch (err) {
+      setReviewError(getApiErrorMessage(err, "Unable to load reviews."));
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  }, [isCustomer, productId]);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
 
   useEffect(() => {
     const hasProcessingImages = (product?.images || []).some((image) =>
@@ -375,6 +415,25 @@ const ProductDetailView = () => {
       await loadProduct();
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to delete product photo."));
+    }
+  };
+
+  const handleReviewSubmit = async (event) => {
+    event.preventDefault();
+    setReviewError("");
+    setIsSavingReview(true);
+    try {
+      await productApi.saveProductReview(productId, {
+        rating: Number(reviewForm.rating),
+        title: reviewForm.title.trim(),
+        description: reviewForm.description.trim(),
+      });
+      setSuccess("Your verified-purchase review has been saved.");
+      await Promise.all([loadReviews(), loadProduct()]);
+    } catch (err) {
+      setReviewError(getApiErrorMessage(err, "Unable to save your review."));
+    } finally {
+      setIsSavingReview(false);
     }
   };
 
@@ -618,6 +677,13 @@ const ProductDetailView = () => {
                   <h1 className="text-2xl font-bold leading-snug text-slate-900 md:text-3xl">
                     {product.name}
                   </h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                    <RatingStars rating={product.averageRating} />
+                    <span className="font-semibold text-slate-800">{Number(product.reviewCount || 0) ? Number(product.averageRating || 0).toFixed(1) : "New"}</span>
+                    <span>({Number(product.reviewCount || 0)} reviews)</span>
+                    <span className="text-slate-300">•</span>
+                    <span>{Number(product.purchaserCount || 0)} purchased</span>
+                  </div>
                   {!isAdmin ? (
                     <button type="button" onClick={handleShare} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                       <SvgIcon path="M18 8a3 3 0 1 0-2.83-4 3 3 0 0 0 .08.68L8.91 8.35a3 3 0 1 0 0 7.3l6.34 3.67A3 3 0 1 0 16.25 18l-6.34-3.67a3.04 3.04 0 0 0 0-4.66l6.34-3.67A3 3 0 0 0 18 8z" className="h-4 w-4 fill-current" />
@@ -1064,6 +1130,38 @@ const ProductDetailView = () => {
             </div>
 
             {/* ── RELATED PRODUCTS ── */}
+            {isCustomer && (
+              <section className="mt-14 rounded-2xl border border-slate-200 bg-white p-5 md:p-7">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-amber-600">Verified purchaser reviews</p>
+                    <h2 className="mt-1 text-2xl font-bold text-slate-900">Ratings &amp; Reviews</h2>
+                    <p className="mt-1 text-sm text-slate-500">Review details are visible only to signed-in customers.</p>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2"><RatingStars rating={reviewData?.summary?.averageRating} /><strong className="text-lg text-slate-900">{Number(reviewData?.summary?.reviewCount || 0) ? Number(reviewData?.summary?.averageRating || 0).toFixed(1) : "—"}</strong></div>
+                    <p className="mt-1 text-xs text-slate-600">{Number(reviewData?.summary?.reviewCount || 0)} review{Number(reviewData?.summary?.reviewCount || 0) === 1 ? "" : "s"}</p>
+                  </div>
+                </div>
+                {isLoadingReviews ? <p className="mt-6 text-sm text-slate-500">Loading reviews…</p> : null}
+                {reviewError ? <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{reviewError}</p> : null}
+                {!isLoadingReviews && reviewData?.canReview && (
+                  <form onSubmit={handleReviewSubmit} className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+                    <h3 className="font-semibold text-slate-900">{reviewData.currentUserReview ? "Update your review" : "Write a review"}</h3>
+                    <p className="mt-1 text-xs text-slate-600">Only customers who paid for this product can submit a review.</p>
+                    <div className="mt-4 grid gap-3 md:grid-cols-[150px_1fr]">
+                      <label className="text-sm font-medium text-slate-700">Rating<select value={reviewForm.rating} onChange={(event) => setReviewForm((previous) => ({ ...previous, rating: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-blue-500">{[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating} star{rating === 1 ? "" : "s"}</option>)}</select></label>
+                      <label className="text-sm font-medium text-slate-700">Review title<input required maxLength={120} value={reviewForm.title} onChange={(event) => setReviewForm((previous) => ({ ...previous, title: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-blue-500" placeholder="Summarise your experience" /></label>
+                    </div>
+                    <label className="mt-3 block text-sm font-medium text-slate-700">Review<textarea required maxLength={2000} rows={4} value={reviewForm.description} onChange={(event) => setReviewForm((previous) => ({ ...previous, description: event.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-blue-500" placeholder="What did you like about this product?" /></label>
+                    <button type="submit" disabled={isSavingReview} className="mt-3 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">{isSavingReview ? "Saving…" : reviewData.currentUserReview ? "Update review" : "Submit review"}</button>
+                  </form>
+                )}
+                {!isLoadingReviews && !reviewData?.canReview && !reviewData?.currentUserReview ? <p className="mt-6 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Purchase this product first to write a verified review.</p> : null}
+                {!isLoadingReviews && (reviewData?.reviews || []).length > 0 && <div className="mt-7 space-y-4">{reviewData.reviews.map((review) => <article key={review.reviewId} className="border-t border-slate-100 pt-4 first:border-t-0 first:pt-0"><div className="flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2"><RatingStars rating={review.rating} size="text-sm" /><strong className="text-slate-900">{review.title}</strong></div><span className="text-xs text-slate-400">{formatDateTime(review.modifiedDt || review.createdDt)}</span></div><p className="mt-2 text-sm leading-6 text-slate-600">{review.description}</p><p className="mt-2 text-xs font-medium text-emerald-700">{review.reviewerLabel}</p></article>)}</div>}
+              </section>
+            )}
+
             {relatedProducts.length > 0 && (
               <section className="mt-14">
                 <div className="mb-6">

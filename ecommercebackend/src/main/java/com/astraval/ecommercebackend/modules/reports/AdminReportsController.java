@@ -21,13 +21,20 @@ import com.astraval.ecommercebackend.common.util.SecurityUtil;
 import com.astraval.ecommercebackend.modules.order.Order;
 import com.astraval.ecommercebackend.modules.order.OrderRepository;
 import com.astraval.ecommercebackend.modules.order.PaymentStatus;
+import com.astraval.ecommercebackend.modules.product.review.ProductReview;
+import com.astraval.ecommercebackend.modules.product.review.ProductReviewRepository;
 
 @RestController
 @RequestMapping("/api/admin/reports")
 public class AdminReportsController {
     private final OrderRepository orders;
+    private final ProductReviewRepository productReviews;
     private final SecurityUtil security;
-    public AdminReportsController(OrderRepository orders, SecurityUtil security) { this.orders = orders; this.security = security; }
+    public AdminReportsController(OrderRepository orders, ProductReviewRepository productReviews, SecurityUtil security) {
+        this.orders = orders;
+        this.productReviews = productReviews;
+        this.security = security;
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> report(
@@ -41,6 +48,7 @@ public class AdminReportsController {
             case "THREE_MONTHS" -> end.minusMonths(3).plusDays(1);
             case "SIX_MONTHS" -> end.minusMonths(6).plusDays(1);
             case "ONE_YEAR" -> end.minusYears(1).plusDays(1);
+            case "CUSTOM" -> end.minusYears(1).plusDays(1);
             default -> throw new BadRequestException("Unsupported report range");
         } : from;
         if (start.isAfter(end)) throw new BadRequestException("Start date must be before end date");
@@ -53,8 +61,32 @@ public class AdminReportsController {
         BigDecimal paidTotal = paid.stream().map(Order::getTotalAmount).map(this::money).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal fee = paidTotal.multiply(new BigDecimal("0.02")).setScale(2, RoundingMode.HALF_UP);
         BigDecimal gst = fee.multiply(new BigDecimal("0.18")).setScale(2, RoundingMode.HALF_UP);
+        List<ProductReview> reviews = productReviews.findAll().stream()
+                .filter(review -> review.getCreatedDt() != null
+                        && !review.getCreatedDt().toLocalDate().isBefore(start)
+                        && !review.getCreatedDt().toLocalDate().isAfter(end))
+                .toList();
+        Map<String, Long> ratingDistribution = new LinkedHashMap<>();
+        for (int rating = 5; rating >= 1; rating--) {
+            final int value = rating;
+            ratingDistribution.put(rating + " stars", reviews.stream()
+                    .filter(review -> review.getRating() != null && review.getRating() == value).count());
+        }
+        Map<String, Long> reviewsByMonth = new LinkedHashMap<>();
+        for (ProductReview review : reviews) {
+            String month = review.getCreatedDt().toLocalDate().withDayOfMonth(1).toString();
+            reviewsByMonth.merge(month, 1L, Long::sum);
+        }
+        double averageRating = reviews.isEmpty() ? 0.0 : reviews.stream()
+                .filter(review -> review.getRating() != null)
+                .mapToInt(ProductReview::getRating)
+                .average().orElse(0.0);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("from", start); body.put("to", end); body.put("paidRevenue", paidTotal); body.put("razorpayFee", fee); body.put("razorpayFeeGst", gst); body.put("netInHand", paidTotal.subtract(fee).subtract(gst)); body.put("paidRevenueByMonth", paidByMonth);
+        body.put("totalProductReviews", reviews.size());
+        body.put("averageProductRating", BigDecimal.valueOf(averageRating).setScale(2, RoundingMode.HALF_UP));
+        body.put("ratingDistribution", ratingDistribution);
+        body.put("reviewsByMonth", reviewsByMonth);
         body.put("unavailableReports", List.of("Discount & Coupon Performance", "Cohort Retention", "RFM Segmentation", "Cart Abandonment", "Fulfillment Cycle Time"));
         return ResponseEntity.ok(ApiResponseFactory.ok(body, "Reports fetched successfully"));
     }
