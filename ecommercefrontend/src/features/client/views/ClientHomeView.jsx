@@ -279,48 +279,13 @@ export default function ClientHomeView() {
               Shop all <StoreIcon name="arrow" />
             </a>
           </div>
-          <div className="store-category-list">
-            <button
-              type="button"
-              className={`store-category-tile ${!filters.categoryId ? "is-selected" : ""}`}
-              aria-pressed={!filters.categoryId}
-              onClick={() => selectCategory("")}
-            >
-              <span className="store-category-picture">
-                <StoreIcon name="grid" />
-              </span>
-              <span>All components</span>
-            </button>
-            {loadingCategories
-              ? Array.from({ length: 5 }, (_, i) => (
-                  <div key={i} className="store-category-skeleton" />
-                ))
-              : categories.map((item) => (
-                  <button
-                    type="button"
-                    key={item.categoryId || item.categoryName}
-                    className={`store-category-tile ${String(item.categoryId) === filters.categoryId ? "is-selected" : ""}`}
-                    aria-pressed={
-                      String(item.categoryId) === filters.categoryId
-                    }
-                    onClick={() => selectCategory(item.categoryId)}
-                  >
-                    <span className="store-category-picture">
-                      {item.categoryImageUrl ? (
-                        <ProductImage
-                          src={item.categoryImageUrl}
-                          alt=""
-                          width="100"
-                          height="100"
-                        />
-                      ) : (
-                        <StoreIcon name="chip" />
-                      )}
-                    </span>
-                    <span>{item.categoryName}</span>
-                  </button>
-                ))}
-          </div>
+          <label className="block max-w-md">
+            <span className="sr-only">Choose a category</span>
+            <select value={filters.categoryId} onChange={(event) => selectCategory(event.target.value)} disabled={loadingCategories} className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700">
+              <option value="">All components</option>
+              {categories.map((item) => <option key={item.categoryId} value={item.categoryId}>{item.categoryName}</option>)}
+            </select>
+          </label>
         </section>
 
         <section id="products" className="store-section store-catalog">

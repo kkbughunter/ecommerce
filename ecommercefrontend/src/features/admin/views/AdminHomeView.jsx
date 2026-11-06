@@ -178,11 +178,6 @@ const AdminHomeView = () => {
             <p className="mt-1 text-xs text-[#16a34a]">{formatMoney(financeMetrics.paidRevenue)} paid</p>
           </div>
           <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
-            <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Final In Hand</p>
-            <p className="mt-2 text-2xl font-semibold text-[#0f172a]">{formatMoney(financeMetrics.netInHand)}</p>
-            <p className="mt-1 text-xs text-[#64748b]">Razorpay: {formatMoney(financeMetrics.razorpayFee)} + GST {formatMoney(financeMetrics.razorpayFeeGst)}</p>
-          </div>
-          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Paid Orders</p>
             <p className="mt-2 text-2xl font-semibold text-[#0f172a]">{financeMetrics.paidOrders}</p>
             <p className="mt-1 text-xs text-[#64748b]">Pending payments: {financeMetrics.pendingPayments}</p>

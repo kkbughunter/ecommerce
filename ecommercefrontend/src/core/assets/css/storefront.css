@@ -646,9 +646,13 @@
   background: #fff;
   border-bottom: 1px solid #f3f5f8;
   overflow: hidden;
+  padding: 0;
 }
 .store-card-image .store-product-image {
   transition: transform 0.25s;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .store-product-card:hover .store-card-image img {
   transform: scale(1.045);
@@ -1279,9 +1283,7 @@
   .store-product-grid {
     gap: 13px;
   }
-  .store-card-image {
-    padding: 20px;
-  }
+  .store-card-image { padding: 0; }
   .store-detail-grid {
     gap: 28px;
   }
@@ -1555,10 +1557,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 11px;
   }
-  .store-card-image {
-    aspect-ratio: 1;
-    padding: 19px 14px 14px;
-  }
+  .store-card-image { aspect-ratio: 1; padding: 0; }
   .store-discount {
     font-size: 9px;
     left: 8px;

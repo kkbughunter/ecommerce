@@ -270,6 +270,21 @@ const ProductDetailView = () => {
     });
   };
 
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/api/products/${productId}/share`;
+    const shareData = { title: product?.name || "Villpo product", text: product?.description || "", url: shareUrl };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        setSuccess("Share link copied. Paste it in WhatsApp or any app.");
+      }
+    } catch (err) {
+      if (err?.name !== "AbortError") setError("Unable to share this product.");
+    }
+  };
+
   const handleEditChange = (event) => {
     const { name, value } = event.target;
     if (error || success) {
@@ -603,6 +618,12 @@ const ProductDetailView = () => {
                   <h1 className="text-2xl font-bold leading-snug text-slate-900 md:text-3xl">
                     {product.name}
                   </h1>
+                  {!isAdmin ? (
+                    <button type="button" onClick={handleShare} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                      <SvgIcon path="M18 8a3 3 0 1 0-2.83-4 3 3 0 0 0 .08.68L8.91 8.35a3 3 0 1 0 0 7.3l6.34 3.67A3 3 0 1 0 16.25 18l-6.34-3.67a3.04 3.04 0 0 0 0-4.66l6.34-3.67A3 3 0 0 0 18 8z" className="h-4 w-4 fill-current" />
+                      Share product
+                    </button>
+                  ) : null}
                 </div>
 
                 {product.description && (
