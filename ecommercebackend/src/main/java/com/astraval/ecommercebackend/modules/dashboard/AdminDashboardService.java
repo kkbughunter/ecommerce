@@ -28,6 +28,9 @@ import com.astraval.ecommercebackend.modules.order.OrderStatus;
 import com.astraval.ecommercebackend.modules.order.PaymentStatus;
 import com.astraval.ecommercebackend.modules.product.Product;
 import com.astraval.ecommercebackend.modules.product.ProductRepository;
+import com.astraval.ecommercebackend.modules.payment.PaymentTransaction;
+import com.astraval.ecommercebackend.modules.payment.PaymentTransactionRepository;
+import com.astraval.ecommercebackend.modules.payment.PaymentTransactionStatus;
 
 @Service
 public class AdminDashboardService {
@@ -38,14 +41,16 @@ public class AdminDashboardService {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final SecurityUtil securityUtil;
+    private final PaymentTransactionRepository paymentTransactionRepository;
 
     public AdminDashboardService(
             ProductRepository productRepository,
             OrderRepository orderRepository,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil, PaymentTransactionRepository paymentTransactionRepository) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.securityUtil = securityUtil;
+        this.paymentTransactionRepository = paymentTransactionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +62,7 @@ public class AdminDashboardService {
 
         DashboardProductSummary productSummary = buildProductSummary(products);
         DashboardOrderSummary orderSummary = buildOrderSummary(orders);
-        DashboardRevenueSummary revenueSummary = buildRevenueSummary(orders);
+        DashboardRevenueSummary revenueSummary = buildRevenueSummary(orders, paymentTransactionRepository.findAll());
         List<DashboardGraphPoint> orderTrend = buildOrderTrend(orders);
         List<DashboardGraphPoint> revenueTrend = buildRevenueTrend(orders);
         List<DashboardRecentOrder> recentOrders = buildRecentOrders(orders);
@@ -92,10 +97,12 @@ public class AdminDashboardService {
         return new DashboardOrderSummary(total, delivered, pendingPayments, failedPayments, paidOrders);
     }
 
-    private DashboardRevenueSummary buildRevenueSummary(List<Order> orders) {
+    private DashboardRevenueSummary buildRevenueSummary(List<Order> orders, List<PaymentTransaction> payments) {
         BigDecimal totalRevenue = BigDecimal.ZERO;
         BigDecimal paidRevenue = BigDecimal.ZERO;
         long deliveredCount = 0;
+        BigDecimal gatewayFee = BigDecimal.ZERO;
+        BigDecimal gatewayFeeGst = BigDecimal.ZERO;
 
         for (Order order : orders) {
             BigDecimal totalAmount = order.getTotalAmount() != null ? order.getTotalAmount() : BigDecimal.ZERO;
@@ -105,6 +112,12 @@ public class AdminDashboardService {
             }
             if (order.getStatus() == OrderStatus.DELIVERED) {
                 deliveredCount++;
+            }
+        }
+        for (PaymentTransaction payment : payments) {
+            if (payment.getStatus() == PaymentTransactionStatus.SUCCESS) {
+                gatewayFee = gatewayFee.add(payment.getGatewayFee() != null ? payment.getGatewayFee() : BigDecimal.ZERO);
+                gatewayFeeGst = gatewayFeeGst.add(payment.getGatewayFeeGst() != null ? payment.getGatewayFeeGst() : BigDecimal.ZERO);
             }
         }
 
@@ -118,6 +131,9 @@ public class AdminDashboardService {
         return new DashboardRevenueSummary(
                 totalRevenue.setScale(2, RoundingMode.HALF_UP),
                 paidRevenue.setScale(2, RoundingMode.HALF_UP),
+                gatewayFee.setScale(2, RoundingMode.HALF_UP),
+                gatewayFeeGst.setScale(2, RoundingMode.HALF_UP),
+                paidRevenue.subtract(gatewayFee).subtract(gatewayFeeGst).setScale(2, RoundingMode.HALF_UP),
                 averageOrderValue.setScale(2, RoundingMode.HALF_UP),
                 Math.round(fulfillmentRate * 10.0) / 10.0);
     }

@@ -1,5 +1,11 @@
 const TRACKING_STEPS = [
   {
+    key: "PLACED",
+    label: "Order Placed & Paid",
+    iconPath: "M7 4h-2l-1 2v2h2l3.6 7.59-1.35 2.44A1 1 0 0 0 9.1 19h11v-2h-9.72l.88-1.6h7.45a2 2 0 0 0 1.74-1.01L23 7H8.42l-.94-2z",
+    statuses: ["PLACED"],
+  },
+  {
     key: "CONFIRMED",
     label: "Confirmed",
     iconPath:
@@ -15,36 +21,25 @@ const TRACKING_STEPS = [
   },
   {
     key: "SHIPPED",
-    label: "Shipped",
+    label: "Shipped from Villpo",
     iconPath:
       "M3 6h10v8h2.5l2-3H21v5h-2a3 3 0 1 1-6 0H9a3 3 0 1 1-6 0H1V9h2V6zm3 12a1.2 1.2 0 1 0 0 2.4A1.2 1.2 0 0 0 6 18zm10 0a1.2 1.2 0 1 0 0 2.4A1.2 1.2 0 0 0 16 18z",
     statuses: ["SHIPPED"],
   },
   {
-    key: "OUT_FOR_DELIVERY",
-    label: "Out for Delivery",
+    key: "EXPECTED_DELIVERY",
+    label: "Expected Delivery",
     iconPath:
       "M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z",
-    statuses: ["OUT_FOR_DELIVERY"],
-  },
-  {
-    key: "DELIVERED",
-    label: "Delivered",
-    iconPath:
-      "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z",
-    statuses: ["DELIVERED", "RETURN_REQUESTED", "RETURNED"],
+    statuses: ["SHIPPED"],
   },
 ];
 
 const STATUS_TO_INDEX = {
   PLACED: 0,
-  CONFIRMED: 0,
-  PACKED: 1,
-  SHIPPED: 2,
-  OUT_FOR_DELIVERY: 3,
-  DELIVERED: 4,
-  RETURN_REQUESTED: 4,
-  RETURNED: 4,
+  CONFIRMED: 1,
+  PACKED: 2,
+  SHIPPED: 3,
 };
 
 const formatStepDate = (value) => {
@@ -89,6 +84,8 @@ const getStepDate = (trackingEvents, step) => {
 
 const OrderTrackingTimeline = ({
   currentStatus = "",
+  paymentStatus = "",
+  expectedDeliveryDate = null,
   trackingEvents = [],
   trackingId = "",
   className = "",
@@ -133,7 +130,7 @@ const OrderTrackingTimeline = ({
               </div>
               <div className="flex-1 pb-1">
                 <p className="text-xs font-semibold text-[#111827]">{step.label}</p>
-                <p className="mt-0.5 text-[11px] text-[#64748b]">{formatStepDate(getStepDate(trackingEvents, step))}</p>
+                <p className="mt-0.5 text-[11px] text-[#64748b]">{step.key === "EXPECTED_DELIVERY" ? formatStepDate(expectedDeliveryDate) : formatStepDate(getStepDate(trackingEvents, step))}</p>
               </div>
             </div>
           );
@@ -148,7 +145,7 @@ const OrderTrackingTimeline = ({
             style={{ width: `calc((100% - 64px) * ${progressWidth / 100})` }}
           />
 
-          <div className="grid grid-cols-5">
+          <div className="grid grid-cols-4">
             {TRACKING_STEPS.map((step, index) => {
               const reached = index <= activeIndex;
               const isCurrent = index === activeIndex;
@@ -167,7 +164,7 @@ const OrderTrackingTimeline = ({
                   </div>
                   <p className="mt-3 text-xs font-semibold text-[#111827]">{step.label}</p>
                   <p className="mt-1 text-[11px] text-[#64748b]">
-                    {formatStepDate(getStepDate(trackingEvents, step))}
+                    {step.key === "EXPECTED_DELIVERY" ? formatStepDate(expectedDeliveryDate) : formatStepDate(getStepDate(trackingEvents, step))}
                   </p>
                 </div>
               );

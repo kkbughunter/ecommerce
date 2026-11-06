@@ -27,6 +27,8 @@ const productApi = {
       },
     });
   },
+  deleteProductImage: (productId, uploadId) =>
+    apiClient.delete(`${ENDPOINTS.PRODUCTS.IMAGES}/${productId}/images/${uploadId}`),
 };
 
 export default productApi;

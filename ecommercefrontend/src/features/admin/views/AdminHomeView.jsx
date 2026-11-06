@@ -107,6 +107,9 @@ const AdminHomeView = () => {
     () => ({
       totalRevenue: Number(revenueSummary?.totalRevenue || 0),
       paidRevenue: Number(revenueSummary?.paidRevenue || 0),
+      razorpayFee: Number(revenueSummary?.razorpayFee || 0),
+      razorpayFeeGst: Number(revenueSummary?.razorpayFeeGst || 0),
+      netInHand: Number(revenueSummary?.netInHand || 0),
       paidOrders: Number(orderSummary?.paidOrders || 0),
       pendingPayments: Number(orderSummary?.pendingPayments || 0),
       averageOrderValue: Number(revenueSummary?.averageOrderValue || 0),
@@ -173,6 +176,11 @@ const AdminHomeView = () => {
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Ecommerce Revenue</p>
             <p className="mt-2 text-2xl font-semibold text-[#0f172a]">{formatMoney(financeMetrics.totalRevenue)}</p>
             <p className="mt-1 text-xs text-[#16a34a]">{formatMoney(financeMetrics.paidRevenue)} paid</p>
+          </div>
+          <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Final In Hand</p>
+            <p className="mt-2 text-2xl font-semibold text-[#0f172a]">{formatMoney(financeMetrics.netInHand)}</p>
+            <p className="mt-1 text-xs text-[#64748b]">Razorpay: {formatMoney(financeMetrics.razorpayFee)} + GST {formatMoney(financeMetrics.razorpayFeeGst)}</p>
           </div>
           <div className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
             <p className="text-xs uppercase tracking-[0.08em] text-[#64748b]">Paid Orders</p>

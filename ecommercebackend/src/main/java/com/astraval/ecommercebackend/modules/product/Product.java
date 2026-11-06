@@ -33,7 +33,7 @@ public class Product {
     @Column(name = "name", length = 200, nullable = false)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "price", precision = 10, scale = 2, nullable = false)

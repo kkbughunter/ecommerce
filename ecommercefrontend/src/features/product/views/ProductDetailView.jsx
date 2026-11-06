@@ -347,6 +347,22 @@ const ProductDetailView = () => {
     }
   };
 
+  const handleDeleteImage = async (uploadId) => {
+    if (!window.confirm("Delete this product photo permanently?")) return;
+    setError("");
+    setSuccess("");
+    try {
+      await productApi.deleteProductImage(productId, uploadId);
+      if (editForm.mainImageUploadId === uploadId) {
+        setEditForm((prev) => ({ ...prev, mainImageUploadId: "" }));
+      }
+      setSuccess("Product photo deleted.");
+      await loadProduct();
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to delete product photo."));
+    }
+  };
+
   const price = Number(product?.price || 0);
   const maxPrice = Number(product?.maxPrice || product?.price || 0);
   const savePercentage =
@@ -899,19 +915,10 @@ const ProductDetailView = () => {
                               </select>
                             </label>
                           </div>
-                          <label className="space-y-1">
-                            <span className="text-xs font-semibold text-slate-600">
-                              Main Image Upload ID
-                            </span>
-                            <input
-                              type="text"
-                              name="mainImageUploadId"
-                              value={editForm.mainImageUploadId}
-                              onChange={handleEditChange}
-                              className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-500"
-                              placeholder="Paste upload ID"
-                            />
-                          </label>
+                          <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
+                            <p className="font-semibold">Primary photo</p>
+                            <p className="mt-1 text-xs text-blue-700">Choose a photo below. The selected photo is used across the storefront.</p>
+                          </div>
                           {success && (
                             <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
                               {success}
@@ -975,34 +982,21 @@ const ProductDetailView = () => {
                                     (img) => img?.processingStatus === "READY",
                                   )
                                   .map((img) => (
-                                    <button
+                                    <div
                                       key={img.uploadId}
-                                      type="button"
-                                      onClick={() =>
-                                        setEditForm((prev) => ({
-                                          ...prev,
-                                          mainImageUploadId: img.uploadId,
-                                        }))
-                                      }
-                                      className={`overflow-hidden rounded-xl border-2 transition ${
+                                      className={`relative overflow-hidden rounded-xl border-2 transition ${
                                         editForm.mainImageUploadId ===
                                         img.uploadId
                                           ? "border-blue-500"
                                           : "border-transparent hover:border-slate-300"
                                       }`}
-                                      title="Click to set as main image"
                                     >
-                                      <img
-                                        src={
-                                          img.thumbnailUrl ||
-                                          img.mediumUrl ||
-                                          img.largeUrl
-                                        }
-                                        alt={img.filename || "Product image"}
-                                        className="aspect-square w-full object-contain"
-                                        loading="lazy"
-                                      />
-                                    </button>
+                                      <button type="button" onClick={() => setEditForm((prev) => ({ ...prev, mainImageUploadId: img.uploadId }))} className="block w-full" title="Set as primary photo">
+                                        <img src={img.thumbnailUrl || img.mediumUrl || img.largeUrl} alt={img.filename || "Product image"} className="aspect-square w-full object-contain" loading="lazy" />
+                                      </button>
+                                      {editForm.mainImageUploadId === img.uploadId ? <span className="absolute left-1 top-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">PRIMARY</span> : null}
+                                      <button type="button" onClick={() => handleDeleteImage(img.uploadId)} className="absolute right-1 top-1 rounded bg-rose-600 px-1.5 py-0.5 text-[10px] font-bold text-white" title="Delete photo">Delete</button>
+                                    </div>
                                   ))}
                               </div>
                             </div>

@@ -16,13 +16,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByIsActiveTrue(Pageable pageable);
     
     @Query("""
-            select p from Product p
+            select p from Product p left join p.category c
             where p.isActive = true
               and (
-                    coalesce(:q, '') = ''
+                    :q is null or :q = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
-                    or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
+                    or lower(coalesce(c.categoryName, '')) like lower(concat('%', :q, '%'))
               )
             """)
     Page<Product> searchActiveProducts(@Param("q") String q, Pageable pageable);
@@ -31,13 +31,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByCategoryCategoryId(Integer categoryId, Pageable pageable);
     
     @Query("""
-            select p from Product p
+            select p from Product p left join p.category c
             where p.category.categoryId = :categoryId
               and (
-                    coalesce(:q, '') = ''
+                    :q is null or :q = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
-                    or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
+                    or lower(coalesce(c.categoryName, '')) like lower(concat('%', :q, '%'))
               )
             """)
     Page<Product> searchProductsByCategory(@Param("categoryId") Integer categoryId, @Param("q") String q, Pageable pageable);
@@ -50,7 +50,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             where p.isActive = true
               and p.category.categoryId = :categoryId
               and (
-                    coalesce(:q, '') = ''
+                    :q is null or :q = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))
@@ -61,7 +61,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("""
             select p from Product p
             where (
-                    coalesce(:q, '') = ''
+                    :q is null or :q = ''
                     or lower(p.name) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.description, '')) like lower(concat('%', :q, '%'))
                     or lower(coalesce(p.category.categoryName, '')) like lower(concat('%', :q, '%'))

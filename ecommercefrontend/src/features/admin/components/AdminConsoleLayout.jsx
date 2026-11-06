@@ -155,6 +155,7 @@ const AdminConsoleLayout = ({
     }
   });
   const [expandedGroups, setExpandedGroups] = useState(DEFAULT_EXPANDED_GROUPS);
+  const [notification, setNotification] = useState(null);
   const navGroups = useMemo(
     () => filterNavGroupsByRole(authMeta?.roles),
     [authMeta?.roles],
@@ -183,6 +184,18 @@ const AdminConsoleLayout = ({
     }
   }, [isSidebarCollapsed]);
 
+  useEffect(() => {
+    const showNotification = (event) => setNotification(event.detail);
+    window.addEventListener("admin-notification", showNotification);
+    return () => window.removeEventListener("admin-notification", showNotification);
+  }, []);
+
+  useEffect(() => {
+    if (!notification) return undefined;
+    const timer = window.setTimeout(() => setNotification(null), 10000);
+    return () => window.clearTimeout(timer);
+  }, [notification]);
+
   const handleLogout = () => {
     clearAuthSession();
     navigate("/login", { replace: true });
@@ -204,6 +217,11 @@ const AdminConsoleLayout = ({
 
   return (
     <main className="admin-console h-screen overflow-hidden">
+      {notification ? (
+        <div className={`fixed left-1/2 top-5 z-[100] -translate-x-1/2 rounded-xl px-5 py-3 text-sm font-semibold shadow-xl ${notification.type === "error" ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"}`} role="status">
+          {notification.message}
+        </div>
+      ) : null}
       <div className="w-full">
         <div className="bg-white">
           <div

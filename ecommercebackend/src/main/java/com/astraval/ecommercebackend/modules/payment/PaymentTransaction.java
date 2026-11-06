@@ -81,6 +81,12 @@ public class PaymentTransaction {
     @Column(name = "amount", precision = 12, scale = 2, nullable = false)
     private BigDecimal amount = BigDecimal.ZERO;
 
+    @Column(name = "gateway_fee", precision = 12, scale = 2)
+    private BigDecimal gatewayFee = BigDecimal.ZERO;
+
+    @Column(name = "gateway_fee_gst", precision = 12, scale = 2)
+    private BigDecimal gatewayFeeGst = BigDecimal.ZERO;
+
     @Column(name = "currency", length = 3, nullable = false)
     private String currency = "INR";
 

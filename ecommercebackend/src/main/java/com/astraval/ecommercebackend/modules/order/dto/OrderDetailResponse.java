@@ -2,6 +2,7 @@ package com.astraval.ecommercebackend.modules.order.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.astraval.ecommercebackend.modules.address.dto.AddressResponse;
@@ -27,6 +28,7 @@ public record OrderDetailResponse(
         Long shippingAddressId,
         Long billingAddressId,
         String contactPhone,
+        LocalDate expectedDeliveryDate,
         AddressResponse shippingAddress,
         AddressResponse billingAddress,
         LocalDateTime createdDt,

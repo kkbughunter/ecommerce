@@ -258,6 +258,16 @@ const ClientAccountView = () => {
     [handleAddressChange],
   );
 
+  const copyBillingToShipping = () => {
+    setProfile((prev) => ({
+      ...prev,
+      shippingAddress: {
+        ...prev.billingAddress,
+        addressId: prev.shippingAddress.addressId || null,
+      },
+    }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
@@ -486,11 +496,13 @@ const ClientAccountView = () => {
                     value={profile.billingAddress}
                     onChange={handleBillingChange}
                   />
-                  <AddressForm
-                    title="Shipping Address"
-                    value={profile.shippingAddress}
-                    onChange={handleShippingChange}
-                  />
+                  <div className="space-y-2">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-800">
+                      <input type="checkbox" onChange={(event) => event.target.checked && copyBillingToShipping()} />
+                      Same as billing address
+                    </label>
+                    <AddressForm title="Shipping Address" value={profile.shippingAddress} onChange={handleShippingChange} />
+                  </div>
                 </div>
 
                 {error ? (

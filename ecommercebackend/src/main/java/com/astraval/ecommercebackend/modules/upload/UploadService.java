@@ -91,6 +91,26 @@ public class UploadService {
         return getProductImagesByRelatedId(String.valueOf(productId));
     }
 
+    @Transactional
+    public void deleteProductImage(Long productId, String uploadId) {
+        var product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        Upload upload = uploadRepository.findById(uploadId)
+                .filter(candidate -> Boolean.TRUE.equals(candidate.getIsActive()))
+                .filter(candidate -> String.valueOf(productId).equals(candidate.getRelatedId()))
+                .filter(candidate -> UploadType.PRODUCT_IMAGE.name().equals(candidate.getUploadType()))
+                .orElseThrow(() -> new ResourceNotFoundException("Product image not found"));
+
+        if (uploadId.equals(product.getMainImageUploadId())) {
+            product.setMainImageUploadId(null);
+        }
+        storageService.deleteQuietly(upload.getUploadedPath());
+        storageService.deleteQuietly(upload.getThumbnailObjectKey());
+        storageService.deleteQuietly(upload.getMediumObjectKey());
+        storageService.deleteQuietly(upload.getLargeObjectKey());
+        uploadRepository.delete(upload);
+    }
+
     @Transactional(readOnly = true)
     public List<UploadResponse> getProductImagesByRelatedId(String relatedId) {
         return uploadRepository.findByRelatedIdAndUploadTypeAndIsActiveTrueOrderByCreatedDtAsc(

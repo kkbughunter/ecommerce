@@ -13,12 +13,11 @@ const ORDER_STATUSES = [
   "CONFIRMED",
   "PACKED",
   "SHIPPED",
-  "OUT_FOR_DELIVERY",
-  "DELIVERED",
   "CANCELLED",
-  "RETURN_REQUESTED",
-  "RETURNED",
+  "REFUND_IN_PROCESS",
+  "REFUNDED",
 ];
+const ADMIN_STATUS_OPTIONS = ["CONFIRMED", "PACKED", "SHIPPED", "CANCELLED", "REFUND_IN_PROCESS", "REFUNDED"];
 
 const PAYMENT_STATUSES = ["ALL", "PENDING", "PAID", "FAILED", "REFUNDED"];
 const DATE_RANGE_OPTIONS = [
@@ -174,6 +173,7 @@ const AdminOrdersView = () => {
   const [form, setForm] = useState({
     status: "PLACED",
     paymentStatus: "PENDING",
+    expectedDeliveryDate: "",
     location: "",
     note: "",
   });
@@ -253,6 +253,7 @@ const AdminOrdersView = () => {
         ...prev,
         status: orderData?.status || "PLACED",
         paymentStatus: orderData?.paymentStatus || "PENDING",
+        expectedDeliveryDate: orderData?.expectedDeliveryDate || "",
       }));
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to load order details."));
@@ -287,13 +288,17 @@ const AdminOrdersView = () => {
       await orderApi.updateAdminOrderStatus(selectedOrderId, {
         status: form.status,
         paymentStatus: form.paymentStatus || null,
+        expectedDeliveryDate: form.status === "SHIPPED" ? form.expectedDeliveryDate || null : null,
         location: form.location?.trim() || null,
         note: form.note?.trim() || null,
       });
       setSuccess("Order status and payment status updated successfully.");
+      window.dispatchEvent(new CustomEvent("admin-notification", { detail: { type: "success", message: "Order updated successfully." } }));
       await Promise.all([loadAdminOrders(ordersPage.page, ordersPage.size), loadOrderDetails(selectedOrderId)]);
     } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to update order status."));
+      const message = getApiErrorMessage(err, "Unable to update order status.");
+      setError(message);
+      window.dispatchEvent(new CustomEvent("admin-notification", { detail: { type: "error", message } }));
     } finally {
       setIsUpdating(false);
     }
@@ -504,6 +509,8 @@ const AdminOrdersView = () => {
 
             <OrderTrackingTimeline
               currentStatus={selectedOrder?.status || selectedOrderSummary?.status}
+              paymentStatus={selectedOrder?.paymentStatus || selectedOrderSummary?.paymentStatus}
+              expectedDeliveryDate={selectedOrder?.expectedDeliveryDate}
               trackingEvents={selectedOrder?.tracking || []}
               trackingId={selectedOrder?.orderNumber || selectedOrderSummary?.orderNumber || ""}
             />
@@ -516,13 +523,19 @@ const AdminOrdersView = () => {
                   onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
                   className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm"
                 >
-                  {ORDER_STATUSES.filter((status) => status !== "ALL").map((status) => (
+                  {ADMIN_STATUS_OPTIONS.map((status) => (
                     <option key={status} value={status}>
                       {status}
                     </option>
                   ))}
                 </select>
               </label>
+              {form.status === "SHIPPED" ? (
+                <label className="space-y-1">
+                  <span className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">Expected Delivery</span>
+                  <input type="date" required value={form.expectedDeliveryDate} onChange={(event) => setForm((prev) => ({ ...prev, expectedDeliveryDate: event.target.value }))} className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm" />
+                </label>
+              ) : null}
               <label className="space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">Payment Status</span>
                 <select

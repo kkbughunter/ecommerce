@@ -49,12 +49,10 @@ public class OrderService {
             OrderStatus.PLACED, EnumSet.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED),
             OrderStatus.CONFIRMED, EnumSet.of(OrderStatus.PACKED, OrderStatus.CANCELLED),
             OrderStatus.PACKED, EnumSet.of(OrderStatus.SHIPPED, OrderStatus.CANCELLED),
-            OrderStatus.SHIPPED, EnumSet.of(OrderStatus.OUT_FOR_DELIVERY, OrderStatus.RETURN_REQUESTED),
-            OrderStatus.OUT_FOR_DELIVERY, EnumSet.of(OrderStatus.DELIVERED, OrderStatus.RETURN_REQUESTED),
-            OrderStatus.DELIVERED, EnumSet.of(OrderStatus.RETURN_REQUESTED),
-            OrderStatus.RETURN_REQUESTED, EnumSet.of(OrderStatus.RETURNED),
-            OrderStatus.CANCELLED, EnumSet.noneOf(OrderStatus.class),
-            OrderStatus.RETURNED, EnumSet.noneOf(OrderStatus.class));
+            OrderStatus.SHIPPED, EnumSet.noneOf(OrderStatus.class),
+            OrderStatus.CANCELLED, EnumSet.of(OrderStatus.REFUND_IN_PROCESS),
+            OrderStatus.REFUND_IN_PROCESS, EnumSet.of(OrderStatus.REFUNDED),
+            OrderStatus.REFUNDED, EnumSet.noneOf(OrderStatus.class));
 
     private final OrderRepository orderRepository;
     private final OrderTrackingEventRepository orderTrackingEventRepository;
@@ -283,8 +281,14 @@ public class OrderService {
         if (request.status() == OrderStatus.CANCELLED && order.getStatus() != OrderStatus.CANCELLED) {
             restockOrderItems(order, actorUserId);
         }
+        if (request.status() == OrderStatus.SHIPPED && request.expectedDeliveryDate() == null) {
+            throw new BadRequestException("Expected delivery date is required when shipping an order");
+        }
 
         order.setStatus(request.status());
+        if (request.expectedDeliveryDate() != null) {
+            order.setExpectedDeliveryDate(request.expectedDeliveryDate());
+        }
         if (request.paymentStatus() != null) {
             order.setPaymentStatus(request.paymentStatus());
         }
@@ -447,6 +451,7 @@ public class OrderService {
                 order.getShippingAddressId(),
                 order.getBillingAddressId(),
                 order.getContactPhone(),
+                order.getExpectedDeliveryDate(),
                 shippingAddress != null ? toAddressResponse(shippingAddress) : null,
                 billingAddress != null ? toAddressResponse(billingAddress) : null,
                 order.getCreatedDt(),

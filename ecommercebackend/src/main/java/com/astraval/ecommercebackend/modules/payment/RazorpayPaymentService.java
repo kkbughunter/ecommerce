@@ -301,6 +301,12 @@ public class RazorpayPaymentService {
         paymentTransaction.setGatewayPaymentId(gatewayPaymentId != null ? gatewayPaymentId : paymentTransaction.getGatewayPaymentId());
         paymentTransaction.setRazorpayPaymentId(gatewayPaymentId != null ? gatewayPaymentId : paymentTransaction.getRazorpayPaymentId());
         paymentTransaction.setMethod(trimToNull(textValue(paymentEntity, "method")));
+        BigDecimal gatewayFee = fromSubunits(paymentEntity.path("fee").asLong(0));
+        BigDecimal gatewayTax = fromSubunits(paymentEntity.path("tax").asLong(0));
+        if (gatewayFee.signum() > 0 || gatewayTax.signum() > 0) {
+            paymentTransaction.setGatewayFee(gatewayFee);
+            paymentTransaction.setGatewayFeeGst(gatewayTax);
+        }
         paymentTransaction.setErrorCode(trimToNull(textValue(paymentEntity, "error_code")));
         paymentTransaction.setErrorDescription(trimToNull(textValue(paymentEntity, "error_description")));
         paymentTransaction.setGatewayPayload(payload);
@@ -527,6 +533,10 @@ public class RazorpayPaymentService {
         return normalized.multiply(BigDecimal.valueOf(100))
                 .setScale(0, RoundingMode.HALF_UP)
                 .longValueExact();
+    }
+
+    private BigDecimal fromSubunits(long amount) {
+        return BigDecimal.valueOf(amount).movePointLeft(2).setScale(2, RoundingMode.HALF_UP);
     }
 
     private String generateReceipt(Order order, int attemptNumber) {

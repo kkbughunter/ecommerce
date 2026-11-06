@@ -2,6 +2,7 @@ package com.astraval.ecommercebackend.modules.order;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,6 +76,9 @@ public class Order {
 
     @Column(name = "contact_phone", length = 30)
     private String contactPhone;
+
+    @Column(name = "expected_delivery_date")
+    private LocalDate expectedDeliveryDate;
 
     @Column(name = "created_by")
     private Long createdBy;
