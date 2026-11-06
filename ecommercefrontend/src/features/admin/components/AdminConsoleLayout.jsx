@@ -75,6 +75,12 @@ const NAV_GROUPS = [
         icon: "M6 2h12v20l-3-2-3 2-3-2-3 2V2zm2 4v2h8V6H8zm0 4v2h8v-2H8z",
       },
       {
+        key: "reports",
+        label: "Reports",
+        path: "/admin/reports",
+        icon: "M5 3h14v18H5V3zm3 12h2v3H8v-3zm3-5h2v8h-2v-8zm3-4h2v12h-2V6z",
+      },
+      {
         key: "customers",
         label: "Customers",
         path: "/superadmin/customers",

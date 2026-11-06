@@ -1,0 +1,34 @@
+import { useEffect, useMemo, useState } from "react";
+import adminDashboardApi from "../../../core/api/adminDashboardApi";
+import getApiErrorMessage from "../../../core/utils/apiError";
+import AdminConsoleLayout from "../components/AdminConsoleLayout";
+
+const money = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(value || 0));
+
+export default function AdminReportsView() {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState("");
+  const [range, setRange] = useState("ONE_YEAR");
+  const [view, setView] = useState("graph");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  useEffect(() => { const params = range === "CUSTOM" ? { range, from: customFrom || undefined, to: customTo || undefined } : { range }; adminDashboardApi.getReports(params).then((response) => setData(response?.data?.data || {})).catch((err) => setError(getApiErrorMessage(err, "Unable to load reports."))); }, [range, customFrom, customTo]);
+  const report = useMemo(() => {
+    return { paid: Number(data?.paidRevenue || 0), fee: Number(data?.razorpayFee || 0), gst: Number(data?.razorpayFeeGst || 0), net: Number(data?.netInHand || 0) };
+  }, [data]);
+  const rows = [["Customer payments received", report.paid, "bg-emerald-500"], ["Razorpay fee (2%)", -report.fee, "bg-rose-500"], ["GST on Razorpay fee (18%)", -report.gst, "bg-amber-500"], ["Final cash in hand", report.net, "bg-blue-600"]];
+  const max = Math.max(report.paid, report.net, report.fee, report.gst, 1);
+  return <AdminConsoleLayout activeNav="reports" title="Reports" subtitle="Cash flow and Razorpay processing costs.">
+    <div className="space-y-4">
+      <section className="flex flex-wrap items-end gap-2 rounded-2xl border border-[#e2e6ee] bg-white p-3"><label className="text-xs font-semibold text-slate-600">Date range<select value={range} onChange={(e) => setRange(e.target.value)} className="ml-2 h-9 rounded-lg border px-2"><option value="ONE_MONTH">Last month</option><option value="THREE_MONTHS">Last 3 months</option><option value="SIX_MONTHS">Last 6 months</option><option value="ONE_YEAR">Last one year</option><option value="CUSTOM">Custom</option></select></label>{range === "CUSTOM" ? <><input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="h-9 rounded-lg border px-2" /><input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="h-9 rounded-lg border px-2" /></> : null}<div className="ml-auto flex rounded-lg border"><button onClick={() => setView("graph")} className={`px-3 py-2 text-xs ${view === "graph" ? "bg-slate-900 text-white" : ""}`}>Graph view</button><button onClick={() => setView("table")} className={`px-3 py-2 text-xs ${view === "table" ? "bg-slate-900 text-white" : ""}`}>Table view</button></div></section>
+      {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{rows.map(([label, value]) => <article key={label} className="rounded-2xl border border-[#e2e6ee] bg-white p-4"><p className="text-xs font-semibold uppercase tracking-[.08em] text-slate-500">{label}</p><p className={`mt-2 text-2xl font-semibold ${value < 0 ? "text-rose-600" : "text-slate-900"}`}>{value < 0 ? `-${money(Math.abs(value))}` : money(value)}</p></article>)}</section>
+      <section className="grid gap-4 xl:grid-cols-2">
+        <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4"><h2 className="text-lg font-semibold text-slate-900">Cash Flow</h2><p className="mt-1 text-xs text-slate-500">Paid transactions less Razorpay fee and GST.</p><div className="mt-6 space-y-4">{rows.map(([label, value, color]) => <div key={label}><div className="mb-1 flex justify-between text-sm"><span>{label}</span><span>{money(Math.abs(value))}</span></div><div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className={`h-full ${color}`} style={{ width: `${Math.max(2, Math.abs(value) / max * 100)}%` }} /></div></div>)}</div></article>
+        <article className="rounded-2xl border border-[#e2e6ee] bg-white p-4"><h2 className="text-lg font-semibold text-slate-900">Cash Flow Details</h2><div className="mt-4 overflow-x-auto"><table className="min-w-full text-sm"><thead className="border-b text-left text-slate-500"><tr><th className="pb-2">Item</th><th className="pb-2 text-right">Amount</th></tr></thead><tbody>{rows.map(([label, value]) => <tr key={label} className="border-b border-slate-100"><td className="py-3">{label}</td><td className="py-3 text-right font-semibold">{value < 0 ? `-${money(Math.abs(value))}` : money(value)}</td></tr>)}</tbody></table></div><p className="mt-4 text-xs text-slate-500">Razorpay fee: 2% of paid transactions. GST: 18% of the fee.</p></article>
+      </section>
+      <section className="rounded-2xl border border-[#e2e6ee] bg-white p-4"><h2 className="text-lg font-semibold text-slate-900">Paid Revenue vs Net In Hand</h2>{view === "graph" ? <div className="mt-4 grid grid-cols-12 items-end gap-2 h-48">{Object.entries(data?.paidRevenueByMonth || {}).map(([month, value]) => <div key={month} className="flex h-full flex-col justify-end gap-1 text-center text-[10px]"><div className="bg-emerald-500" style={{height: `${Math.max(3, Number(value) / Math.max(...Object.values(data?.paidRevenueByMonth || {x: 1}).map(Number), 1) * 100)}%`}} title={`${month}: ${money(value)}`} /><div className="bg-blue-600" style={{height: `${Math.max(3, Number(value) * .9764 / Math.max(...Object.values(data?.paidRevenueByMonth || {x: 1}).map(Number), 1) * 100)}%`}} title={`${month}: ${money(Number(value) * .9764)}`} /><span>{month.slice(5, 7)}</span></div>)}</div> : <div className="mt-4 overflow-x-auto"><table className="min-w-full text-sm"><thead><tr className="text-left"><th>Month</th><th className="text-right">Paid</th><th className="text-right">Net in hand</th></tr></thead><tbody>{Object.entries(data?.paidRevenueByMonth || {}).map(([month,value]) => <tr key={month} className="border-t"><td className="py-2">{month}</td><td className="py-2 text-right">{money(value)}</td><td className="py-2 text-right">{money(Number(value) * .9764)}</td></tr>)}</tbody></table></div>}</section>
+      <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4"><h2 className="font-semibold text-amber-900">Reports waiting for data collection</h2><p className="mt-1 text-sm text-amber-800">{(data?.unavailableReports || []).join(", ")}. Add the respective lifecycle/events before those reports can be calculated accurately.</p></section>
+    </div>
+  </AdminConsoleLayout>;
+}

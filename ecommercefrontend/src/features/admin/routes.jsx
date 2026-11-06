@@ -9,6 +9,7 @@ import AdminOrdersView from "./views/AdminOrdersView";
 import AdminPaymentsView from "./views/AdminPaymentsView";
 import AdminProductsView from "./views/AdminProductsView";
 import AdminSlidersView from "./views/AdminSlidersView";
+import AdminReportsView from "./views/AdminReportsView";
 
 const adminRoutes = [
   {
@@ -90,6 +91,10 @@ const adminRoutes = [
         <AdminInvoicesView />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/admin/reports",
+    element: <ProtectedRoute allowedRoles={["ADMIN"]}><AdminReportsView /></ProtectedRoute>,
   },
 ];
 
