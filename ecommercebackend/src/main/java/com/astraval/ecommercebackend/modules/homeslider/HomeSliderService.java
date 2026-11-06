@@ -2,6 +2,8 @@ package com.astraval.ecommercebackend.modules.homeslider;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
+import com.astraval.ecommercebackend.modules.upload.SingleImageService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +20,12 @@ public class HomeSliderService {
 
     private final HomeSliderRepository homeSliderRepository;
     private final SecurityUtil securityUtil;
+    private final SingleImageService images;
 
     public HomeSliderService(
             HomeSliderRepository homeSliderRepository,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil, SingleImageService images) {
+        this.images = images;
         this.homeSliderRepository = homeSliderRepository;
         this.securityUtil = securityUtil;
     }
@@ -43,6 +47,11 @@ public class HomeSliderService {
 
     @Transactional
     public HomeSliderResponse createSlider(CreateHomeSliderRequest request) {
+        return createSlider(request, null);
+    }
+
+    @Transactional
+    public HomeSliderResponse createSlider(CreateHomeSliderRequest request, MultipartFile file) {
         Long actorUserId = getCurrentUserId();
         validateDateRange(request.startDt(), request.endDt());
 
@@ -50,7 +59,7 @@ public class HomeSliderService {
         slider.setTitle(request.title().trim());
         slider.setSubtitle(trimToNull(request.subtitle()));
         slider.setDescription(trimToNull(request.description()));
-        slider.setImageUrl(request.imageUrl().trim());
+        setImage(slider, request.imageUrl(), file);
         slider.setCtaLabel(trimToNull(request.ctaLabel()));
         slider.setTargetUrl(request.targetUrl().trim());
         slider.setPlacementTag(request.placementTag());
@@ -66,6 +75,11 @@ public class HomeSliderService {
 
     @Transactional
     public HomeSliderResponse updateSlider(Long homeSliderId, UpdateHomeSliderRequest request) {
+        return updateSlider(homeSliderId, request, null);
+    }
+
+    @Transactional
+    public HomeSliderResponse updateSlider(Long homeSliderId, UpdateHomeSliderRequest request, MultipartFile file) {
         Long actorUserId = getCurrentUserId();
         validateDateRange(request.startDt(), request.endDt());
 
@@ -75,7 +89,7 @@ public class HomeSliderService {
         slider.setTitle(request.title().trim());
         slider.setSubtitle(trimToNull(request.subtitle()));
         slider.setDescription(trimToNull(request.description()));
-        slider.setImageUrl(request.imageUrl().trim());
+        setImage(slider, request.imageUrl(), file);
         slider.setCtaLabel(trimToNull(request.ctaLabel()));
         slider.setTargetUrl(request.targetUrl().trim());
         slider.setPlacementTag(request.placementTag());
@@ -105,6 +119,29 @@ public class HomeSliderService {
         slider.setIsActive(active);
         slider.setModifiedBy(actorUserId);
         return toResponse(homeSliderRepository.save(slider));
+    }
+
+    @Transactional
+    public void deleteSlider(Long homeSliderId) {
+        HomeSlider slider = homeSliderRepository.findById(homeSliderId)
+                .orElseThrow(() -> new ResourceNotFoundException("HomeSlider not found"));
+        homeSliderRepository.delete(slider);
+        homeSliderRepository.flush();
+        images.deleteAfterCommit(slider.getImageObjectKey());
+    }
+
+    private void setImage(HomeSlider slider, String requestedUrl, MultipartFile file) {
+        if (file != null) {
+            var uploaded = images.upload(file, "home-slider");
+            images.deleteAfterCommit(slider.getImageObjectKey());
+            slider.setImageUrl(uploaded.url());
+            slider.setImageObjectKey(uploaded.key());
+        } else if (requestedUrl != null && !java.util.Objects.equals(trimToNull(requestedUrl), slider.getImageUrl())) {
+            images.deleteAfterCommit(slider.getImageObjectKey());
+            slider.setImageObjectKey(null);
+            slider.setImageUrl(trimToNull(requestedUrl));
+        }
+        if (slider.getImageUrl() == null) throw new BadRequestException("An image file or image URL is required");
     }
 
     private HomeSliderResponse toResponse(HomeSlider slider) {

@@ -16,6 +16,12 @@ import lombok.Data;
 @Table(name = "categories")
 public class Category {
 
+    @Column(name = "image_object_key", length = 500)
+    private String imageObjectKey;
+
+    @Column(name = "category_image_url", length = 1000)
+    private String categoryImageUrl;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")

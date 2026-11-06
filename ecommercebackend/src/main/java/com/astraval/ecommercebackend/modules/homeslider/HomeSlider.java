@@ -19,6 +19,9 @@ import lombok.Data;
 @Table(name = "home_sliders")
 public class HomeSlider {
 
+    @Column(name = "image_object_key", length = 500)
+    private String imageObjectKey;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "home_slider_id")

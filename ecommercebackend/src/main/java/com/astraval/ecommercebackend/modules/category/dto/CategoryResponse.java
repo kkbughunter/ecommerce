@@ -4,5 +4,8 @@ public record CategoryResponse(
         Integer categoryId,
         String categoryName,
         Integer parentCategoryId,
-        String parentCategoryName) {
+        String parentCategoryName,
+        String categoryImageUrl,
+        long productCount,
+        boolean canDelete) {
 }

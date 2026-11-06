@@ -2,6 +2,8 @@ package com.astraval.ecommercebackend.modules.mainbanner;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
+import com.astraval.ecommercebackend.modules.upload.SingleImageService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +20,12 @@ public class MainBannerService {
 
     private final MainBannerRepository mainBannerRepository;
     private final SecurityUtil securityUtil;
+    private final SingleImageService images;
 
     public MainBannerService(
             MainBannerRepository mainBannerRepository,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil, SingleImageService images) {
+        this.images = images;
         this.mainBannerRepository = mainBannerRepository;
         this.securityUtil = securityUtil;
     }
@@ -52,6 +56,11 @@ public class MainBannerService {
 
     @Transactional
     public MainBannerResponse createMainBanner(CreateMainBannerRequest request) {
+        return createMainBanner(request, null);
+    }
+
+    @Transactional
+    public MainBannerResponse createMainBanner(CreateMainBannerRequest request, MultipartFile file) {
         Long actorUserId = getCurrentUserId();
         validateDateRange(request.startDt(), request.endDt());
 
@@ -59,7 +68,7 @@ public class MainBannerService {
         banner.setHeadline(request.headline().trim());
         banner.setSubheadline(trimToNull(request.subheadline()));
         banner.setDescription(trimToNull(request.description()));
-        banner.setImageUrl(trimToNull(request.imageUrl()));
+        setImage(banner, request.imageUrl(), file);
         banner.setPrimaryCtaLabel(trimToNull(request.primaryCtaLabel()));
         banner.setPrimaryCtaUrl(trimToNull(request.primaryCtaUrl()));
         banner.setSecondaryCtaLabel(trimToNull(request.secondaryCtaLabel()));
@@ -76,6 +85,11 @@ public class MainBannerService {
 
     @Transactional
     public MainBannerResponse updateMainBanner(Long mainBannerId, UpdateMainBannerRequest request) {
+        return updateMainBanner(mainBannerId, request, null);
+    }
+
+    @Transactional
+    public MainBannerResponse updateMainBanner(Long mainBannerId, UpdateMainBannerRequest request, MultipartFile file) {
         Long actorUserId = getCurrentUserId();
         validateDateRange(request.startDt(), request.endDt());
 
@@ -85,7 +99,7 @@ public class MainBannerService {
         banner.setHeadline(request.headline().trim());
         banner.setSubheadline(trimToNull(request.subheadline()));
         banner.setDescription(trimToNull(request.description()));
-        banner.setImageUrl(trimToNull(request.imageUrl()));
+        setImage(banner, request.imageUrl(), file);
         banner.setPrimaryCtaLabel(trimToNull(request.primaryCtaLabel()));
         banner.setPrimaryCtaUrl(trimToNull(request.primaryCtaUrl()));
         banner.setSecondaryCtaLabel(trimToNull(request.secondaryCtaLabel()));
@@ -116,6 +130,28 @@ public class MainBannerService {
         banner.setIsActive(active);
         banner.setModifiedBy(actorUserId);
         return toResponse(mainBannerRepository.save(banner));
+    }
+
+    @Transactional
+    public void deleteMainBanner(Long mainBannerId) {
+        MainBanner banner = mainBannerRepository.findById(mainBannerId)
+                .orElseThrow(() -> new ResourceNotFoundException("MainBanner not found"));
+        mainBannerRepository.delete(banner);
+        mainBannerRepository.flush();
+        images.deleteAfterCommit(banner.getImageObjectKey());
+    }
+
+    private void setImage(MainBanner banner, String requestedUrl, MultipartFile file) {
+        if (file != null) {
+            var uploaded = images.upload(file, "main-banner");
+            images.deleteAfterCommit(banner.getImageObjectKey());
+            banner.setImageUrl(uploaded.url());
+            banner.setImageObjectKey(uploaded.key());
+        } else if (requestedUrl != null && !java.util.Objects.equals(trimToNull(requestedUrl), banner.getImageUrl())) {
+            images.deleteAfterCommit(banner.getImageObjectKey());
+            banner.setImageObjectKey(null);
+            banner.setImageUrl(trimToNull(requestedUrl));
+        }
     }
 
     private MainBannerResponse toResponse(MainBanner banner) {

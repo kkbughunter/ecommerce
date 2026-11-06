@@ -97,7 +97,6 @@ const SUPER_ADMIN_NAV_KEYS = new Set([
   "customers",
 ]);
 const ADMIN_HIDDEN_NAV_KEYS = new Set([
-  "categories",
   "sliders",
   "mainBanners",
   "customers",
@@ -121,7 +120,9 @@ const filterNavGroupsByRole = (roles) => {
   if (isAdminOnly) {
     return NAV_GROUPS.map((group) => ({
       ...group,
-      items: group.items.filter((item) => !ADMIN_HIDDEN_NAV_KEYS.has(item.key)),
+      items: group.items
+        .filter((item) => !ADMIN_HIDDEN_NAV_KEYS.has(item.key))
+        .map((item) => item.key === "categories" ? { ...item, path: "/admin/categories" } : item),
     })).filter((group) => group.items.length > 0);
   }
 

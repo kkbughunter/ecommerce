@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import mainBannerApi from "../../../core/api/mainBannerApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
+import { getUserRoles } from "../../../core/auth/session";
+import SingleImagePicker from "../components/SingleImagePicker";
 import AdminRightPanel from "../components/AdminRightPanel";
 import AdminConsoleLayout from "../components/AdminConsoleLayout";
 
@@ -46,6 +48,8 @@ const orderByDisplayOrder = (a, b) => {
 };
 
 const AdminMainBannersView = () => {
+  const canUploadImage = getUserRoles().includes("SUPER_ADMIN");
+  const [imageFile, setImageFile] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [banners, setBanners] = useState([]);
   const [form, setForm] = useState(initialForm);
@@ -102,6 +106,7 @@ const AdminMainBannersView = () => {
   );
 
   const resetForm = () => {
+    setImageFile(null);
     setForm(initialForm);
   };
 
@@ -140,11 +145,13 @@ const AdminMainBannersView = () => {
         isActive: Boolean(form.isActive),
       };
 
+      if (canUploadImage && imageFile) delete payload.imageUrl;
+
       if (form.mainBannerId) {
-        await mainBannerApi.updateMainBanner(form.mainBannerId, payload);
+        await mainBannerApi.updateMainBanner(form.mainBannerId, payload, canUploadImage ? imageFile : null);
         setSuccess("Main banner updated successfully.");
       } else {
-        await mainBannerApi.createMainBanner(payload);
+        await mainBannerApi.createMainBanner(payload, canUploadImage ? imageFile : null);
         setSuccess("Main banner created successfully.");
       }
 
@@ -159,6 +166,7 @@ const AdminMainBannersView = () => {
   };
 
   const handleEdit = (banner) => {
+    setImageFile(null);
     setIsFormOpen(true);
     setForm({
       mainBannerId: banner.mainBannerId,
@@ -178,6 +186,21 @@ const AdminMainBannersView = () => {
     });
     setError("");
     setSuccess("");
+  };
+
+  const handleDelete = async (banner) => {
+    if (!window.confirm("Delete this banner?")) return;
+    setIsSubmitting(true);
+    setError("");
+    setSuccess("");
+    try {
+      await mainBannerApi.deleteMainBanner(banner.mainBannerId);
+      if (form.mainBannerId === banner.mainBannerId) { resetForm(); setIsFormOpen(false); }
+      setSuccess("Banner deleted successfully.");
+      await loadBanners();
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to delete banner."));
+    } finally { setIsSubmitting(false); }
   };
 
   const handleToggleStatus = async (banner) => {
@@ -438,6 +461,7 @@ const AdminMainBannersView = () => {
                             <button
                               type="button"
                               onClick={() => handleEdit(banner)}
+                              disabled={isSubmitting}
                               className="h-8 rounded-md border border-[#d8dde6] px-2 text-xs font-semibold text-[#334155]"
                             >
                               Edit
@@ -454,6 +478,7 @@ const AdminMainBannersView = () => {
                             >
                               {banner.isActive ? "Deactivate" : "Activate"}
                             </button>
+                            <button type="button" disabled={isSubmitting} onClick={() => handleDelete(banner)} className="h-8 rounded-md border border-rose-300 px-2 text-xs font-semibold text-rose-700">Delete</button>
                           </div>
                         </td>
                       </tr>
@@ -532,19 +557,9 @@ const AdminMainBannersView = () => {
               />
             </label>
 
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
-                Image URL
-              </span>
-              <input
-                type="url"
-                name="imageUrl"
-                value={form.imageUrl}
-                onChange={handleChange}
-                placeholder="https://... (optional)"
-                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-              />
-            </label>
+            {canUploadImage ? (
+              <SingleImagePicker file={imageFile} existingUrl={form.imageUrl} onChange={setImageFile} width={1200} height={800} disabled={isSubmitting}  />
+            ) : form.imageUrl ? <img src={form.imageUrl} alt="Current image" className="max-h-48 rounded-lg object-contain" /> : null}
 
             <div className="grid gap-3 md:grid-cols-2">
               <label className="space-y-1">

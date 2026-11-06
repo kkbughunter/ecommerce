@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+    long countByCategoryCategoryId(Integer categoryId);
+
 
     List<Product> findByIsActiveTrue();
     Page<Product> findByIsActiveTrue(Pageable pageable);

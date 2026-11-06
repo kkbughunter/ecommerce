@@ -1,6 +1,11 @@
 package com.astraval.ecommercebackend.modules.mainbanner;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import com.astraval.ecommercebackend.modules.upload.SingleImageService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,7 +61,7 @@ public class MainBannerController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Main banners fetched successfully"));
     }
 
-    @PostMapping("/admin/main-banners")
+    @PostMapping(value = "/admin/main-banners", consumes = "application/json")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: create main banner")
     public ResponseEntity<ApiResponse<MainBannerResponse>> createMainBanner(
@@ -65,7 +70,7 @@ public class MainBannerController {
         return ResponseEntity.status(201).body(ApiResponseFactory.created(response, "Main banner created successfully"));
     }
 
-    @PutMapping("/admin/main-banners/{mainBannerId}")
+    @PutMapping(value = "/admin/main-banners/{mainBannerId}", consumes = "application/json")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: update main banner")
     public ResponseEntity<ApiResponse<MainBannerResponse>> updateMainBanner(
@@ -89,5 +94,34 @@ public class MainBannerController {
     public ResponseEntity<ApiResponse<MainBannerResponse>> deactivateMainBanner(@PathVariable Long mainBannerId) {
         MainBannerResponse response = mainBannerService.deactivateMainBanner(mainBannerId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Main banner deactivated successfully"));
+    }
+    @PostMapping(value = "/admin/main-banners", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<MainBannerResponse>> createMainBannerWithImage(
+            @Valid @RequestPart("request") CreateMainBannerRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            MultipartHttpServletRequest multipart) {
+        SingleImageService.validateSingle(multipart);
+        var response = mainBannerService.createMainBanner(request, file);
+        return ResponseEntity.status(201).body(ApiResponseFactory.ok(response, "Saved successfully"));
+    }
+
+    @PutMapping(value = "/admin/main-banners/{mainBannerId}", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<MainBannerResponse>> updateMainBannerWithImage(
+            @PathVariable Long mainBannerId,
+            @Valid @RequestPart("request") UpdateMainBannerRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            MultipartHttpServletRequest multipart) {
+        SingleImageService.validateSingle(multipart);
+        var response = mainBannerService.updateMainBanner(mainBannerId, request, file);
+        return ResponseEntity.status(200).body(ApiResponseFactory.ok(response, "Saved successfully"));
+    }
+
+    @DeleteMapping("/admin/main-banners/{mainBannerId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteMainBanner(@PathVariable Long mainBannerId) {
+        mainBannerService.deleteMainBanner(mainBannerId);
+        return ResponseEntity.ok(ApiResponseFactory.ok(null, "Deleted successfully"));
     }
 }

@@ -7,6 +7,7 @@ import {
   isAuthenticated,
 } from "../../../core/auth/session";
 import StoreIcon from "./StoreIcon";
+import CategoryDropdown from "./CategoryDropdown";
 
 export default function ClientTopNav({
   showSearch = false,
@@ -126,10 +127,7 @@ export default function ClientTopNav({
         </div>
         <div className="store-category-nav">
           <nav className="store-container" aria-label="Store navigation">
-            <Link to={`${home}#categories`}>
-              <StoreIcon name="grid" />
-              All categories
-            </Link>
+            <CategoryDropdown home={home} />
             <Link to={`${home}#products`}>Shop components</Link>
             <Link to={`${home}#featured`}>Featured picks</Link>
             <Link to="/legal/returns">Returns & help</Link>

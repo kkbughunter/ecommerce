@@ -1,6 +1,11 @@
 package com.astraval.ecommercebackend.modules.homeslider;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import com.astraval.ecommercebackend.modules.upload.SingleImageService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,7 +57,7 @@ public class HomeSliderController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Sliders fetched successfully"));
     }
 
-    @PostMapping("/admin/home-sliders")
+    @PostMapping(value = "/admin/home-sliders", consumes = "application/json")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: create home slider")
     public ResponseEntity<ApiResponse<HomeSliderResponse>> createSlider(
@@ -61,7 +66,7 @@ public class HomeSliderController {
         return ResponseEntity.status(201).body(ApiResponseFactory.created(response, "Slider created successfully"));
     }
 
-    @PutMapping("/admin/home-sliders/{homeSliderId}")
+    @PutMapping(value = "/admin/home-sliders/{homeSliderId}", consumes = "application/json")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Admin: update home slider")
     public ResponseEntity<ApiResponse<HomeSliderResponse>> updateSlider(
@@ -85,5 +90,34 @@ public class HomeSliderController {
     public ResponseEntity<ApiResponse<HomeSliderResponse>> deactivateSlider(@PathVariable Long homeSliderId) {
         HomeSliderResponse response = homeSliderService.deactivateSlider(homeSliderId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Slider deactivated successfully"));
+    }
+    @PostMapping(value = "/admin/home-sliders", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<HomeSliderResponse>> createSliderWithImage(
+            @Valid @RequestPart("request") CreateHomeSliderRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            MultipartHttpServletRequest multipart) {
+        SingleImageService.validateSingle(multipart);
+        var response = homeSliderService.createSlider(request, file);
+        return ResponseEntity.status(201).body(ApiResponseFactory.ok(response, "Saved successfully"));
+    }
+
+    @PutMapping(value = "/admin/home-sliders/{homeSliderId}", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<HomeSliderResponse>> updateSliderWithImage(
+            @PathVariable Long homeSliderId,
+            @Valid @RequestPart("request") UpdateHomeSliderRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            MultipartHttpServletRequest multipart) {
+        SingleImageService.validateSingle(multipart);
+        var response = homeSliderService.updateSlider(homeSliderId, request, file);
+        return ResponseEntity.status(200).body(ApiResponseFactory.ok(response, "Saved successfully"));
+    }
+
+    @DeleteMapping("/admin/home-sliders/{homeSliderId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteSlider(@PathVariable Long homeSliderId) {
+        homeSliderService.deleteSlider(homeSliderId);
+        return ResponseEntity.ok(ApiResponseFactory.ok(null, "Deleted successfully"));
     }
 }

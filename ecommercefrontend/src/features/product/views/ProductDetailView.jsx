@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import categoryApi from "../../../core/api/categoryApi";
 import productApi from "../../../core/api/productApi";
 import {
@@ -82,11 +82,14 @@ const ProductDetailView = () => {
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [reviewData, setReviewData] = useState(null);
+  const [reviewFilter, setReviewFilter] = useState(0);
+  const [reviewSort, setReviewSort] = useState("recent");
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const [isSavingReview, setIsSavingReview] = useState(false);
   const [reviewError, setReviewError] = useState("");
   const [reviewForm, setReviewForm] = useState({ rating: 5, title: "", description: "" });
   const descriptionRef = useRef(null);
+  const productFlowRef = useRef(null);
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
@@ -111,6 +114,17 @@ const ProductDetailView = () => {
   } = useCart({
     enabled: isCustomer,
   });
+
+  useEffect(() => {
+    const flow = productFlowRef.current;
+    const header = document.querySelector(".store-header");
+    if (isAdmin || !flow || !header) return;
+    const updateOffset = () => flow.style.setProperty("--purchase-sticky-top", `${header.getBoundingClientRect().height + 16}px`);
+    updateOffset();
+    const observer = new ResizeObserver(updateOffset);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [isAdmin, isLoading, product?.productId]);
 
   const handleAddToCart = (id) => {
     if (!isCustomer) {
@@ -208,6 +222,9 @@ const ProductDetailView = () => {
       setReviewData(null);
       return;
     }
+    setReviewData(null);
+    setReviewFilter(0);
+    setReviewForm({ rating: 5, title: "", description: "" });
     setIsLoadingReviews(true);
     setReviewError("");
     try {
@@ -448,257 +465,8 @@ const ProductDetailView = () => {
   const isInStock = Number(product?.stockQuantity || 0) > 0;
   const tagLabel = getTagLabel(product?.productTag);
 
-  return (
-    <div className={isAdmin ? "min-h-screen bg-slate-50" : "storefront"}>
-      {/* ── TOP NAV ── */}
-      {isAdmin ? (
-        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
-          <div className="flex h-14 items-center justify-between px-4 md:px-6">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-              >
-                <SvgIcon
-                  path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
-                  className="h-4 w-4 fill-current"
-                />
-                Back
-              </button>
-              <span className="hidden rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 sm:inline">
-                Admin Product Studio
-              </span>
-            </div>
-            <span className="text-sm font-semibold text-slate-500">
-              Product #{productId}
-            </span>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700"
-            >
-              <SvgIcon
-                path="M10 17l1.41-1.41L8.83 13H20v-2H8.83l2.58-2.59L10 7l-5 5 5 5zm-6 3h8v-2H4V6h8V4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2z"
-                className="h-4 w-4 fill-current"
-              />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          </div>
-        </header>
-      ) : (
-        <ClientTopNav cartCount={isCustomer ? cartCount : null} />
-      )}
-
-      <main
-        id="main-content"
-        tabIndex="-1"
-        className={
-          isAdmin
-            ? "mx-auto max-w-6xl px-4 py-6 md:px-6"
-            : "store-container store-detail-content store-page-content"
-        }
-      >
-        {isLoading ? (
-          <div className="animate-pulse">
-            <div className="grid gap-8 lg:grid-cols-2">
-              <div className="aspect-square rounded-3xl bg-slate-200" />
-              <div className="space-y-4">
-                <div className="h-5 w-24 rounded-full bg-slate-200" />
-                <div className="h-8 w-3/4 rounded-xl bg-slate-200" />
-                <div className="h-5 w-1/2 rounded-xl bg-slate-200" />
-                <div className="h-12 w-40 rounded-xl bg-slate-200" />
-                <div className="h-12 w-full rounded-2xl bg-slate-200" />
-              </div>
-            </div>
-          </div>
-        ) : error && !product ? (
-          <div className="rounded-2xl bg-red-50 p-6 text-center">
-            <p className="text-red-600">{error}</p>
-            <button
-              type="button"
-              onClick={() => loadProduct({ withLoader: true })}
-              className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white"
-            >
-              Try Again
-            </button>
-          </div>
-        ) : product ? (
-          <>
-            {/* ── MAIN PRODUCT LAYOUT ── */}
-            <div className="store-detail-grid">
-              {/* LEFT: Image Gallery */}
-              <div className="space-y-3">
-                <div className="store-gallery-image">
-                  {activeImage ? (
-                    <ProductImage
-                      loading="eager"
-                      src={activeImage.url}
-                      alt={product.name}
-                      className="h-full w-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-slate-400">
-                      <div className="text-center">
-                        <SvgIcon
-                          path="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
-                          className="mx-auto h-12 w-12 fill-slate-300"
-                        />
-                        <p className="mt-2 text-sm text-slate-400">No image</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {tagLabel && (
-                    <span
-                      className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
-                        product.productTag === "FLASH_SALES"
-                          ? "bg-red-500 text-white"
-                          : "bg-violet-600 text-white"
-                      }`}
-                    >
-                      {tagLabel}
-                    </span>
-                  )}
-
-                  <span
-                    className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold ${
-                      isInStock
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-slate-900 text-white"
-                    }`}
-                  >
-                    {isInStock ? "In Stock" : "Out of Stock"}
-                  </span>
-
-                  {hasMultipleImages && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedImageIndex((prev) =>
-                            prev === 0 ? galleryImages.length - 1 : prev - 1,
-                          )
-                        }
-                        className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
-                        aria-label="Previous image"
-                      >
-                        <SvgIcon
-                          path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
-                          className="h-4 w-4 fill-current"
-                        />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedImageIndex((prev) =>
-                            prev === galleryImages.length - 1 ? 0 : prev + 1,
-                          )
-                        }
-                        className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
-                        aria-label="Next image"
-                      >
-                        <SvgIcon
-                          path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
-                          className="h-4 w-4 fill-current"
-                        />
-                      </button>
-                      <p className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white">
-                        {selectedImageIndex + 1} / {galleryImages.length}
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {hasMultipleImages && (
-                  <div className="store-gallery-thumbs">
-                    {galleryImages.map((img, idx) => (
-                      <button
-                        key={img.uploadId}
-                        type="button"
-                        aria-label={`View product image ${idx + 1}`}
-                        aria-pressed={idx === selectedImageIndex}
-                        onClick={() => setSelectedImageIndex(idx)}
-                        className={`overflow-hidden rounded-xl border-2 transition ${
-                          idx === selectedImageIndex
-                            ? "border-blue-500 shadow-md"
-                            : "border-transparent hover:border-slate-300"
-                        }`}
-                      >
-                        <ProductImage
-                          src={img.thumbnailUrl}
-                          alt={img.filename || `Image ${idx + 1}`}
-                          className="aspect-square w-full object-contain"
-                          loading="lazy"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* RIGHT: Product Info */}
-              <div className="store-detail-info">
-                {/* Breadcrumb */}
-                <div className="flex items-center gap-2 text-sm text-slate-400">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate(
-                        isAdmin ? "/admin" : isCustomer ? "/client" : "/",
-                      )
-                    }
-                    className="hover:text-blue-600"
-                  >
-                    {isAdmin ? "Admin" : "Home"}
-                  </button>
-                  <SvgIcon
-                    path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
-                    className="h-3.5 w-3.5 fill-slate-300"
-                  />
-                  {product.categoryName && (
-                    <>
-                      <span className="text-slate-500">
-                        {product.categoryName}
-                      </span>
-                      <SvgIcon
-                        path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
-                        className="h-3.5 w-3.5 fill-slate-300"
-                      />
-                    </>
-                  )}
-                  <span className="line-clamp-1 text-slate-700">
-                    {product.name}
-                  </span>
-                </div>
-
-                {/* Product name */}
-                <div>
-                  <h1 className="text-2xl font-bold leading-snug text-slate-900 md:text-3xl">
-                    {product.name}
-                  </h1>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
-                    <RatingStars rating={product.averageRating} />
-                    <span className="font-semibold text-slate-800">{Number(product.reviewCount || 0) ? Number(product.averageRating || 0).toFixed(1) : "New"}</span>
-                    <span>({Number(product.reviewCount || 0)} reviews)</span>
-                    <span className="text-slate-300">•</span>
-                    <span>{Number(product.purchaserCount || 0)} purchased</span>
-                  </div>
-                  {!isAdmin ? (
-                    <button type="button" onClick={handleShare} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                      <SvgIcon path="M18 8a3 3 0 1 0-2.83-4 3 3 0 0 0 .08.68L8.91 8.35a3 3 0 1 0 0 7.3l6.34 3.67A3 3 0 1 0 16.25 18l-6.34-3.67a3.04 3.04 0 0 0 0-4.66l6.34-3.67A3 3 0 0 0 18 8z" className="h-4 w-4 fill-current" />
-                      Share product
-                    </button>
-                  ) : null}
-                </div>
-
-                {product.description && (
-                  <div className="store-detail-description">
-                    <h2>About this component</h2>
-                    <p>{product.description}</p>
-                  </div>
-                )}
-                {/* Price section */}
+  const purchasePanel = product && (
+<div className="store-purchase-panel">
                 <div className="store-detail-price">
                   <div className="flex flex-wrap items-baseline gap-3">
                     <span className="text-3xl font-extrabold text-slate-900">
@@ -753,6 +521,9 @@ const ProductDetailView = () => {
                           ? "Add to Cart"
                           : "Out of Stock"}
                     </button>
+                    <Link className="store-cart-link" to={isCustomer ? "/client/cart" : "/login"}>View cart <span aria-hidden="true">&rarr;</span></Link>
+                    <p className="store-purchase-note">Shipping and order total calculated at checkout.</p>
+                    <Link className="store-policy-link" to="/legal/returns">Returns &amp; support</Link>
                     {cartError && (
                       <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-600">
                         {cartError}
@@ -1094,6 +865,263 @@ const ProductDetailView = () => {
                   </div>
                 )}
 
+                </div>
+  );
+
+  return (
+    <div className={isAdmin ? "min-h-screen bg-slate-50" : "storefront"}>
+      {/* ── TOP NAV ── */}
+      {isAdmin ? (
+        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
+          <div className="flex h-14 items-center justify-between px-4 md:px-6">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+              >
+                <SvgIcon
+                  path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                  className="h-4 w-4 fill-current"
+                />
+                Back
+              </button>
+              <span className="hidden rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 sm:inline">
+                Admin Product Studio
+              </span>
+            </div>
+            <span className="text-sm font-semibold text-slate-500">
+              Product #{productId}
+            </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700"
+            >
+              <SvgIcon
+                path="M10 17l1.41-1.41L8.83 13H20v-2H8.83l2.58-2.59L10 7l-5 5 5 5zm-6 3h8v-2H4V6h8V4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2z"
+                className="h-4 w-4 fill-current"
+              />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
+        </header>
+      ) : (
+        <ClientTopNav cartCount={isCustomer ? cartCount : null} />
+      )}
+
+      <main
+        id="main-content"
+        tabIndex="-1"
+        className={
+          isAdmin
+            ? "mx-auto max-w-6xl px-4 py-6 md:px-6"
+            : "store-container store-detail-content store-page-content"
+        }
+      >
+        {isLoading ? (
+          <div className="animate-pulse">
+            <div className="grid gap-8 lg:grid-cols-2">
+              <div className="aspect-square rounded-3xl bg-slate-200" />
+              <div className="space-y-4">
+                <div className="h-5 w-24 rounded-full bg-slate-200" />
+                <div className="h-8 w-3/4 rounded-xl bg-slate-200" />
+                <div className="h-5 w-1/2 rounded-xl bg-slate-200" />
+                <div className="h-12 w-40 rounded-xl bg-slate-200" />
+                <div className="h-12 w-full rounded-2xl bg-slate-200" />
+              </div>
+            </div>
+          </div>
+        ) : error && !product ? (
+          <div className="rounded-2xl bg-red-50 p-6 text-center">
+            <p className="text-red-600">{error}</p>
+            <button
+              type="button"
+              onClick={() => loadProduct({ withLoader: true })}
+              className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : product ? (
+          <>
+            <div ref={productFlowRef} className={isAdmin ? undefined : "store-product-flow"}>
+            {/* ── MAIN PRODUCT LAYOUT ── */}
+            <div className="store-detail-grid">
+              {/* LEFT: Image Gallery */}
+              <div className="store-detail-gallery space-y-3">
+                <div className="store-gallery-image">
+                  {activeImage ? (
+                    <ProductImage
+                      loading="eager"
+                      src={activeImage.url}
+                      alt={product.name}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-slate-400">
+                      <div className="text-center">
+                        <SvgIcon
+                          path="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+                          className="mx-auto h-12 w-12 fill-slate-300"
+                        />
+                        <p className="mt-2 text-sm text-slate-400">No image</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {tagLabel && (
+                    <span
+                      className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+                        product.productTag === "FLASH_SALES"
+                          ? "bg-red-500 text-white"
+                          : "bg-violet-600 text-white"
+                      }`}
+                    >
+                      {tagLabel}
+                    </span>
+                  )}
+
+                  <span
+                    className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold ${
+                      isInStock
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-slate-900 text-white"
+                    }`}
+                  >
+                    {isInStock ? "In Stock" : "Out of Stock"}
+                  </span>
+
+                  {hasMultipleImages && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedImageIndex((prev) =>
+                            prev === 0 ? galleryImages.length - 1 : prev - 1,
+                          )
+                        }
+                        className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
+                        aria-label="Previous image"
+                      >
+                        <SvgIcon
+                          path="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                          className="h-4 w-4 fill-current"
+                        />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedImageIndex((prev) =>
+                            prev === galleryImages.length - 1 ? 0 : prev + 1,
+                          )
+                        }
+                        className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
+                        aria-label="Next image"
+                      >
+                        <SvgIcon
+                          path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                          className="h-4 w-4 fill-current"
+                        />
+                      </button>
+                      <p className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white">
+                        {selectedImageIndex + 1} / {galleryImages.length}
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {hasMultipleImages && (
+                  <div className="store-gallery-thumbs">
+                    {galleryImages.map((img, idx) => (
+                      <button
+                        key={img.uploadId}
+                        type="button"
+                        aria-label={`View product image ${idx + 1}`}
+                        aria-pressed={idx === selectedImageIndex}
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={`overflow-hidden rounded-xl border-2 transition ${
+                          idx === selectedImageIndex
+                            ? "border-blue-500 shadow-md"
+                            : "border-transparent hover:border-slate-300"
+                        }`}
+                      >
+                        <ProductImage
+                          src={img.thumbnailUrl}
+                          alt={img.filename || `Image ${idx + 1}`}
+                          className="aspect-square w-full object-contain"
+                          loading="lazy"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT: Product Info */}
+              <div className="store-detail-info">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        isAdmin ? "/admin" : isCustomer ? "/client" : "/",
+                      )
+                    }
+                    className="hover:text-blue-600"
+                  >
+                    {isAdmin ? "Admin" : "Home"}
+                  </button>
+                  <SvgIcon
+                    path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                    className="h-3.5 w-3.5 fill-slate-300"
+                  />
+                  {product.categoryName && (
+                    <>
+                      <span className="text-slate-500">
+                        {product.categoryName}
+                      </span>
+                      <SvgIcon
+                        path="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                        className="h-3.5 w-3.5 fill-slate-300"
+                      />
+                    </>
+                  )}
+                  <span className="line-clamp-1 text-slate-700">
+                    {product.name}
+                  </span>
+                </div>
+
+                {/* Product name */}
+                <div>
+                  <h1 className="text-2xl font-bold leading-snug text-slate-900 md:text-3xl">
+                    {product.name}
+                  </h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                    <RatingStars rating={product.averageRating} />
+                    <span className="font-semibold text-slate-800">{Number(product.reviewCount || 0) ? Number(product.averageRating || 0).toFixed(1) : "New"}</span>
+                    {isAdmin ? <span>{Number(product.reviewCount || 0)} reviews</span> : <a href="#product-reviews" className="store-review-link">{Number(product.reviewCount || 0)} ratings &amp; reviews</a>}
+                    <span className="text-slate-300">•</span>
+                    <span>{Number(product.purchaserCount || 0)} purchased</span>
+                  </div>
+                  {!isAdmin ? (
+                    <button type="button" onClick={handleShare} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                      <SvgIcon path="M18 8a3 3 0 1 0-2.83-4 3 3 0 0 0 .08.68L8.91 8.35a3 3 0 1 0 0 7.3l6.34 3.67A3 3 0 1 0 16.25 18l-6.34-3.67a3.04 3.04 0 0 0 0-4.66l6.34-3.67A3 3 0 0 0 18 8z" className="h-4 w-4 fill-current" />
+                      Share product
+                    </button>
+                  ) : null}
+                </div>
+
+                {product.description && (
+                  <div className="store-detail-description">
+                    <h2>About this component</h2>
+                    <p>{product.description}</p>
+                  </div>
+                )}
+                {/* Price section */}
+                {isAdmin && purchasePanel}
+
                 {/* Customer-only: product details */}
                 {!isAdmin && (
                   <div className="store-detail-specs rounded-xl border border-slate-200 bg-white p-5">
@@ -1129,38 +1157,160 @@ const ProductDetailView = () => {
               </div>
             </div>
 
-            {/* ── RELATED PRODUCTS ── */}
-            {isCustomer && (
-              <section className="mt-14 rounded-2xl border border-slate-200 bg-white p-5 md:p-7">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-amber-600">Verified purchaser reviews</p>
-                    <h2 className="mt-1 text-2xl font-bold text-slate-900">Ratings &amp; Reviews</h2>
-                    <p className="mt-1 text-sm text-slate-500">Review details are visible only to signed-in customers.</p>
-                  </div>
-                  <div className="rounded-xl bg-amber-50 px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2"><RatingStars rating={reviewData?.summary?.averageRating} /><strong className="text-lg text-slate-900">{Number(reviewData?.summary?.reviewCount || 0) ? Number(reviewData?.summary?.averageRating || 0).toFixed(1) : "—"}</strong></div>
-                    <p className="mt-1 text-xs text-slate-600">{Number(reviewData?.summary?.reviewCount || 0)} review{Number(reviewData?.summary?.reviewCount || 0) === 1 ? "" : "s"}</p>
+            {!isAdmin && <aside className="store-purchase-rail" aria-label="Price and purchase options">{purchasePanel}</aside>}
+
+            {/* Customer reviews */}
+            {!isAdmin && (
+              <section id="product-reviews" className="store-reviews">
+                <div className="store-section-heading"><div><p className="store-eyebrow">FROM THE MAKER COMMUNITY</p><h2>Ratings &amp; Reviews</h2></div></div>
+                <div className="store-reviews-layout">
+                  <aside className="store-rating-summary">
+                    <h3>Customer reviews</h3>
+                    <div className="store-rating-score"><strong>{Number(product.reviewCount || 0) ? Number(product.averageRating || 0).toFixed(1) : "\u2014"}</strong><span>out of 5</span></div>
+                    <RatingStars rating={product.averageRating} size="text-xl" />
+                    <p>{Number(product.reviewCount || 0)} customer ratings</p>
+                    {isCustomer && !isLoadingReviews && !reviewError && [5, 4, 3, 2, 1].map((rating) => {
+                      const reviews = reviewData?.reviews || [];
+                      const count = reviews.filter((review) => Number(review.rating) === rating).length;
+                      const percent = reviews.length ? Math.round(count / reviews.length * 100) : 0;
+                      return <button key={rating} type="button" className="store-rating-bar" aria-pressed={reviewFilter === rating} aria-label={`Filter ${rating} star reviews, ${percent} percent`} onClick={() => setReviewFilter(reviewFilter === rating ? 0 : rating)}>
+                        <span>{rating} star</span><span className="store-rating-track"><span style={{ width: `${percent}%` }} /></span><span>{percent}%</span>
+                      </button>;
+                    })}
+                    <div className="store-review-invitation"><h3>Share your experience</h3><p>Help another maker choose the right component for their next project.</p>
+                      {!isCustomer ? <Link className="store-cart-link" to="/login">Sign in to read reviews</Link> : reviewData?.canReview ? <a className="store-cart-link" href="#write-review">{reviewData.currentUserReview ? "Update your review" : "Write a review"}</a> : <p>Reviews are available to verified purchasers.</p>}
+                    </div>
+                  </aside>
+                  <div className="store-reviews-main">
+                    {!isCustomer && <div className="store-review-empty"><h3>Discover what other makers think</h3><p>Sign in to read verified customer reviews.</p><Link to="/login" className="store-text-link">Sign in &rarr;</Link></div>}
+                    {isLoadingReviews && <p role="status" className="store-review-empty">Loading customer reviews...</p>}
+                    {reviewError && <div role="alert" className="store-notice is-error">{reviewError}<button type="button" onClick={loadReviews}>Try again</button></div>}
+                {!isLoadingReviews && reviewData?.canReview && (
+                 
+<form id="write-review" onSubmit={handleReviewSubmit} className="store-review-form">
+  <h3 className="font-semibold text-slate-900">
+    {reviewData.currentUserReview ? "Update your review" : "Write a review"}
+  </h3>
+
+  <p className="mt-1 text-xs text-slate-600">
+    Only customers who paid for this product can submit a review.
+  </p>
+
+  {/* Rating - First */}
+  <fieldset className="mt-4">
+    <legend className="text-sm font-medium text-slate-700">
+      Rating
+    </legend>
+
+    <div className="mt-1.5 flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((rating) => (
+        <label key={rating} className="cursor-pointer">
+          <input
+            type="radio"
+            name="rating"
+            value={rating}
+            checked={Number(reviewForm.rating) === rating}
+            onChange={(event) =>
+              setReviewForm((previous) => ({
+                ...previous,
+                rating: event.target.value,
+              }))
+            }
+            className="peer sr-only"
+          />
+
+          <span className="sr-only">
+            {rating} {rating === 1 ? "star" : "stars"}
+          </span>
+
+          <span
+            aria-hidden="true"
+            className={`grid h-9 w-8 place-items-center text-2xl leading-none transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 ${
+              rating <= Number(reviewForm.rating)
+                ? "text-amber-500"
+                : "text-slate-300"
+            }`}
+          >
+            ★
+          </span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+
+  {/* Review Title - Second */}
+  <label className="mt-4 block text-sm font-medium text-slate-700">
+    Review title
+
+    <input
+      required
+      maxLength={120}
+      value={reviewForm.title}
+      onChange={(event) =>
+        setReviewForm((previous) => ({
+          ...previous,
+          title: event.target.value,
+        }))
+      }
+      className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-blue-500"
+      placeholder="Summarise your experience"
+    />
+  </label>
+
+  {/* Review Description - Third */}
+  <label className="mt-4 block text-sm font-medium text-slate-700">
+    Review
+
+    <textarea
+      required
+      maxLength={2000}
+      rows={4}
+      value={reviewForm.description}
+      onChange={(event) =>
+        setReviewForm((previous) => ({
+          ...previous,
+          description: event.target.value,
+        }))
+      }
+      className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-blue-500"
+      placeholder="What did you like about this product?"
+    />
+  </label>
+
+  {/* Submit */}
+  <button
+    type="submit"
+    disabled={isSavingReview}
+    className="mt-4 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60"
+  >
+    {isSavingReview
+      ? "Saving…"
+      : reviewData.currentUserReview
+        ? "Update review"
+        : "Submit review"}
+  </button>
+</form>
+
+                )}
+                    {isCustomer && !isLoadingReviews && !reviewError && <>
+                      <div className="store-review-toolbar"><h3>{reviewFilter ? `${reviewFilter}-star reviews` : "Customer opinions"}</h3><label>Sort by <select value={reviewSort} onChange={(event) => setReviewSort(event.target.value)}><option value="recent">Most recent</option><option value="highest">Highest rated</option><option value="lowest">Lowest rated</option></select></label></div>
+                      {reviewFilter > 0 && <button type="button" className="store-text-link" onClick={() => setReviewFilter(0)}>Show all reviews &times;</button>}
+                      {(reviewData?.reviews || []).filter((review) => !reviewFilter || Number(review.rating) === reviewFilter).sort((a, b) => reviewSort === "highest" ? b.rating - a.rating : reviewSort === "lowest" ? a.rating - b.rating : new Date(b.createdDt) - new Date(a.createdDt)).map((review) => (
+                        <article key={review.reviewId} className="store-review-card">
+                          <div className="store-review-author"><span className="store-review-avatar" aria-hidden="true">V</span><span>Villpo customer<small>{review.reviewerLabel}</small></span></div>
+                          <div className="store-review-title"><RatingStars rating={review.rating} /><h4>{review.title}</h4></div>
+                          <p className="store-review-date">Reviewed on {formatDateTime(review.modifiedDt || review.createdDt)}</p>
+                          <p className="store-review-body">{review.description}</p>
+                        </article>
+                      ))}
+                      {!(reviewData?.reviews || []).some((review) => !reviewFilter || Number(review.rating) === reviewFilter) && <div className="store-review-empty"><h3>{reviewFilter ? "No reviews with this rating yet" : "Be the first to share your experience"}</h3><p>{reviewFilter ? "Choose another star rating or view all reviews." : "Your experience can help someone with their next build."}</p></div>}
+                    </>}
                   </div>
                 </div>
-                {isLoadingReviews ? <p className="mt-6 text-sm text-slate-500">Loading reviews…</p> : null}
-                {reviewError ? <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{reviewError}</p> : null}
-                {!isLoadingReviews && reviewData?.canReview && (
-                  <form onSubmit={handleReviewSubmit} className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
-                    <h3 className="font-semibold text-slate-900">{reviewData.currentUserReview ? "Update your review" : "Write a review"}</h3>
-                    <p className="mt-1 text-xs text-slate-600">Only customers who paid for this product can submit a review.</p>
-                    <div className="mt-4 grid gap-3 md:grid-cols-[150px_1fr]">
-                      <label className="text-sm font-medium text-slate-700">Rating<select value={reviewForm.rating} onChange={(event) => setReviewForm((previous) => ({ ...previous, rating: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-blue-500">{[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating} star{rating === 1 ? "" : "s"}</option>)}</select></label>
-                      <label className="text-sm font-medium text-slate-700">Review title<input required maxLength={120} value={reviewForm.title} onChange={(event) => setReviewForm((previous) => ({ ...previous, title: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-blue-500" placeholder="Summarise your experience" /></label>
-                    </div>
-                    <label className="mt-3 block text-sm font-medium text-slate-700">Review<textarea required maxLength={2000} rows={4} value={reviewForm.description} onChange={(event) => setReviewForm((previous) => ({ ...previous, description: event.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-blue-500" placeholder="What did you like about this product?" /></label>
-                    <button type="submit" disabled={isSavingReview} className="mt-3 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">{isSavingReview ? "Saving…" : reviewData.currentUserReview ? "Update review" : "Submit review"}</button>
-                  </form>
-                )}
-                {!isLoadingReviews && !reviewData?.canReview && !reviewData?.currentUserReview ? <p className="mt-6 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Purchase this product first to write a verified review.</p> : null}
-                {!isLoadingReviews && (reviewData?.reviews || []).length > 0 && <div className="mt-7 space-y-4">{reviewData.reviews.map((review) => <article key={review.reviewId} className="border-t border-slate-100 pt-4 first:border-t-0 first:pt-0"><div className="flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2"><RatingStars rating={review.rating} size="text-sm" /><strong className="text-slate-900">{review.title}</strong></div><span className="text-xs text-slate-400">{formatDateTime(review.modifiedDt || review.createdDt)}</span></div><p className="mt-2 text-sm leading-6 text-slate-600">{review.description}</p><p className="mt-2 text-xs font-medium text-emerald-700">{review.reviewerLabel}</p></article>)}</div>}
               </section>
             )}
+
+            </div>
 
             {relatedProducts.length > 0 && (
               <section className="mt-14">

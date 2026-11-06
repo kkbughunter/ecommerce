@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import categoryApi from "../../../core/api/categoryApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
+import { getUserRoles } from "../../../core/auth/session";
+import SingleImagePicker from "../components/SingleImagePicker";
 import AdminRightPanel from "../components/AdminRightPanel";
 import AdminConsoleLayout from "../components/AdminConsoleLayout";
 
 const AdminCategoriesView = () => {
+  const canUploadImage = getUserRoles().includes("SUPER_ADMIN");
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
@@ -63,13 +68,20 @@ const AdminCategoriesView = () => {
     setError("");
     setSuccess("");
     try {
-      await categoryApi.createCategory({
+      const payload = {
         categoryName,
         parentCategoryId: form.parentCategoryId
           ? Number(form.parentCategoryId)
           : null,
-      });
-      setSuccess("Category created successfully.");
+      };
+      if (editingCategory) {
+        await categoryApi.updateCategory(editingCategory.categoryId, payload, canUploadImage ? imageFile : null);
+      } else {
+        await categoryApi.createCategory(payload, canUploadImage ? imageFile : null);
+      }
+      setSuccess(editingCategory ? "Category updated successfully." : "Category created successfully.");
+      setImageFile(null);
+      setEditingCategory(null);
       setIsFormOpen(false);
       setForm({
         categoryName: "",
@@ -77,10 +89,34 @@ const AdminCategoriesView = () => {
       });
       await loadCategories();
     } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to create category."));
+      setError(getApiErrorMessage(err, "Unable to save category."));
     } finally {
       setIsCreatingCategory(false);
     }
+  };
+
+  const handleEdit = (category) => {
+    setEditingCategory(category);
+    setImageFile(null);
+    setForm({ categoryName: category.categoryName || "", parentCategoryId: category.parentCategoryId ?? "" });
+    setError("");
+    setSuccess("");
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = async (category) => {
+    if (!category.canDelete || !window.confirm(`Delete category "${category.categoryName}"?`)) return;
+    setIsCreatingCategory(true);
+    setError("");
+    setSuccess("");
+    try {
+      await categoryApi.deleteCategory(category.categoryId);
+      if (editingCategory?.categoryId === category.categoryId) setIsFormOpen(false);
+      setSuccess("Category deleted successfully.");
+      await loadCategories();
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to delete category."));
+    } finally { setIsCreatingCategory(false); }
   };
 
   return (
@@ -93,17 +129,20 @@ const AdminCategoriesView = () => {
       searchPlaceholder="Search categories..."
       topActions={
         <>
-          <button
+          {canUploadImage && <button
             type="button"
             className="admin-primary"
             onClick={() => {
               setError("");
               setSuccess("");
+              setEditingCategory(null);
+              setImageFile(null);
+              setForm({ categoryName: "", parentCategoryId: "" });
               setIsFormOpen(true);
             }}
           >
             + New Category
-          </button>
+          </button>}
           <button
             type="button"
             onClick={loadCategories}
@@ -147,6 +186,8 @@ const AdminCategoriesView = () => {
                       <th className="px-3 py-2">ID</th>
                       <th className="px-3 py-2">Category</th>
                       <th className="px-3 py-2">Parent</th>
+                      <th className="px-3 py-2">Products</th>
+                      <th className="px-3 py-2">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -157,10 +198,22 @@ const AdminCategoriesView = () => {
                       >
                         <td className="px-3 py-2">#{category.categoryId}</td>
                         <td className="px-3 py-2 font-medium text-[#111827]">
+                          {category.categoryImageUrl && <img src={category.categoryImageUrl} alt="" className="mr-2 inline-block h-10 w-10 rounded-md object-cover" />}
                           {category.categoryName}
                         </td>
                         <td className="px-3 py-2">
                           {category.parentCategoryName || "-"}
+                        </td>
+                        <td className="px-3 py-2">{category.productCount ?? 0}</td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <button type="button" disabled={isCreatingCategory} onClick={() => handleEdit(category)} aria-label={`Edit ${category.categoryName}`} title="Edit category" className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 text-slate-700">
+                              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m16 3 5 5-12 12H4v-5L16 3zM13 6l5 5" /></svg>
+                            </button>
+                            {category.canDelete === true && <button type="button" disabled={isCreatingCategory} onClick={() => handleDelete(category)} aria-label={`Delete ${category.categoryName}`} title="Delete category" className="flex h-8 w-8 items-center justify-center rounded-md border border-rose-300 text-rose-700">
+                              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" /></svg>
+                            </button>}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -175,7 +228,7 @@ const AdminCategoriesView = () => {
       </div>
       <AdminRightPanel
         isOpen={isFormOpen}
-        title={"Create Category"}
+        title={editingCategory ? "Edit Category" : "Create Category"}
         busy={isCreatingCategory}
         onClose={() => setIsFormOpen(false)}
       >
@@ -191,10 +244,10 @@ const AdminCategoriesView = () => {
         )}
         <article className="rounded-2xl border border-[#e2e6ee] bg-white p-3 sm:p-4">
           <h2 className="text-base font-semibold text-[#111827]">
-            Create Category
+            {editingCategory ? "Edit Category" : "Create Category"}
           </h2>
           <p className="mt-1 text-xs text-[#64748b]">
-            Add a new category for products.
+            {editingCategory ? "Update category details." : "Add a new category for products."}
           </p>
 
           <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
@@ -239,7 +292,7 @@ const AdminCategoriesView = () => {
                 className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
               >
                 <option value="">None</option>
-                {categories.map((category) => (
+                {categories.filter((category) => category.categoryId !== editingCategory?.categoryId).map((category) => (
                   <option key={category.categoryId} value={category.categoryId}>
                     {category.categoryName}
                   </option>
@@ -247,12 +300,14 @@ const AdminCategoriesView = () => {
               </select>
             </label>
 
+            {canUploadImage && <SingleImagePicker file={imageFile} existingUrl={editingCategory?.categoryImageUrl} onChange={setImageFile} width={400} height={400} disabled={isCreatingCategory} />}
+
             <button
               type="submit"
               disabled={isCreatingCategory}
               className="h-10 rounded-lg bg-[#111827] px-4 text-sm font-semibold text-white disabled:opacity-50"
             >
-              {isCreatingCategory ? "Creating..." : "Create Category"}
+              {isCreatingCategory ? "Saving..." : editingCategory ? "Save Category" : "Create Category"}
             </button>
           </form>
         </article>

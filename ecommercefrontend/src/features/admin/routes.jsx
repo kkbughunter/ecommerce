@@ -37,6 +37,14 @@ const adminRoutes = [
     ),
   },
   {
+    path: "/admin/categories",
+    element: (
+      <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+        <AdminCategoriesView />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: "/superadmin/categories",
     element: (
       <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>

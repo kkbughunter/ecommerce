@@ -1,6 +1,13 @@
 package com.astraval.ecommercebackend.modules.category;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import com.astraval.ecommercebackend.modules.upload.SingleImageService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,12 +44,46 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Categories fetched successfully"));
     }
 
-    @PostMapping
+    @PostMapping(consumes = "application/json")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Create category")
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
             @Valid @RequestBody CreateCategoryRequest request) {
         CategoryResponse response = categoryService.createCategory(request);
         return ResponseEntity.status(201).body(ApiResponseFactory.created(response, "Category created successfully"));
+    }
+    @PostMapping(consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<CategoryResponse>> createWithImage(
+            @Valid @RequestPart("request") CreateCategoryRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            MultipartHttpServletRequest multipart) {
+        SingleImageService.validateSingle(multipart);
+        return ResponseEntity.status(201).body(ApiResponseFactory.created(
+                categoryService.createCategory(request, file), "Category created successfully"));
+    }
+
+    @PutMapping(value = "/{id}", consumes = "application/json")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(@PathVariable Integer id,
+            @Valid @RequestBody CreateCategoryRequest request) {
+        return ResponseEntity.ok(ApiResponseFactory.ok(categoryService.updateCategory(id, request, null), "Category updated successfully"));
+    }
+
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateWithImage(@PathVariable Integer id,
+            @Valid @RequestPart("request") CreateCategoryRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            MultipartHttpServletRequest multipart) {
+        SingleImageService.validateSingle(multipart);
+        return ResponseEntity.ok(ApiResponseFactory.ok(categoryService.updateCategory(id, request, file), "Category updated successfully"));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Integer id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok(ApiResponseFactory.ok(null, "Category deleted successfully"));
     }
 }

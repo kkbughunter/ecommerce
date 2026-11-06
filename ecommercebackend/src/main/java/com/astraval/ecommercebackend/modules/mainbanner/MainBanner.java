@@ -17,6 +17,9 @@ import lombok.Data;
 @Table(name = "main_banners")
 public class MainBanner {
 
+    @Column(name = "image_object_key", length = 500)
+    private String imageObjectKey;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "main_banner_id")

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import homeSliderApi from "../../../core/api/homeSliderApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
+import { getUserRoles } from "../../../core/auth/session";
+import SingleImagePicker from "../components/SingleImagePicker";
 import AdminRightPanel from "../components/AdminRightPanel";
 import AdminConsoleLayout from "../components/AdminConsoleLayout";
 
@@ -49,6 +51,8 @@ const orderByDisplayOrder = (a, b) => {
 };
 
 const AdminSlidersView = () => {
+  const canUploadImage = getUserRoles().includes("SUPER_ADMIN");
+  const [imageFile, setImageFile] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [sliders, setSliders] = useState([]);
   const [form, setForm] = useState(initialForm);
@@ -101,6 +105,7 @@ const AdminSlidersView = () => {
   );
 
   const resetForm = () => {
+    setImageFile(null);
     setForm(initialForm);
   };
 
@@ -137,11 +142,13 @@ const AdminSlidersView = () => {
         isActive: Boolean(form.isActive),
       };
 
+      if (canUploadImage && imageFile) delete payload.imageUrl;
+
       if (form.homeSliderId) {
-        await homeSliderApi.updateSlider(form.homeSliderId, payload);
+        await homeSliderApi.updateSlider(form.homeSliderId, payload, canUploadImage ? imageFile : null);
         setSuccess("Slider updated successfully.");
       } else {
-        await homeSliderApi.createSlider(payload);
+        await homeSliderApi.createSlider(payload, canUploadImage ? imageFile : null);
         setSuccess("Slider created successfully.");
       }
 
@@ -156,6 +163,7 @@ const AdminSlidersView = () => {
   };
 
   const handleEdit = (slider) => {
+    setImageFile(null);
     setIsFormOpen(true);
     setForm({
       homeSliderId: slider.homeSliderId,
@@ -173,6 +181,21 @@ const AdminSlidersView = () => {
     });
     setError("");
     setSuccess("");
+  };
+
+  const handleDelete = async (slider) => {
+    if (!window.confirm("Delete this slider?")) return;
+    setIsSubmitting(true);
+    setError("");
+    setSuccess("");
+    try {
+      await homeSliderApi.deleteSlider(slider.homeSliderId);
+      if (form.homeSliderId === slider.homeSliderId) { resetForm(); setIsFormOpen(false); }
+      setSuccess("Slider deleted successfully.");
+      await loadSliders(filterTag);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to delete slider."));
+    } finally { setIsSubmitting(false); }
   };
 
   const handleToggleStatus = async (slider) => {
@@ -450,6 +473,7 @@ const AdminSlidersView = () => {
                             <button
                               type="button"
                               onClick={() => handleEdit(slider)}
+                              disabled={isSubmitting}
                               className="h-8 rounded-md border border-[#d8dde6] px-2 text-xs font-semibold text-[#334155]"
                             >
                               Edit
@@ -466,6 +490,7 @@ const AdminSlidersView = () => {
                             >
                               {slider.isActive ? "Deactivate" : "Activate"}
                             </button>
+                            <button type="button" disabled={isSubmitting} onClick={() => handleDelete(slider)} className="h-8 rounded-md border border-rose-300 px-2 text-xs font-semibold text-rose-700">Delete</button>
                           </div>
                         </td>
                       </tr>
@@ -544,20 +569,9 @@ const AdminSlidersView = () => {
               />
             </label>
 
-            <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#64748b]">
-                Poster Image URL
-              </span>
-              <input
-                type="url"
-                name="imageUrl"
-                value={form.imageUrl}
-                onChange={handleChange}
-                placeholder="https://..."
-                required
-                className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm text-[#334155] outline-none focus:border-[#94a3b8]"
-              />
-            </label>
+            {canUploadImage ? (
+              <SingleImagePicker file={imageFile} existingUrl={form.imageUrl} onChange={setImageFile} width={1200} height={600} disabled={isSubmitting} required />
+            ) : form.imageUrl ? <img src={form.imageUrl} alt="Current image" className="max-h-48 rounded-lg object-contain" /> : null}
 
             <div className="grid gap-3 md:grid-cols-2">
               <label className="space-y-1">

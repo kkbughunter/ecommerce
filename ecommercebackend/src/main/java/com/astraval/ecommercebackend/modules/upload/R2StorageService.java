@@ -61,6 +61,11 @@ public class R2StorageService {
         return response.asByteArray();
     }
 
+    public void delete(String objectKey) {
+        client().deleteObject(DeleteObjectRequest.builder()
+                .bucket(properties.getBucket()).key(objectKey).build());
+    }
+
     public void deleteQuietly(String objectKey) {
         if (!StringUtils.hasText(objectKey) || !properties.isEnabled()) {
             return;

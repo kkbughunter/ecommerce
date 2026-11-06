@@ -11,6 +11,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
+    boolean existsByParentCategoryCategoryId(Integer categoryId);
+    boolean existsByCategoryNameIgnoreCaseAndCategoryIdNot(String name, Integer id);
+
     Optional<Category> findByCategoryName(String categoryName);
     boolean existsByCategoryNameIgnoreCase(String categoryName);
 

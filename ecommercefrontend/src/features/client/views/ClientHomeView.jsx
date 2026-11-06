@@ -62,6 +62,7 @@ export default function ClientHomeView() {
   const [banners, setBanners] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [bannerIndex, setBannerIndex] = useState(0);
+  const [showAllCollections, setShowAllCollections] = useState(false);
   const filtered = Boolean(filters.q || filters.categoryId);
   const banner = banners[bannerIndex];
   const category = categories.find(
@@ -273,19 +274,24 @@ export default function ClientHomeView() {
           <div className="store-section-heading">
             <div>
               <p className="store-eyebrow">FIND YOUR BUILDING BLOCKS</p>
-              <h2>What are you building?</h2>
+              <h2>Our collections</h2>
             </div>
-            <a href="#products" className="store-text-link">
-              Shop all <StoreIcon name="arrow" />
-            </a>
+            <button type="button" className="store-text-link" onClick={() => setShowAllCollections(!showAllCollections)} aria-expanded={showAllCollections}>
+              {showAllCollections ? "Show less" : "View all"} <StoreIcon name="arrow" />
+            </button>
           </div>
-          <label className="block max-w-md">
-            <span className="sr-only">Choose a category</span>
-            <select value={filters.categoryId} onChange={(event) => selectCategory(event.target.value)} disabled={loadingCategories} className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700">
-              <option value="">All components</option>
-              {categories.map((item) => <option key={item.categoryId} value={item.categoryId}>{item.categoryName}</option>)}
-            </select>
-          </label>
+          <div className="store-collections" aria-busy={loadingCategories}>
+            {loadingCategories ? Array.from({ length: 6 }, (_, index) => <div key={index} className="store-collection-skeleton" />) :
+              (showAllCollections ? categories : categories.slice(0, 6)).map((item, index) => (
+                <button type="button" key={item.categoryId ?? item.categoryName} className="store-collection" aria-pressed={String(item.categoryId) === filters.categoryId} onClick={() => selectCategory(item.categoryId)}>
+                  <span className={`store-collection-art collection-color-${index % 6}`}>
+                    {item.categoryImageUrl ? <ProductImage src={item.categoryImageUrl} alt={item.categoryName} /> : <StoreIcon name={/sensor|wireless/i.test(item.categoryName) ? "bolt" : /tool|hardware/i.test(item.categoryName) ? "box" : /craft/i.test(item.categoryName) ? "grid" : "chip"} />}
+                  </span>
+                  <span>{item.categoryName}</span>
+                </button>
+              ))}
+          </div>
+          {!loadingCategories && !categories.length && <p className="store-collection-empty">Our collections are being updated. Explore all components below.</p>}
         </section>
 
         <section id="products" className="store-section store-catalog">
