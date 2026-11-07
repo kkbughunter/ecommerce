@@ -65,6 +65,9 @@ public class RazorpayPaymentService {
     private final SecurityUtil securityUtil;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final GatewaySettingsService gatewaySettings;
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
 
     public RazorpayPaymentService(
             RazorpayProperties razorpayProperties,
@@ -73,7 +76,8 @@ public class RazorpayPaymentService {
             PaymentStatusTrackingRepository paymentStatusTrackingRepository,
             EmailTemplateService emailTemplateService,
             SecurityUtil securityUtil,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, GatewaySettingsService gatewaySettings) {
+        this.gatewaySettings = gatewaySettings;
         this.razorpayProperties = razorpayProperties;
         this.orderRepository = orderRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
@@ -86,10 +90,18 @@ public class RazorpayPaymentService {
 
     @Transactional
     public RazorpayOrderCreateResponse createRazorpayOrder(CreateRazorpayOrderRequest request) {
+        gatewaySettings.requireAvailable(PaymentGateway.RAZORPAY);
         ensureRazorpayCredentialsConfigured();
-        Order order = loadOrder(request.orderId());
+        Order order = orderRepository.findForPaymentUpdate(request.orderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         authorizeOrderAccess(order);
         validateOrderForPayment(order);
+        var existing = PaymentSessionGuard.existing(paymentTransactionRepository, order.getOrderId(), PaymentGateway.RAZORPAY);
+        if (existing.isPresent()) {
+            PaymentTransaction transaction = existing.get();
+            reconcileRazorpay(transaction);
+            return checkoutResponse(transaction);
+        }
 
         int attemptNumber = Math.toIntExact(paymentTransactionRepository.countByOrderOrderId(order.getOrderId()) + 1);
         long amountInSubunits = toSubunits(order.getTotalAmount());
@@ -156,6 +168,7 @@ public class RazorpayPaymentService {
                 .findByGatewayAndGatewayOrderId(PaymentGateway.RAZORPAY, request.razorpayOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Payment transaction not found for Razorpay order id"));
 
+        lockAndRefresh(paymentTransaction);
         Order order = paymentTransaction.getOrder();
         authorizeOrderAccess(order);
         if (!order.getOrderId().equals(request.orderId())) {
@@ -163,11 +176,6 @@ public class RazorpayPaymentService {
         }
 
         Long actorUserId = getCurrentUserId();
-        paymentTransaction.setGatewayPaymentId(trimToNull(request.razorpayPaymentId()));
-        paymentTransaction.setGatewaySignature(trimToNull(request.razorpaySignature()));
-        paymentTransaction.setRazorpayPaymentId(trimToNull(request.razorpayPaymentId()));
-        paymentTransaction.setRazorpaySignature(trimToNull(request.razorpaySignature()));
-        paymentTransaction.setModifiedBy(actorUserId);
 
         boolean signatureValid = verifyCheckoutSignature(
                 request.razorpayOrderId(),
@@ -189,6 +197,13 @@ public class RazorpayPaymentService {
             throw new BadRequestException("Invalid Razorpay signature");
         }
 
+        if (terminal(paymentTransaction)) return buildPaymentAttemptResponse(paymentTransaction);
+        paymentTransaction.setGatewayPaymentId(trimToNull(request.razorpayPaymentId()));
+        paymentTransaction.setGatewaySignature(trimToNull(request.razorpaySignature()));
+        paymentTransaction.setRazorpayPaymentId(trimToNull(request.razorpayPaymentId()));
+        paymentTransaction.setRazorpaySignature(trimToNull(request.razorpaySignature()));
+        paymentTransaction.setModifiedBy(actorUserId);
+
         paymentTransaction.setErrorCode(null);
         paymentTransaction.setErrorDescription(null);
         applyStatusChange(
@@ -209,11 +224,14 @@ public class RazorpayPaymentService {
                 .findByGatewayAndGatewayOrderId(PaymentGateway.RAZORPAY, request.razorpayOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Payment transaction not found for Razorpay order id"));
 
+        lockAndRefresh(paymentTransaction);
         Order order = paymentTransaction.getOrder();
         authorizeOrderAccess(order);
         if (!order.getOrderId().equals(request.orderId())) {
             throw new BadRequestException("Order id does not match payment transaction");
         }
+
+        if (terminal(paymentTransaction)) return buildPaymentAttemptResponse(paymentTransaction);
 
         Long actorUserId = getCurrentUserId();
         paymentTransaction.setGatewayPaymentId(trimToNull(request.razorpayPaymentId()));
@@ -278,6 +296,10 @@ public class RazorpayPaymentService {
             gatewayOrderId = trimToNull(textValue(orderEntity, "id"));
         }
         String gatewayPaymentId = trimToNull(textValue(paymentEntity, "id"));
+        if (gatewayPaymentId == null && "refund.processed".equals(event)) {
+            gatewayPaymentId = trimToNull(textValue(root.path("payload").path("refund").path("entity"), "payment_id"));
+        }
+
 
         Optional<PaymentTransaction> paymentTransactionOptional = Optional.empty();
         if (gatewayOrderId != null) {
@@ -296,7 +318,18 @@ public class RazorpayPaymentService {
         }
 
         PaymentTransaction paymentTransaction = paymentTransactionOptional.get();
+        lockAndRefresh(paymentTransaction);
         WebhookEventResolution resolution = resolveWebhookEvent(event);
+        if (terminal(paymentTransaction)) {
+            boolean matchingRefund = resolution.status() == PaymentTransactionStatus.REFUNDED
+                    && gatewayPaymentId != null && gatewayPaymentId.equals(paymentTransaction.getGatewayPaymentId());
+            boolean matchingSettlement = resolution.status() == PaymentTransactionStatus.SUCCESS
+                    && gatewayPaymentId != null && gatewayPaymentId.equals(paymentTransaction.getGatewayPaymentId());
+            if ((!matchingRefund && !matchingSettlement) || paymentTransaction.getStatus() == PaymentTransactionStatus.REFUNDED) {
+                return Map.of("processed", true, "message", "Terminal payment preserved", "status", paymentTransaction.getStatus().name());
+            }
+        }
+
 
         paymentTransaction.setGatewayPaymentId(gatewayPaymentId != null ? gatewayPaymentId : paymentTransaction.getGatewayPaymentId());
         paymentTransaction.setRazorpayPaymentId(gatewayPaymentId != null ? gatewayPaymentId : paymentTransaction.getRazorpayPaymentId());
@@ -330,11 +363,85 @@ public class RazorpayPaymentService {
                 "status", paymentTransaction.getStatus().name());
     }
 
+    private boolean terminal(PaymentTransaction transaction) {
+        return transaction.getStatus() == PaymentTransactionStatus.SUCCESS
+                || transaction.getStatus() == PaymentTransactionStatus.PAID
+                || transaction.getStatus() == PaymentTransactionStatus.CAPTURED
+                || transaction.getStatus() == PaymentTransactionStatus.REFUNDED;
+    }
+
+    private void lockAndRefresh(PaymentTransaction transaction) {
+        // Refresh discards state loaded before waiting on another gateway's order lock.
+        entityManager.refresh(transaction.getOrder(), jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(transaction);
+    }
+
+    @Transactional
+    public PaymentAttemptResponse checkPayment(Long orderId, String gatewayOrderId) {
+        Order order = orderRepository.findForPaymentUpdate(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        authorizeOrderAccess(order);
+        PaymentTransaction transaction = paymentTransactionRepository
+                .findByGatewayAndGatewayOrderId(PaymentGateway.RAZORPAY, gatewayOrderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment transaction not found"));
+        if (!orderId.equals(transaction.getOrder().getOrderId())) throw new BadRequestException("Payment does not belong to this order");
+        reconcileRazorpay(transaction);
+        return buildPaymentAttemptResponse(transaction);
+    }
+
+    private void reconcileRazorpay(PaymentTransaction transaction) {
+        if (transaction.getOrder().getPaymentStatus() == PaymentStatus.PAID
+                || transaction.getOrder().getPaymentStatus() == PaymentStatus.REFUNDED) return;
+        JsonNode result = fetchGatewayPayments(transaction.getGatewayOrderId());
+        if (!result.path("items").isArray()) throw new BadRequestException("Invalid Razorpay payment response");
+        for (JsonNode payment : result.path("items")) {
+            if (!"captured".equals(payment.path("status").asText())) continue;
+            if (!transaction.getGatewayOrderId().equals(payment.path("order_id").asText())
+                    || payment.path("amount").asLong(-1) != toSubunits(transaction.getAmount())
+                    || !transaction.getCurrency().equals(payment.path("currency").asText())) {
+                throw new BadRequestException("Razorpay payment does not match this order");
+            }
+            transaction.setGatewayPaymentId(payment.path("id").asText());
+            transaction.setRazorpayPaymentId(payment.path("id").asText());
+            applyStatusChange(transaction, PaymentTransactionStatus.SUCCESS, PaymentEventSource.API,
+                    PaymentEventType.PAYMENT_VERIFIED, transaction.getGatewayPaymentId(),
+                    "Razorpay payment verified with provider", null, getCurrentUserId());
+            return;
+        }
+    }
+
+    JsonNode fetchGatewayPayments(String gatewayOrderId) {
+        ensureRazorpayCredentialsConfigured();
+        if (!gatewayOrderId.matches("[a-zA-Z0-9_]+")) throw new BadRequestException("Invalid Razorpay order id");
+        String auth = Base64.getEncoder().encodeToString((razorpayProperties.getKeyId() + ":"
+                + razorpayProperties.getKeySecret()).getBytes(StandardCharsets.UTF_8));
+        HttpRequest request = HttpRequest.newBuilder(URI.create(normalizeBaseUrl(razorpayProperties.getApiBaseUrl())
+                        + "/v1/orders/" + gatewayOrderId + "/payments"))
+                .timeout(Duration.ofMillis(razorpayProperties.getCreateOrderTimeoutMs()))
+                .header("Authorization", "Basic " + auth).GET().build();
+        try {
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) throw new BadRequestException("Unable to check Razorpay payment status. Please try again later.");
+            return parseJson(response.body(), "Invalid Razorpay payment response");
+        } catch (BadRequestException ex) { throw ex; }
+        catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new BadRequestException("Razorpay payment check interrupted");
+        } catch (Exception ex) { throw new BadRequestException("Unable to check Razorpay payment status. Please try again later."); }
+    }
+
+    private RazorpayOrderCreateResponse checkoutResponse(PaymentTransaction transaction) {
+        Order order = transaction.getOrder();
+        return new RazorpayOrderCreateResponse(transaction.getPaymentTransactionId(), order.getOrderId(), order.getOrderNumber(),
+                transaction.getGatewayOrderId(), razorpayProperties.getKeyId(), transaction.getStatus().name(),
+                toSubunits(transaction.getAmount()), transaction.getCurrency(), transaction.getAttemptNumber(), transaction.getCreatedDt());
+    }
+
     private void validateOrderForPayment(Order order) {
         if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.RETURNED) {
             throw new BadRequestException("Payment cannot be initiated for order status: " + order.getStatus());
         }
-        if (order.getPaymentStatus() == PaymentStatus.PAID) {
+        if (order.getPaymentStatus() == PaymentStatus.PAID || order.getPaymentStatus() == PaymentStatus.REFUNDED) {
             throw new BadRequestException("Order payment is already completed");
         }
         if (order.getTotalAmount() == null || order.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
@@ -383,7 +490,7 @@ public class RazorpayPaymentService {
         }
     }
 
-    private void applyStatusChange(
+    void applyStatusChange(
             PaymentTransaction paymentTransaction,
             PaymentTransactionStatus targetStatus,
             PaymentEventSource eventSource,
@@ -393,6 +500,11 @@ public class RazorpayPaymentService {
             String payload,
             Long actorUserId) {
         PaymentTransactionStatus previousStatus = paymentTransaction.getStatus();
+        // Late failures/authorizations cannot undo a confirmed or refunded payment.
+        if (previousStatus == PaymentTransactionStatus.REFUNDED
+                || ((previousStatus == PaymentTransactionStatus.SUCCESS || previousStatus == PaymentTransactionStatus.PAID
+                        || previousStatus == PaymentTransactionStatus.CAPTURED)
+                    && targetStatus != PaymentTransactionStatus.REFUNDED)) return;
         if (targetStatus != null) {
             paymentTransaction.setStatus(targetStatus);
         }
@@ -442,6 +554,7 @@ public class RazorpayPaymentService {
 
     private void syncOrderPaymentStatus(Order order, PaymentTransactionStatus paymentTransactionStatus, Long actorUserId) {
         PaymentStatus current = order.getPaymentStatus();
+        if (current == PaymentStatus.REFUNDED) return;
         PaymentStatus target;
         switch (paymentTransactionStatus) {
             case SUCCESS, PAID, CAPTURED -> target = PaymentStatus.PAID;
@@ -519,7 +632,7 @@ public class RazorpayPaymentService {
     }
 
     private void authorizeOrderAccess(Order order) {
-        if (securityUtil.hasRole("ADMIN")) {
+        if (securityUtil.hasRole("SUPER_ADMIN")) {
             return;
         }
         Long userId = getCurrentUserId();

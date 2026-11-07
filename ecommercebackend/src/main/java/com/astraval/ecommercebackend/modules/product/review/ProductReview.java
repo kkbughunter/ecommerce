@@ -21,6 +21,7 @@ import lombok.Data;
 
 @Data
 @Entity
+@jakarta.persistence.EntityListeners(com.astraval.ecommercebackend.modules.catalog.CatalogCacheInvalidator.class)
 @Table(name = "product_reviews", uniqueConstraints = @UniqueConstraint(
         name = "uk_product_reviews_product_user", columnNames = { "product_id", "user_id" }))
 public class ProductReview {

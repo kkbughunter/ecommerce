@@ -32,15 +32,17 @@ import jakarta.validation.Valid;
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final com.astraval.ecommercebackend.modules.catalog.CatalogQueryService catalog;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryService categoryService, com.astraval.ecommercebackend.modules.catalog.CatalogQueryService catalog) {
+        this.catalog = catalog;
         this.categoryService = categoryService;
     }
 
     @GetMapping
     @Operation(summary = "List all categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
-        List<CategoryResponse> response = categoryService.getAllCategories();
+        List<CategoryResponse> response = catalog.categories();
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Categories fetched successfully"));
     }
 
@@ -64,7 +66,7 @@ public class CategoryController {
     }
 
     @PutMapping(value = "/{id}", consumes = "application/json")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(@PathVariable Integer id,
             @Valid @RequestBody CreateCategoryRequest request) {
         return ResponseEntity.ok(ApiResponseFactory.ok(categoryService.updateCategory(id, request, null), "Category updated successfully"));
@@ -81,7 +83,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Integer id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok(ApiResponseFactory.ok(null, "Category deleted successfully"));

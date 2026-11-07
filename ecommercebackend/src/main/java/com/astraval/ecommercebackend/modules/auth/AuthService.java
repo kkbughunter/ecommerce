@@ -300,7 +300,7 @@ public class AuthService {
         return userOtp;
     }
 
-    private AuthTokenResponse buildAuthTokens(User user) {
+    AuthTokenResponse buildAuthTokens(User user) {
         var roleCodes = roleService.getActiveRoleCodesForUser(user.getUserId());
         if (roleCodes.isEmpty()) {
             throw new UnauthorizedException("No roles assigned to this account. Contact support.");

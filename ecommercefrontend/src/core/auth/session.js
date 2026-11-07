@@ -53,12 +53,8 @@ export const getAuthMeta = () => {
 
 export const getPrimaryRole = () => {
   const roles = getUserRoles();
-  if (roles.includes("ADMIN")) {
-    return "ADMIN";
-  }
-  if (roles.includes("SUPER_ADMIN")) {
-    return "SUPER_ADMIN";
-  }
+  if (roles.includes("SUPER_ADMIN")) return "SUPER_ADMIN";
+  if (roles.includes("ADMIN")) return "ADMIN";
   if (roles.includes("USER")) {
     return "USER";
   }
@@ -68,10 +64,10 @@ export const getPrimaryRole = () => {
 export const getHomePathByRole = () => {
   const role = getPrimaryRole();
   if (role === "ADMIN") {
-    return "/admin";
+    return "/admin/orders";
   }
   if (role === "SUPER_ADMIN") {
-    return "/superadmin/customers";
+    return "/superadmin";
   }
   if (role === "USER") {
     return "/client";

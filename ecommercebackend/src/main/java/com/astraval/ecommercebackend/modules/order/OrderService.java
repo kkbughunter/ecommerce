@@ -270,6 +270,10 @@ public class OrderService {
     @Transactional
     public OrderDetailResponse updateOrderStatusForAdmin(Long orderId, UpdateOrderStatusRequest request) {
         ensureAdmin();
+        if (!securityUtil.hasRole("SUPER_ADMIN") && (request.paymentStatus() != null
+                || request.status() == OrderStatus.REFUND_IN_PROCESS || request.status() == OrderStatus.REFUNDED)) {
+            throw new UnauthorizedException("Only super admins can manage payment status and refunds");
+        }
         Long actorUserId = getCurrentUserId();
         Order order = loadOrderWithDetails(orderId);
 
@@ -322,7 +326,7 @@ public class OrderService {
     }
 
     private void authorizeOrderAccess(Order order) {
-        if (securityUtil.hasRole("ADMIN")) {
+        if (securityUtil.hasRole("ADMIN") || securityUtil.hasRole("SUPER_ADMIN")) {
             return;
         }
         Long currentUserId = getCurrentUserId();
@@ -332,7 +336,7 @@ public class OrderService {
     }
 
     private void ensureAdmin() {
-        if (!securityUtil.hasRole("ADMIN")) {
+        if (!securityUtil.hasRole("ADMIN") && !securityUtil.hasRole("SUPER_ADMIN")) {
             throw new UnauthorizedException("Admin role is required");
         }
     }

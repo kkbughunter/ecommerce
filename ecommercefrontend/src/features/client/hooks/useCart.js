@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import cartApi from "../../../core/api/cartApi";
-import paymentApi from "../../../core/api/paymentApi";
+import { completePayment } from "../../../core/utils/paymentCheckout";
 import getApiErrorMessage from "../../../core/utils/apiError";
 
 const emptyCart = {
@@ -40,73 +40,6 @@ const normalizeCart = (payload) => {
     items: Array.isArray(raw?.items) ? raw.items : [],
   };
 };
-
-const RAZORPAY_CHECKOUT_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
-
-const loadRazorpayCheckoutScript = () =>
-  new Promise((resolve, reject) => {
-    if (typeof window === "undefined") {
-      reject(new Error("Razorpay can only be used in browser"));
-      return;
-    }
-    if (window.Razorpay) {
-      resolve();
-      return;
-    }
-    const existingScript = document.querySelector(`script[src="${RAZORPAY_CHECKOUT_SCRIPT}"]`);
-    if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(), { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("Unable to load Razorpay checkout script")), {
-        once: true,
-      });
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = RAZORPAY_CHECKOUT_SCRIPT;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Unable to load Razorpay checkout script"));
-    document.body.appendChild(script);
-  });
-
-const openRazorpayCheckout = ({ order, payment }) =>
-  new Promise((resolve, reject) => {
-    if (!window.Razorpay) {
-      reject(new Error("Razorpay checkout is not available"));
-      return;
-    }
-    const options = {
-      key: payment?.razorpayKeyId,
-      amount: payment?.amountInSubunits,
-      currency: payment?.currency || "INR",
-      name: "AstraVal",
-      description: `Payment for ${order?.orderNumber || "order"}`,
-      order_id: payment?.razorpayOrderId,
-      handler: (response) => {
-        resolve({
-          type: "success",
-          payload: response,
-        });
-      },
-      modal: {
-        ondismiss: () => resolve({ type: "dismissed" }),
-      },
-      notes: {
-        orderNumber: order?.orderNumber || "",
-      },
-      theme: {
-        color: "#2563eb",
-      },
-    };
-    const razorpay = new window.Razorpay(options);
-    razorpay.on("payment.failed", (response) => {
-      resolve({
-        type: "failed",
-        payload: response?.error || {},
-      });
-    });
-    razorpay.open();
-  });
 
 const useCart = ({ enabled = true } = {}) => {
   const [cart, setCart] = useState(emptyCart);
@@ -269,7 +202,7 @@ const useCart = ({ enabled = true } = {}) => {
     }
   };
 
-  const checkout = async (productIds = []) => {
+  const checkout = async (productIds = [], gateway) => {
     if (!enabled) {
       return;
     }
@@ -281,39 +214,12 @@ const useCart = ({ enabled = true } = {}) => {
     setError("");
     setSuccess("");
     try {
-      const response = await cartApi.checkout({ productIds });
+      const response = await cartApi.checkout({ productIds, gateway });
       const order = response?.data?.data?.order;
       const payment = response?.data?.data?.payment;
-      if (!order?.orderId || !payment?.razorpayOrderId || !payment?.razorpayKeyId) {
-        setSuccess(`Order ${order?.orderNumber || ""} created.`);
-        await loadCart();
-        return;
-      }
-
-      await loadRazorpayCheckoutScript();
-      const razorpayResult = await openRazorpayCheckout({ order, payment });
-      if (razorpayResult.type === "success") {
-        await paymentApi.verifyRazorpayPayment({
-          orderId: order.orderId,
-          razorpayOrderId: razorpayResult.payload?.razorpay_order_id,
-          razorpayPaymentId: razorpayResult.payload?.razorpay_payment_id,
-          razorpaySignature: razorpayResult.payload?.razorpay_signature,
-        });
-        setSuccess(`Order ${order.orderNumber} placed and payment completed successfully.`);
-      } else if (razorpayResult.type === "failed") {
-        await paymentApi.markRazorpayPaymentFailed({
-          orderId: order.orderId,
-          razorpayOrderId: payment.razorpayOrderId,
-          razorpayPaymentId: razorpayResult.payload?.metadata?.payment_id || null,
-          errorCode: razorpayResult.payload?.code || null,
-          errorDescription:
-            razorpayResult.payload?.description || razorpayResult.payload?.reason || "Payment attempt failed",
-        });
-        setError("Payment failed. You can retry payment from your order.");
-      } else {
-        setError("Payment window was closed. You can retry payment from your order.");
-      }
       await loadCart();
+      await completePayment(order, payment);
+      setSuccess(`Order ${order.orderNumber} placed and payment completed successfully.`);
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to checkout."));
     } finally {

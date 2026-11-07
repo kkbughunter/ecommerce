@@ -207,8 +207,8 @@ public class AdminDashboardService {
     }
 
     private void ensureAdmin() {
-        if (!securityUtil.hasRole("ADMIN")) {
-            throw new UnauthorizedException("Admin role is required");
+        if (!securityUtil.hasRole("SUPER_ADMIN")) {
+            throw new UnauthorizedException("Super admin role is required");
         }
     }
 }

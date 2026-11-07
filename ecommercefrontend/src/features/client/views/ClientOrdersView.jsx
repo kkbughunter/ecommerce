@@ -7,6 +7,7 @@ import productApi from "../../../core/api/productApi";
 import getApiErrorMessage from "../../../core/utils/apiError";
 import StoreFooter from "../components/StoreFooter";
 import ClientTopNav from "../components/ClientTopNav";
+import OrderPaymentActions from "../components/OrderPaymentActions";
 
 const FLOW_STEPS = [
   {
@@ -433,6 +434,11 @@ const ClientOrdersView = () => {
                   </article>
                 </section>
 
+                {selectedOrder && <OrderPaymentActions key={selectedOrder.orderId} order={selectedOrder}
+                  onUpdated={async () => {
+                    const response = await orderApi.getOrderDetails(selectedOrder.orderId);
+                    setSelectedOrder(response?.data?.data || null);
+                  }} />}
                 <section className="grid gap-4 xl:grid-cols-[2fr_1fr]">
                   <article className="rounded-xl border border-[#e2e8f0] bg-white p-3">
                     <div className="mb-2 flex items-center justify-between">

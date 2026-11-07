@@ -66,7 +66,7 @@ const ProductDetailView = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
   const authenticated = isAuthenticated();
-  const isAdmin = authenticated && hasAnyRole(["ADMIN"]);
+  const isAdmin = authenticated && hasAnyRole(["ADMIN", "SUPER_ADMIN"]);
   const isCustomer = authenticated && hasAnyRole(["USER"]);
 
   const [product, setProduct] = useState(null);
@@ -1066,7 +1066,7 @@ const ProductDetailView = () => {
                     type="button"
                     onClick={() =>
                       navigate(
-                        isAdmin ? "/admin" : isCustomer ? "/client" : "/",
+                        isAdmin ? (hasAnyRole(["SUPER_ADMIN"]) ? "/superadmin" : "/admin/orders") : isCustomer ? "/client" : "/",
                       )
                     }
                     className="hover:text-blue-600"

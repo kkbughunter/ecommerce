@@ -31,14 +31,16 @@ import jakarta.validation.Valid;
 public class ProductController {
 
     private final ProductService productService;
+    private final com.astraval.ecommercebackend.modules.catalog.CatalogQueryService catalog;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, com.astraval.ecommercebackend.modules.catalog.CatalogQueryService catalog) {
+        this.catalog = catalog;
         this.productService = productService;
     }
 
     @GetMapping("/api/products")
     @Operation(summary = "List all products")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<ProductPageResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -54,12 +56,12 @@ public class ProductController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String q) {
         return ResponseEntity.ok(
-                ApiResponseFactory.ok(productService.getAllActiveProducts(page, size, q), "Active products fetched successfully"));
+                ApiResponseFactory.ok(catalog.activeProducts(page, size, q), "Active products fetched successfully"));
     }
 
     @PostMapping("/api/products")
     @Operation(summary = "Create product")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody CreateProductRequest request) {
         ProductResponse response = productService.createProduct(request);
         return ResponseEntity.status(201).body(ApiResponseFactory.created(response, "Product created successfully"));
@@ -67,7 +69,7 @@ public class ProductController {
 
     @PutMapping("/api/products/{productId}")
     @Operation(summary = "Update product details")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody UpdateProductRequest request) {
@@ -77,7 +79,7 @@ public class ProductController {
 
     @PatchMapping("/api/products/{productId}/activate")
     @Operation(summary = "Activate product")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> activateProduct(@PathVariable Long productId) {
         ProductResponse response = productService.activateProduct(productId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Product activated successfully"));
@@ -85,7 +87,7 @@ public class ProductController {
 
     @PatchMapping("/api/products/{productId}/deactivate")
     @Operation(summary = "Deactivate product")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> deactivateProduct(@PathVariable Long productId) {
         ProductResponse response = productService.deactivateProduct(productId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Product deactivated successfully"));
@@ -94,13 +96,13 @@ public class ProductController {
     @GetMapping("/api/products/{productId}/details")
     @Operation(summary = "View full product details")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductDetails(@PathVariable Long productId) {
-        ProductDetailResponse response = productService.getProductDetails(productId);
+        ProductDetailResponse response = catalog.details(productId);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Product details fetched successfully"));
     }
 
     @GetMapping("/api/products/category/{categoryId}")
     @Operation(summary = "View products by category")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<ProductPageResponse>> getProductsByCategory(
             @PathVariable Integer categoryId,
             @RequestParam(defaultValue = "0") int page,
@@ -117,7 +119,7 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String q) {
-        ProductPageResponse response = productService.getActiveProductsByCategory(categoryId, page, size, q);
+        ProductPageResponse response = catalog.activeCategoryProducts(categoryId, page, size, q);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Active category products fetched successfully"));
     }
 
@@ -127,13 +129,13 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String q) {
-        CategoryProductsPageResponse response = productService.getActiveCategoriesWithActiveProducts(page, size, q);
+        CategoryProductsPageResponse response = catalog.activeCategories(page, size, q);
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Active categories and products fetched successfully"));
     }
 
     @GetMapping("/api/admin/categories/products")
     @Operation(summary = "Admin: search all categories with all products")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<CategoryProductsPageResponse>> getAllCategoriesWithAllProductsForAdmin(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,

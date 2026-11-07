@@ -13,6 +13,7 @@ import lombok.Data;
 
 @Data
 @Entity
+@jakarta.persistence.EntityListeners(com.astraval.ecommercebackend.modules.catalog.CatalogCacheInvalidator.class)
 @Table(name = "categories")
 public class Category {
 

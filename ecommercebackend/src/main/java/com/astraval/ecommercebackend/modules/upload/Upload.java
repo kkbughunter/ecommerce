@@ -15,6 +15,7 @@ import lombok.Data;
 
 @Data
 @Entity
+@jakarta.persistence.EntityListeners(com.astraval.ecommercebackend.modules.catalog.CatalogCacheInvalidator.class)
 @Table(name = "tbluploads", indexes = {
         @Index(name = "idx_tbluploads_related_upload_type", columnList = "related_iD,upload_type"),
         @Index(name = "idx_tbluploads_is_active", columnList = "is_active"),

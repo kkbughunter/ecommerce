@@ -59,6 +59,14 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponseFactory.ok(response, "Payment marked as failed"));
     }
 
+    public record CheckPaymentRequest(@jakarta.validation.constraints.NotNull Long orderId,
+            @jakarta.validation.constraints.NotBlank String gatewayOrderId) {}
+
+    @PostMapping("/razorpay/status")
+    public ResponseEntity<ApiResponse<PaymentAttemptResponse>> checkRazorpayPayment(@Valid @RequestBody CheckPaymentRequest request) {
+        return ResponseEntity.ok(ApiResponseFactory.ok(razorpayPaymentService.checkPayment(request.orderId(), request.gatewayOrderId()), "Payment status checked"));
+    }
+
     @GetMapping({"/orders/{orderId}", "/orders/{orderId}/"})
     @Operation(summary = "Get full payment attempts and status timeline for an order")
     public ResponseEntity<ApiResponse<OrderPaymentDetailsResponse>> getOrderPaymentDetails(@PathVariable Long orderId) {

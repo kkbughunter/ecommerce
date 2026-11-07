@@ -1,3 +1,5 @@
+import { Navigate } from "react-router-dom";
+import { createElement } from "react";
 import AdminCategoriesView from "./views/AdminCategoriesView";
 import ProtectedRoute from "../../core/auth/ProtectedRoute";
 import AdminCreateProductView from "./views/AdminCreateProductView";
@@ -7,103 +9,38 @@ import AdminInvoicesView from "./views/AdminInvoicesView";
 import AdminMainBannersView from "./views/AdminMainBannersView";
 import AdminOrdersView from "./views/AdminOrdersView";
 import AdminPaymentsView from "./views/AdminPaymentsView";
+import AdminPaymentGatewaysView from "./views/AdminPaymentGatewaysView";
 import AdminProductsView from "./views/AdminProductsView";
 import AdminSlidersView from "./views/AdminSlidersView";
 import AdminReportsView from "./views/AdminReportsView";
 
+const superAdminPages = [
+  ["", AdminHomeView],
+  ["products", AdminProductsView],
+  ["products/new", AdminCreateProductView],
+  ["categories", AdminCategoriesView],
+  ["sliders", AdminSlidersView],
+  ["main-banners", AdminMainBannersView],
+  ["customers", AdminCustomersView],
+  ["payments", AdminPaymentsView],
+  ["payment-gateways", AdminPaymentGatewaysView],
+  ["invoices", AdminInvoicesView],
+  ["reports", AdminReportsView],
+];
+
 const adminRoutes = [
-  {
-    path: "/admin",
-    element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
-        <AdminHomeView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/products",
-    element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
-        <AdminProductsView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/products/new",
-    element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
-        <AdminCreateProductView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/categories",
-    element: (
-      <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
-        <AdminCategoriesView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/superadmin/categories",
-    element: (
-      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
-        <AdminCategoriesView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/superadmin/sliders",
-    element: (
-      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
-        <AdminSlidersView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/superadmin/main-banners",
-    element: (
-      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
-        <AdminMainBannersView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/superadmin/customers",
-    element: (
-      <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
-        <AdminCustomersView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/orders",
-    element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
-        <AdminOrdersView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/payments",
-    element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
-        <AdminPaymentsView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/invoices",
-    element: (
-      <ProtectedRoute allowedRoles={["ADMIN"]}>
-        <AdminInvoicesView />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/reports",
-    element: <ProtectedRoute allowedRoles={["ADMIN"]}><AdminReportsView /></ProtectedRoute>,
-  },
+  ...superAdminPages.map(([path, View]) => ({
+    path: `/superadmin${path ? `/${path}` : ""}`,
+    element: <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>{createElement(View)}</ProtectedRoute>,
+  })),
+  ...["/admin", "/admin/orders", "/superadmin/orders"].map((path) => ({
+    path,
+    element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><AdminOrdersView /></ProtectedRoute>,
+  })),
+  ...superAdminPages.filter(([path]) => path).map(([path]) => ({
+    path: `/admin/${path}`,
+    element: <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}><Navigate to={`/superadmin/${path}`} replace /></ProtectedRoute>,
+  })),
 ];
 
 export default adminRoutes;

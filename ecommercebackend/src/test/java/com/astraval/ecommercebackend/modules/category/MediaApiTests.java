@@ -35,17 +35,21 @@ class MediaApiTests {
   when(storage.isEnabled()).thenReturn(true);
   when(storage.publicUrl(anyString())).thenAnswer(i -> "https://cdn.example/"+i.getArgument(0));
  }
- @Test void adminMayRenameAndDeleteButCannotUploadCategoryImage() throws Exception {
+ @Test void onlySuperAdminMayManageCategories() throws Exception {
   Category category=new Category(); category.setCategoryName("API category"); category=categories.save(category);
   String path="/api/categories/"+category.getCategoryId();
   mvc.perform(put(path).with(user("1").roles("ADMIN")).contentType(MediaType.APPLICATION_JSON)
+    .content("{\"categoryName\":\"Renamed category\"}"))
+    .andExpect(status().isForbidden());
+  mvc.perform(put(path).with(user("1").roles("SUPER_ADMIN")).contentType(MediaType.APPLICATION_JSON)
     .content("{\"categoryName\":\"Renamed category\"}"))
     .andExpect(status().isOk()).andExpect(jsonPath("$.data.categoryName").value("Renamed category"));
   mvc.perform(multipart(path).file(request("{\"categoryName\":\"Renamed\"}"))
     .file(image()).with(req->{req.setMethod("PUT");return req;}).with(user("1").roles("ADMIN")))
     .andExpect(status().isForbidden());
   mvc.perform(delete(path).with(user("1").roles("USER"))).andExpect(status().isForbidden());
-  mvc.perform(delete(path).with(user("1").roles("ADMIN"))).andExpect(status().isOk());
+  mvc.perform(delete(path).with(user("1").roles("ADMIN"))).andExpect(status().isForbidden());
+  mvc.perform(delete(path).with(user("1").roles("SUPER_ADMIN"))).andExpect(status().isOk());
  }
  @Test void superAdminUploadsSingleSliderImageWithoutImageUrlAndDeleteRemovesStorage() throws Exception {
   mvc.perform(multipart("/api/admin/home-sliders").file(request("{\"title\":\"Upload slider\",\"targetUrl\":\"/shop\",\"placementTag\":\"LIMITED_OFFER\"}"))

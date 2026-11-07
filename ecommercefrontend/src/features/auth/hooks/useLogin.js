@@ -98,6 +98,21 @@ const useLogin = () => {
     }
   };
 
+  const handleGoogleLogin = async (credential) => {
+    setError("");
+    setSuccess("");
+    setIsLoading(true);
+    try {
+      const response = await authApi.googleLogin(credential);
+      setAuthSession(response.data.data);
+      navigate(getHomePathByRole(), { replace: true });
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Google sign-in failed. Please try again."));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleRegisterSubmit = async (event) => {
     event.preventDefault();
     setError("");
@@ -196,6 +211,7 @@ const useLogin = () => {
     handleRegisterChange,
     handleVerifyChange,
     handleLoginSubmit,
+    handleGoogleLogin,
     handleRegisterSubmit,
     handleVerifySubmit,
     handleResendOtp,

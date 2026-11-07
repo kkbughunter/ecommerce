@@ -65,7 +65,7 @@ public class PaymentTransaction {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "razorpay_order_id", length = 80, nullable = false, unique = true)
+    @Column(name = "razorpay_order_id", length = 80, unique = true)
     private String razorpayOrderId;
 
     @Column(name = "razorpay_payment_id", length = 80)

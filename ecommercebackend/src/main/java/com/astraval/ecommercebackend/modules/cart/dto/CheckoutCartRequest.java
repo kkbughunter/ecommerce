@@ -6,5 +6,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 public record CheckoutCartRequest(
-        @NotEmpty(message = "At least one cart item must be selected for checkout") List<@NotNull(message = "Product id is required") Long> productIds) {
+        @NotEmpty(message = "At least one cart item must be selected for checkout") List<@NotNull(message = "Product id is required") Long> productIds,
+        com.astraval.ecommercebackend.modules.payment.PaymentGateway gateway) {
 }

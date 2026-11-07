@@ -38,6 +38,9 @@ public class User {
     @Column(name = "email", length = 100, nullable = false, unique = true)
     private String email;
 
+    @Column(name = "google_subject", length = 255, unique = true)
+    private String googleSubject;
+
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 

@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import StoreFooter from "../components/StoreFooter";
 import ClientTopNav from "../components/ClientTopNav";
 import useCart from "../hooks/useCart";
+import usePaymentGateways from "../hooks/usePaymentGateways";
+import PaymentGatewaySelector from "../components/PaymentGatewaySelector";
 import ProductImage from "../components/ProductImage";
 import StoreIcon from "../components/StoreIcon";
 
@@ -14,6 +16,7 @@ const formatMoney = (value) =>
   }).format(Number(value || 0));
 
 const ClientCartView = () => {
+  const paymentOptions = usePaymentGateways();
   const navigate = useNavigate();
   const {
     cart,
@@ -290,11 +293,12 @@ const ClientCartView = () => {
                 Summary shows the full cart. The final amount for selected items
                 is confirmed at checkout.
               </p>
+              <PaymentGatewaySelector {...paymentOptions} disabled={isMutatingCart} />
               <div className="mt-4 grid gap-2">
                 <button
                   type="button"
-                  onClick={() => checkout(selectedProductIds)}
-                  disabled={isMutatingCart || !selectedProductIds.length}
+                  onClick={() => checkout(selectedProductIds, paymentOptions.selectedGateway)}
+                  disabled={isMutatingCart || !selectedProductIds.length || !paymentOptions.selectedGateway}
                   className="h-10 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   Checkout Selected ({selectedProductIds.length})

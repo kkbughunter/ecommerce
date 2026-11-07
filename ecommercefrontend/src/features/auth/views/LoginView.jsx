@@ -5,6 +5,7 @@ import StoreFooter from "../../client/components/StoreFooter";
 import StoreIcon from "../../client/components/StoreIcon";
 
 import useLogin from "../hooks/useLogin";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 
 const PasswordVisibilityIcon = ({ visible }) => (
   <svg
@@ -77,6 +78,7 @@ const LoginView = () => {
     handleRegisterChange,
     handleVerifyChange,
     handleLoginSubmit,
+    handleGoogleLogin,
     handleRegisterSubmit,
     handleVerifySubmit,
     handleResendOtp,
@@ -109,6 +111,7 @@ const LoginView = () => {
                     : "Enter your email and OTP sent to your inbox."}
               </p>
 
+              {mode !== "verify" && <GoogleLoginButton onCredential={handleGoogleLogin} disabled={isLoading} />}
               {mode === "login" ? (
                 <form className="space-y-4" onSubmit={handleLoginSubmit}>
                   <div>

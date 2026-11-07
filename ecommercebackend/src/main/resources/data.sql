@@ -98,8 +98,8 @@ SET subject = EXCLUDED.subject,
 
 INSERT INTO roles (role_code, landing_url, role_name)
 VALUES
-    ('ADMIN', '/admin/products', 'Administrator'),
-    ('SUPER_ADMIN', '/admin/categories', 'Super-Admin'),
+    ('ADMIN', '/admin/orders', 'Administrator'),
+    ('SUPER_ADMIN', '/superadmin', 'Super-Admin'),
     ('USER', '/shop', 'Customer')
 ON CONFLICT (role_code) DO UPDATE
 SET landing_url = EXCLUDED.landing_url,

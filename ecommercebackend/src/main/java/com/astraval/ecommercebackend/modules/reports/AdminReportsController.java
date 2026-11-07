@@ -41,7 +41,7 @@ public class AdminReportsController {
             @RequestParam(defaultValue = "ONE_YEAR") String range,
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to) {
-        if (!security.hasRole("ADMIN")) throw new UnauthorizedException("Admin role is required");
+        if (!security.hasRole("SUPER_ADMIN")) throw new UnauthorizedException("Super admin role is required");
         LocalDate end = to == null ? LocalDate.now() : to;
         LocalDate start = from == null ? switch (range) {
             case "ONE_MONTH" -> end.minusMonths(1).plusDays(1);

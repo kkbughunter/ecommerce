@@ -28,7 +28,9 @@ import com.astraval.ecommercebackend.modules.order.dto.OrderDetailResponse;
 import com.astraval.ecommercebackend.modules.order.dto.PlaceOrderItemRequest;
 import com.astraval.ecommercebackend.modules.payment.RazorpayPaymentService;
 import com.astraval.ecommercebackend.modules.payment.dto.CreateRazorpayOrderRequest;
-import com.astraval.ecommercebackend.modules.payment.dto.RazorpayOrderCreateResponse;
+import com.astraval.ecommercebackend.modules.payment.CashfreePaymentService;
+import com.astraval.ecommercebackend.modules.payment.GatewaySettingsService;
+import com.astraval.ecommercebackend.modules.payment.PaymentGateway;
 import com.astraval.ecommercebackend.modules.product.Product;
 import com.astraval.ecommercebackend.modules.product.ProductRepository;
 import com.astraval.ecommercebackend.modules.user.User;
@@ -48,6 +50,8 @@ public class CartService {
     private final SecurityUtil securityUtil;
     private final OrderService orderService;
     private final RazorpayPaymentService razorpayPaymentService;
+    private final CashfreePaymentService cashfreePaymentService;
+    private final GatewaySettingsService gatewaySettings;
     private final UploadService uploadService;
 
     public CartService(
@@ -57,7 +61,9 @@ public class CartService {
             SecurityUtil securityUtil,
             OrderService orderService,
             RazorpayPaymentService razorpayPaymentService,
-            UploadService uploadService) {
+            UploadService uploadService, CashfreePaymentService cashfreePaymentService, GatewaySettingsService gatewaySettings) {
+        this.cashfreePaymentService = cashfreePaymentService;
+        this.gatewaySettings = gatewaySettings;
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
@@ -193,9 +199,11 @@ public class CartService {
                 .map(item -> new PlaceOrderItemRequest(item.getProduct().getProductId(), item.getQuantity()))
                 .toList();
 
+        PaymentGateway gateway = request.gateway() == null ? PaymentGateway.RAZORPAY : request.gateway();
+        gatewaySettings.requireAvailable(gateway);
         OrderDetailResponse order = orderService.placeOrderFromItems(orderItems);
-        RazorpayOrderCreateResponse payment = razorpayPaymentService
-                .createRazorpayOrder(new CreateRazorpayOrderRequest(order.orderId()));
+        Object payment = gateway == PaymentGateway.CASHFREE ? cashfreePaymentService.create(order.orderId())
+                : razorpayPaymentService.createRazorpayOrder(new CreateRazorpayOrderRequest(order.orderId()));
 
         cart.getItems().removeIf(item -> item.getProduct() != null
                 && selectedProductIds.contains(item.getProduct().getProductId()));

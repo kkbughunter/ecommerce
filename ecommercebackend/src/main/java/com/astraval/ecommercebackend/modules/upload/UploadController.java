@@ -34,7 +34,7 @@ public class UploadController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload multiple product images")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<List<UploadResponse>>> uploadProductImages(
             @PathVariable Long productId,
             @RequestParam("files") List<MultipartFile> files) {
@@ -51,7 +51,7 @@ public class UploadController {
 
     @DeleteMapping("/{uploadId}")
     @Operation(summary = "Delete a product image from storage and the database")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteProductImage(
             @PathVariable Long productId,
             @PathVariable String uploadId) {

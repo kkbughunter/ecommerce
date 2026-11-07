@@ -78,7 +78,7 @@ const AdminProductsView = ({ createInitiallyOpen = false }) => {
         onClose={() => {
           setIsCreateOpen(false);
           if (createInitiallyOpen)
-            navigate("/admin/products", { replace: true });
+            navigate("/superadmin/products", { replace: true });
         }}
       >
         {error && (

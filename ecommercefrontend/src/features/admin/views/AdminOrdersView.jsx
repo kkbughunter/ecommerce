@@ -1,3 +1,4 @@
+import { getUserRoles } from "../../../core/auth/session";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import orderApi from "../../../core/api/orderApi";
@@ -145,6 +146,7 @@ const isWithinDays = (value, dayRange) => {
 };
 
 const AdminOrdersView = () => {
+  const isSuperAdmin = getUserRoles().includes("SUPER_ADMIN");
   const navigate = useNavigate();
   const [ordersPage, setOrdersPage] = useState({
     content: [],
@@ -244,7 +246,7 @@ const AdminOrdersView = () => {
     try {
       const [detailResponse, paymentResponse] = await Promise.all([
         orderApi.getOrderDetails(orderId),
-        paymentApi.getOrderPaymentDetails(orderId),
+        isSuperAdmin ? paymentApi.getOrderPaymentDetails(orderId) : Promise.resolve(null),
       ]);
       const orderData = detailResponse?.data?.data || null;
       setSelectedOrder(orderData);
@@ -287,12 +289,12 @@ const AdminOrdersView = () => {
     try {
       await orderApi.updateAdminOrderStatus(selectedOrderId, {
         status: form.status,
-        paymentStatus: form.paymentStatus || null,
+        ...(isSuperAdmin ? { paymentStatus: form.paymentStatus || null } : {}),
         expectedDeliveryDate: form.status === "SHIPPED" ? form.expectedDeliveryDate || null : null,
         location: form.location?.trim() || null,
         note: form.note?.trim() || null,
       });
-      setSuccess("Order status and payment status updated successfully.");
+      setSuccess("Order updated successfully.");
       window.dispatchEvent(new CustomEvent("admin-notification", { detail: { type: "success", message: "Order updated successfully." } }));
       await Promise.all([loadAdminOrders(ordersPage.page, ordersPage.size), loadOrderDetails(selectedOrderId)]);
     } catch (err) {
@@ -314,15 +316,15 @@ const AdminOrdersView = () => {
       searchPlaceholder="Search order id, customer, email..."
       topActions={
         <div className="flex flex-wrap justify-end gap-2">
-          <button
+          {isSuperAdmin && (<button
             type="button"
-            onClick={() => navigate("/admin/invoices")}
+            onClick={() => navigate("/superadmin/invoices")}
             title="Open Invoices"
             aria-label="Open Invoices"
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8dde6] bg-white text-[#334155]"
           >
             <TopBarIcon path="M6 2h12v20l-3-2-3 2-3-2-3 2V2zm2 4v2h8V6H8zm0 4v2h8v-2H8z" />
-          </button>
+          </button>)}
           <button
             type="button"
             onClick={() => loadAdminOrders(ordersPage.page, ordersPage.size)}
@@ -483,13 +485,13 @@ const AdminOrdersView = () => {
                 <p className="text-sm text-[#334155]">
                   Customer: <span className="font-semibold">{formatCustomerName(selectedOrder)}</span>
                 </p>
-                <button
+                {isSuperAdmin && (<button
                   type="button"
-                  onClick={() => navigate(`/admin/invoices?orderId=${selectedOrderId}`)}
+                  onClick={() => navigate(`/superadmin/invoices?orderId=${selectedOrderId}`)}
                   className="h-8 rounded-lg border border-[#d8dde6] bg-white px-3 text-xs font-semibold text-[#334155]"
                 >
                   Open Invoice
-                </button>
+                </button>)}
               </div>
               <p className="mt-1 text-xs text-[#64748b]">
                 Email: {selectedOrder?.userEmail || "-"} | Phone: {selectedOrder?.contactPhone || "-"}
@@ -523,7 +525,7 @@ const AdminOrdersView = () => {
                   onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
                   className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm"
                 >
-                  {ADMIN_STATUS_OPTIONS.map((status) => (
+                  {ADMIN_STATUS_OPTIONS.filter((status) => isSuperAdmin || !["REFUND_IN_PROCESS", "REFUNDED"].includes(status)).map((status) => (
                     <option key={status} value={status}>
                       {status}
                     </option>
@@ -536,7 +538,7 @@ const AdminOrdersView = () => {
                   <input type="date" required value={form.expectedDeliveryDate} onChange={(event) => setForm((prev) => ({ ...prev, expectedDeliveryDate: event.target.value }))} className="h-10 w-full rounded-lg border border-[#d8dde6] bg-white px-3 text-sm" />
                 </label>
               ) : null}
-              <label className="space-y-1">
+              {isSuperAdmin && (<label className="space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">Payment Status</span>
                 <select
                   value={form.paymentStatus}
@@ -549,7 +551,7 @@ const AdminOrdersView = () => {
                     </option>
                   ))}
                 </select>
-              </label>
+              </label>)}
               <label className="space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">Location</span>
                 <input
@@ -618,7 +620,7 @@ const AdminOrdersView = () => {
               )}
             </section>
 
-            <section>
+            {isSuperAdmin && (<section>
               <h4 className="mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-[#64748b]">Payment Attempts</h4>
               {(paymentDetails?.attempts || []).length ? (
                 <div className="space-y-2">
@@ -639,7 +641,7 @@ const AdminOrdersView = () => {
               ) : (
                 <p className="text-sm text-[#64748b]">No payment attempts available.</p>
               )}
-            </section>
+            </section>)}
           </div>
         )}
       </AdminRightPanel>

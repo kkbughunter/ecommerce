@@ -27,7 +27,7 @@ public class ProductReviewController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<ProductReviewsResponse>> getReviews(@PathVariable Long productId) {
         return ResponseEntity.ok(ApiResponseFactory.ok(reviews.getReviews(productId), "Product reviews fetched successfully"));
     }
